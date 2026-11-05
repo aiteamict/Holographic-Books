@@ -83,7 +83,7 @@ export class UI {
   }
   setMuted(m) { this.muted = m; const b = this.$('mute'); b.textContent = m ? '🔇' : '🔊'; b.classList.toggle('off', m); b.setAttribute('aria-pressed', String(m)); const mm = this.$('m-mute'); if (mm) mm.textContent = m ? '🔇' : '🔊'; }
   setStep(k, title, prompt) {
-    this.cur = k; this.$('mtitle').textContent = k ? `${k} · ${title}` : title; this.$('m-where').textContent = k ? `${k} · ${title}` : title;
+    this.cur = k; this.$('mtitle').textContent = k ? `${k}. ${title}` : title; { const w = this.$('m-where'); w.textContent = ''; if (k) { const n = document.createElement('b'); n.textContent = k; w.append(n); } w.append(title); }
     if (this.phone) { this.openCard(true); this.$('mbody').dataset.tab = 'guide'; this.$('mbody').querySelectorAll('.mtabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === 'guide')); }
     const s = this.$('step');
     s.querySelector('.n').textContent = String(k).padStart(2, '0');
