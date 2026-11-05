@@ -176,12 +176,18 @@ function magnify(e) {
 }
 canvas.addEventListener('pointerleave', () => ui.lens(false));
 // a quick vertical swipe on empty canvas turns the page (touch has no wheel and no dots)
+// Swipes are read on the whole window (a finger often starts on a panel, not the canvas); controls are excluded.
+// Up or left = next spread, down or right = previous.
 let swipe = null;
-canvas.addEventListener('pointerup', e => {
-  if (!swipe) return; const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y, quick = performance.now() - swipe.t < 700; swipe = null;
-  if (quick && Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx) * 1.4) goTo(cur - Math.sign(dy));
+const onControl = t => !!t.closest?.('button,a,input,select,textarea,.sheet,.opts');
+addEventListener('pointerdown', e => { if (e.target !== canvas && !onControl(e.target)) swipe = { x: e.clientX, y: e.clientY, t: performance.now() }; }, { passive: true });
+addEventListener('pointerup', e => {
+  if (!swipe) return; const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y, quick = performance.now() - swipe.t < 900; swipe = null;
+  if (!quick || book.busy) return;
+  if (Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx) * 1.2) goTo(cur - Math.sign(dy));
+  else if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) goTo(cur - Math.sign(dx));
 });
-canvas.addEventListener('pointercancel', () => { swipe = null; });
+addEventListener('pointercancel', () => { swipe = null; });
 const endDrag = () => { if (!drag) return; drag.i.release?.(); if (!drag.moved) { drag.i.tap?.(drag.hit); snd.play(tagged(drag.hit.object, 'handle') ? 'tick' : 'step'); } drag = null; };
 canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
 let wheelAcc = 0, wheelLock = 0;

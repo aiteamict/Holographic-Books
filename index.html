@@ -102,6 +102,20 @@
     .sheet{bottom:238px}
   }
   @media (max-width:820px),(max-height:520px){.sheet.open{display:block}.sheet-toggle{display:block}.step{display:none}.steps{left:12px;right:12px;bottom:182px;max-width:none;justify-content:flex-start}.again{left:auto;right:12px;bottom:26px;width:56px;height:56px}.actions{left:12px;right:80px;bottom:88px;max-width:none;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap}.actions button{flex:0 0 auto}.dots{display:none}.caption{bottom:auto;top:84px;max-width:92vw}.hint{display:none!important}.credit{display:none}.brand h1{font-size:17px}.mute{right:12px;top:12px}}
+  /* phones upright: a compact bottom stack, and the page arrows as big buttons on the right edge */
+  @media (max-width:820px) and (orientation:portrait){
+    .dots{display:flex;flex-direction:column;align-items:center;left:auto;right:8px;top:50%;bottom:auto;transform:translateY(-50%);padding:4px;gap:2px;border-radius:999px}
+    .dots button:not(.arrow){display:none}
+    .dots .arrow{width:46px;height:46px;font-size:20px;color:var(--ink);background:transparent;border:0;border-radius:50%}
+    .gpanel{bottom:166px;max-height:30vh;overflow:auto;padding:8px 12px 10px;font-size:12.5px}
+    .gpanel p{margin:0 0 6px}.gpanel .opts button,.gpanel .next{padding:7px 11px;font-size:12px}
+    .sr#mirror{bottom:120px}
+    .actions{bottom:72px;right:118px}
+    .sheet-toggle{left:auto;right:12px;bottom:72px;padding:8px 10px;font-size:12px}
+    .steps{bottom:16px;right:80px;padding:3px 4px;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap}.steps button{flex:0 0 auto;padding:6px 9px;font-size:11px}
+    .again{bottom:12px;width:50px;height:50px}
+    .sheet{bottom:166px;max-height:40vh}
+  }
   /* a phone held sideways: short and wide. Panels stack in the left column; the right half is the hologram's. */
   @media (max-height:520px) and (orientation:landscape){
     .brand h1{font-size:15px}.brand p{display:none}
