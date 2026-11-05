@@ -56,13 +56,17 @@ export function makeGuide(ctx, { steps, anchor = [0, 14, 0], w = 11, h = 4.8, ro
     allows(label) { return free || (steps[i].show || []).includes(label); },
     /** wrap a spread's actions so hidden() follows the guide */
     wrap(actions) { return actions.map(a => ({ ...a, hidden: () => !api.allows(a.label) || !!a.hidden?.() })); },
+    /** choose option k of the current check (from the card or from the phone panel) */
+    pick(k) { const s = steps[i]; if (!s.check || free) return; picked = k; card.redraw(); ctx.snd?.play(k === s.check.answer ? 'tick' : 'step'); api.onChange?.(api); },
+    /** what the current step shows, for a DOM mirror on small screens */
+    get current() { const s = steps[i], chk = s.check, done = picked === chk?.answer; return { title: free ? 'Explore' : `Step ${i + 1} of ${steps.length} · ${s.title}`, free, text: free ? 'Everything is live. Pick a step above to go back.' : chk ? (picked >= 0 ? (done ? `✓ ${chk.why}` : `✗ Not that one. ${chk.why}`) : chk.q) : s.text, options: chk && !free ? chk.options : null, picked, answer: chk?.answer, canNext: !free && (!chk || done), last: i >= steps.length - 1 }; },
     /** handle a tap on the card; returns true when consumed */
     tap(hit) {
       if (hit.object !== card) return false;
       const s = steps[i], uv = hit.uv;
       if (s.check && !free && uv) {
         const b = boxes.find(b => uv.x >= b.x0 && uv.x <= b.x1 && uv.y >= b.y0 && uv.y <= b.y1);
-        if (b) { picked = b.k; card.redraw(); ctx.snd?.play(b.k === s.check.answer ? 'tick' : 'step'); api.onChange?.(api); return true; }
+        if (b) { api.pick(b.k); return true; }
         if (picked !== s.check.answer) return true;      // must answer before moving on
       }
       api.next(); return true;

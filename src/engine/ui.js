@@ -72,6 +72,19 @@ export class UI {
     this.refreshActions();
   }
   refreshActions() { for (const a of this.actions || []) if (a.el) { if (a.toggle) a.el.classList.toggle('on', !!a.toggle()); if (a.hidden) a.el.classList.toggle('hid', !!a.hidden()); } }
+  /**
+   * The phone mirror of the guide card: the step's text, the check's option buttons and a Next button, as DOM.
+   * Hidden by CSS on wide screens, where the 3-D card is readable. info: guide.current or null; on: { pick(k), next() }.
+   */
+  setGuidePanel(info, on = {}) {
+    let p = this.$('gpanel');
+    if (!p) { p = document.createElement('section'); p.id = 'gpanel'; p.className = 'gpanel glass'; p.setAttribute('aria-live', 'polite'); this.root.append(p); this._glassEls = null; }
+    p.textContent = ''; p.style.display = info ? '' : 'none'; if (!info) return;
+    const h = document.createElement('small'); h.textContent = info.title; p.append(h);
+    const t = document.createElement('p'); t.textContent = info.text; p.append(t);
+    if (info.options) { const row = document.createElement('div'); row.className = 'opts'; info.options.forEach((o, k) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = o; if (info.picked === k) b.classList.add(k === info.answer ? 'ok' : 'bad'); b.onclick = () => on.pick?.(k); row.append(b); }); p.append(row); }
+    if (info.canNext) { const n = document.createElement('button'); n.type = 'button'; n.className = 'next'; n.textContent = info.last ? 'Explore freely →' : 'Next step →'; n.onclick = () => on.next?.(); p.append(n); }
+  }
   /** The guided-step strip: one chip per step plus Explore. items: [titles]; active: index (>= length = Explore). */
   setSteps(items = [], active = 0, onPick) {
     let s = this.$('steps');

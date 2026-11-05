@@ -80,8 +80,8 @@ function moveCam(preset, dur = 1.5) {
   camT.from = { pos: camera.position.clone(), look: look.clone() };
   const to = new THREE.Vector3(...preset.pos), at = new THREE.Vector3(...preset.look);
   if (camera.aspect < 1) {                                                   // portrait phones: frame the hologram page; the text is read in the sheet
-    const cx = PAGE_W / 2 + 3; to.x += cx - at.x; at.x = cx; at.y -= 1.5;   // the cards and dims hang to the right of the page centre
-    to.sub(at).multiplyScalar(2.15).add(at);
+    const cx = PAGE_W / 2 + 3; to.x += cx - at.x; at.x = cx; at.y -= 11;   // aim low: the hologram rises into the free top half, above the phone's bottom panels
+    to.sub(at).multiplyScalar(2).add(at);
   }
   camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur;
 }
@@ -125,8 +125,8 @@ ui.setStep(0, BOOK.title, 'Scroll to open the book.');
 /** the guided-step strip follows the current spread's guide (if it has one) */
 function syncGuide(i) {
   const g = i?.guide;
-  if (!g) { ui.setSteps([]); return; }
-  g.onChange = () => { ui.setSteps(g.titles, g.free ? g.titles.length : g.step, j => g.go(j)); ui.refreshActions(); };
+  if (!g) { ui.setSteps([]); ui.setGuidePanel(null); return; }
+  g.onChange = () => { ui.setSteps(g.titles, g.free ? g.titles.length : g.step, j => g.go(j)); ui.setGuidePanel(g.current, { pick: k => g.pick(k), next: () => g.next() }); ui.refreshActions(); };
   g.onChange();
 }
 
@@ -169,7 +169,7 @@ canvas.addEventListener('pointermove', e => {
 const pagePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), pagePt = new THREE.Vector3();
 function magnify(e) {
   const src = cur > N ? insideBack.image : cur ? pages[cur].left.image : null;
-  if (!src || (ui.sheetOpen && cur <= N)) { ui.lens(false); return; }   // the lens reads the printed page; with the panel open the page is quiet
+  if (!src || e.pointerType === 'touch' || (ui.sheetOpen && cur <= N)) { ui.lens(false); return; }   // a finger is not a hover   // the lens reads the printed page; with the panel open the page is quiet
   toNdc(e); ray.setFromCamera(ndc, camera); pagePlane.constant = -book.pageTopAt(cur);
   if (!ray.ray.intersectPlane(pagePlane, pagePt) || pagePt.x < -PAGE_W || pagePt.x > 0 || Math.abs(pagePt.z) > PAGE_H / 2) { ui.lens(false); return; }
   ui.lens(true, e.clientX, e.clientY, src, (pagePt.x + PAGE_W) / PAGE_W, (pagePt.z + PAGE_H / 2) / PAGE_H);
@@ -201,7 +201,7 @@ const coarsePointer = matchMedia('(pointer: coarse)').matches;   // phones and t
 async function settleQuality() {
   const ms = forcedTier ? 0 : await measureFrameMs(50);
   tierName = pickTier(ms, forcedTier); tier = TIERS[tierName];
-  if (coarsePointer && !forcedTier && tierName === 'high') tierName = 'medium', tier = TIERS.medium;   // a quick first measurement on a phone is not a promise
+  if (coarsePointer && !forcedTier) { tierName = ms <= 40 ? 'phone' : 'low'; tier = TIERS[tierName]; }   // touch devices: the phone tier, or low when even the cover is slow
   // the GL liquid-glass refraction costs ~85 % of a frame and smears what sits behind the UI; CSS glass is the default, ?fx=glass opts in
   const glassOn = (new URLSearchParams(location.search).get('fx') || '').split(',').includes('glass') && tierName !== 'low';
   stage.setTier(tier); holo.setThickLines(tier.thick); stage.fx.glassPass.enabled = glassOn; ui.setGlassFx(glassOn);
