@@ -6,6 +6,24 @@
 <title>The Route Marker · IRC 2-1968, a 3D holographic book</title>
 <meta name="description" content="IRC 2-1968, Route Marker Signs for National Highways, as a 3D holographic book: draw the shield, set the numerals, paint it, plant it at the junction." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f0c020'/%3E%3Cpath d='M7 6h18v14c0 4-4 7-9 8-5-1-9-4-9-8z' fill='none' stroke='%23141414' stroke-width='2'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='Arial' font-weight='700' font-size='11' fill='%23141414'%3ENH%3C/text%3E%3C/svg%3E" />
+<script>
+  // older phone browsers lack CanvasRenderingContext2D.roundRect; the cards and chips draw with it
+  if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      r = Math.min(Array.isArray(r) ? r[0] : (r || 0), w / 2, h / 2);
+      this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath(); return this;
+    };
+  }
+  // surface uncaught errors on screen: on a phone there is no console to read
+  addEventListener('error', e => document.dispatchEvent(new CustomEvent('book:error', { detail: String(e.message || e.error || 'error') })));
+  addEventListener('unhandledrejection', e => document.dispatchEvent(new CustomEvent('book:error', { detail: String(e.reason && e.reason.message || e.reason || 'error') })));
+  document.addEventListener('book:error', e => {
+    let el = document.getElementById('booterr');
+    if (!el) { el = document.createElement('div'); el.id = 'booterr'; el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:99;padding:10px 14px;border-radius:12px;background:rgba(120,20,30,.92);color:#fff;font:13px/1.4 system-ui,sans-serif;white-space:pre-wrap'; document.body.append(el); }
+    el.textContent = 'Something went wrong: ' + e.detail;
+  });
+</script>
 <style>
   :root { --ink:#e8eef6; --ink2:#9fb0c4; --cyan:#58d6ff; --amber:#ffa24a; --glass:rgba(18,24,34,.62); --edge:rgba(255,255,255,.12); --sans:"Inter","Segoe UI",system-ui,Arial,sans-serif; }
   html,body{margin:0;height:100%;overflow:hidden;background:#07080c;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}

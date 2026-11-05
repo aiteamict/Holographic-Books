@@ -137,7 +137,8 @@ const pick = (e, targets) => { if (!targets?.length) return null; toNdc(e); ray.
 let drag = null, hoverObj = null;
 canvas.addEventListener('pointerdown', e => {
   endTour(true); snd.unlock();
-  const i = built[cur]; if (!i || book.busy) return;
+  const i = built[cur];
+  if (!i || book.busy) { swipe = book.busy ? null : { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // the cover and the back page: a swipe is the only touch gesture
   const hit = pick(e, i.targets);
   if (!hit) { swipe = { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // empty canvas: maybe a page swipe
   canvas.setPointerCapture(e.pointerId);
@@ -196,9 +197,11 @@ addEventListener('keydown', e => {
 // ---- quality: measure on the cover, before any spread is built, then lock the tier ----------------------------
 const forcedTier = new URLSearchParams(location.search).get('tier');
 let tierReady = false;
+const coarsePointer = matchMedia('(pointer: coarse)').matches;   // phones and tablets: never start above medium
 async function settleQuality() {
   const ms = forcedTier ? 0 : await measureFrameMs(50);
   tierName = pickTier(ms, forcedTier); tier = TIERS[tierName];
+  if (coarsePointer && !forcedTier && tierName === 'high') tierName = 'medium', tier = TIERS.medium;   // a quick first measurement on a phone is not a promise
   // the GL liquid-glass refraction costs ~85 % of a frame and smears what sits behind the UI; CSS glass is the default, ?fx=glass opts in
   const glassOn = (new URLSearchParams(location.search).get('fx') || '').split(',').includes('glass') && tierName !== 'low';
   stage.setTier(tier); holo.setThickLines(tier.thick); stage.fx.glassPass.enabled = glassOn; ui.setGlassFx(glassOn);

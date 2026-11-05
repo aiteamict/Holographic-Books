@@ -81,14 +81,23 @@ export function createStage(canvas) {
   const driftDust = dt => { for (let i = 0; i < DUST; i++) { let x = dustPos[i * 3] + dustVel[i * 3] * dt, y = dustPos[i * 3 + 1] + dustVel[i * 3 + 1] * dt, z = dustPos[i * 3 + 2] + dustVel[i * 3 + 2] * dt; if (y < 0) { y = 60; x = -50 + Math.random() * 130; z = -60 + Math.random() * 110; } dustPos[i * 3] = x; dustPos[i * 3 + 1] = y; dustPos[i * 3 + 2] = z; } dustGeo.attributes.position.needsUpdate = true; };
 
   // ---- post chain: render → AO → (DoF, cover only) → bloom/vignette/tone/SMAA → liquid glass for the UI
-  // MSAA ×4 in the composer instead of SMAA: SMAA is a post-blur and smears thin text edges
-  const msaa = renderer.capabilities.isWebGL2 ? 4 : 0;
+  // MSAA ×4 in the composer instead of SMAA: SMAA is a post-blur and smears thin text edges. Touch devices (phones,
+  // tablets) skip MSAA: the multisampled targets at a phone's pixel count are what exhausts a mobile GPU.
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const msaa = renderer.capabilities.isWebGL2 && !coarse ? 4 : 0;
+  renderer.setPixelRatio(pixelRatioFor(coarse ? 1.25 : 1.5));
+  /** pixel ratio capped by a total pixel budget, so a 1170 × 2532 phone never renders 12 M pixels per frame */
+  function pixelRatioFor(maxDpr) {
+    const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight, budget = coarse ? 1.6e6 : 4.2e6;
+    return Math.min(devicePixelRatio || 1, maxDpr, Math.sqrt(budget / Math.max(1, w * h)));
+  }
   const composer = new EffectComposer(renderer, { multisampling: msaa });
   composer.addPass(new RenderPass(scene, camera));
   const ao = new N8AOPostPass(scene, camera, 1, 1);
   ao.configuration.aoRadius = 4; ao.configuration.distanceFalloff = 1.5; ao.configuration.intensity = 2.4; ao.configuration.halfRes = true;
   ao.configuration.color = new THREE.Color('#05070c'); ao.setQualityMode('Medium');
   if (!off.has('noao')) composer.addPass(ao);
+  if (coarse) { ao.enabled = false; key.shadow.mapSize.set(1024, 1024); }   // touch devices start light; setTier may raise this after measuring
   const dof = new DepthOfFieldEffect(camera, { focalLength: .05, bokehScale: 2.6 });
   dof.target = new THREE.Vector3(13, 1.5, 0);
   const dofPass = new EffectPass(camera, dof); if (!off.has('nodof')) composer.addPass(dofPass);
@@ -111,10 +120,12 @@ export function createStage(canvas) {
     const db = renderer.getDrawingBufferSize(new THREE.Vector2()); glass.setSize(db.x, db.y); for (const cb of onResize) cb(db.x, db.y);
   }
   addEventListener('resize', resize); resize();
+  // a lost context (GPU memory, backgrounding) is the usual "black screen" on phones: say so instead of staying silent
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); document.dispatchEvent(new CustomEvent('book:error', { detail: 'The graphics context was lost (the device ran out of GPU memory). Reload, or add ?tier=low to the address.' })); });
 
   /** apply a quality tier (see quality.js) */
   function setTier(t) {
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, t.dpr));
+    renderer.setPixelRatio(pixelRatioFor(t.dpr));
     ao.enabled = t.ao; ao.setQualityMode(t.aoMode); dust.visible = !!t.dust; scene.environmentIntensity = t.env ?? .3;
     if (key.shadow.mapSize.x !== t.shadow) { key.shadow.mapSize.set(t.shadow, t.shadow); key.shadow.map?.dispose(); key.shadow.map = null; }
     resize();
