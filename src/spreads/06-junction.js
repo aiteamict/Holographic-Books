@@ -56,17 +56,17 @@ export default {
     let sel = -1, cur = 0, planOn = true;     // the plan is hidden in the guide's first step: the schedule comes first
     const sched = textPlane({ w: 13.5, h: 9.6, px: 48, draw: (c, W, H) => {
       const def = [EX1, EX2][cur]; cardBg(c, W, H);
-      c.fillStyle = '#8fd8f3'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText(`SCHEDULE OF SIGNS · ${def.name.toUpperCase()}`, 18, 30);
-      c.fillStyle = '#9fb0c4'; c.font = '600 14px Inter, Segoe UI, Arial'; COLS.forEach(([t, x]) => c.fillText(t.toUpperCase(), x + 6, HEAD - 12));
+      c.fillStyle = '#1d5f87'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText(`SCHEDULE OF SIGNS · ${def.name.toUpperCase()}`, 18, 30);
+      c.fillStyle = '#5c6168'; c.font = '600 14px Inter, Segoe UI, Arial'; COLS.forEach(([t, x]) => c.fillText(t.toUpperCase(), x + 6, HEAD - 12));
       def.markers.forEach((m, i) => {
         const y = HEAD + i * ROW, lit = i === sel, approach = m.shields.length > 1;
-        if (lit) { c.fillStyle = 'rgba(255,162,74,.22)'; c.fillRect(12, y, W - 24, ROW); }
-        c.fillStyle = lit ? '#ffd7a8' : '#e6f6ff'; c.font = `${lit ? 700 : 500} 15px Inter, Segoe UI, Arial`;
+        if (lit) { c.fillStyle = 'rgba(176,83,42,.22)'; c.fillRect(12, y, W - 24, ROW); }
+        c.fillStyle = lit ? '#8a3f1c' : '#1f2328'; c.font = `${lit ? 700 : 500} 15px Inter, Segoe UI, Arial`;
         const cells = [`P${i + 1}`, approach ? '100–150 m before' : '15–30 m after', 'left', m.shields.map(s => 'NH ' + s.n).join(' + '), approach ? m.shields.map(s => kindName(s.kind)).join(' · ') : 'none (Plate 2)'];
         cells.forEach((t, k) => c.fillText(t, COLS[k][1] + 6, y + 23));
-        c.strokeStyle = 'rgba(79,216,255,.14)'; c.beginPath(); c.moveTo(12, y + ROW); c.lineTo(W - 12, y + ROW); c.stroke();
+        c.strokeStyle = 'rgba(29,95,135,.14)'; c.beginPath(); c.moveTo(12, y + ROW); c.lineTo(W - 12, y + ROW); c.stroke();
       });
-      c.fillStyle = '#7fb4c8'; c.font = '500 13px Inter, Segoe UI, Arial'; c.fillText('cl. 5.1: the crossing route rides on the same post as the travelled route, each with its own arrow', 18, H - 16);
+      c.fillStyle = '#5c6168'; c.font = '500 13px Inter, Segoe UI, Arial'; c.fillText('cl. 5.1: the crossing route rides on the same post as the travelled route, each with its own arrow', 18, H - 16);
     } });
     sched.position.set(-5.4, 11.5, -6); sched.userData.sched = true; group.add(sched);     // left edge stays right of the spine on screen
     const schedFrame = holo.frame(13.5, 9.6, 'Signing schedule'); schedFrame.position.set(-5.4, 11.5, -6.05); group.add(schedFrame);
@@ -78,7 +78,7 @@ export default {
         g.add(holo.segments([a.clone().add(n), b.clone().add(n), a.clone().sub(n), b.clone().sub(n)], holo.CYAN, .9, { width: .08 }));
         g.add(holo.polyline([a, b], holo.CYAN, { opacity: .3, width: .035, dashed: true }));
       }
-      for (const [t, x, z] of def.tags) { const l = holo.label(t, { h: .8, color: '#8fd8f3' }); l.position.set(x, .3, z); g.add(l); }
+      for (const [t, x, z] of def.tags) { const l = holo.label(t, { h: .8, color: '#1d5f87' }); l.position.set(x, .3, z); g.add(l); }
       const discs = [];
       def.markers.forEach((m, i) => {
         const approach = m.shields.length > 1, axis = Math.abs(m.facing[0]) < Math.abs(m.facing[1]);

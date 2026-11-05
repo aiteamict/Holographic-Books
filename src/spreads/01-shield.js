@@ -27,9 +27,9 @@ export default {
     const shieldPts = C(sign.shieldOutline());
     const shieldLine = holo.outline(shieldPts, holo.WHITE, { scale: S, width: .11 });
     const fill = holo.fillPoly(shieldPts, holo.CYAN, { scale: S, opacity: .05 }); fill.position.z = -.03; fill.userData.shield = true;
-    const gc = document.createElement('canvas'); gc.width = 900; gc.height = 1200; sign.drawFace(gc, '42', { yellow: 'rgba(0,0,0,0)', ink: '#9fe8ff', noBorder: true });
+    const gc = document.createElement('canvas'); gc.width = 900; gc.height = 1200; sign.drawFace(gc, '42', { yellow: 'rgba(0,0,0,0)', ink: '#1d5f87', noBorder: true });
     const gt = new THREE.CanvasTexture(gc); gt.colorSpace = THREE.SRGBColorSpace; gt.anisotropy = 8;
-    const glyphs = new THREE.Mesh(new THREE.PlaneGeometry(P.w * S, P.h * S), new THREE.MeshBasicMaterial({ map: gt, transparent: true, opacity: .6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); glyphs.position.z = .02;
+    const glyphs = new THREE.Mesh(new THREE.PlaneGeometry(P.w * S, P.h * S), new THREE.MeshBasicMaterial({ map: gt, transparent: true, opacity: .6, blending: THREE.NormalBlending, depthWrite: false, toneMapped: false })); glyphs.position.z = .02;
     drawing.add(plateLine, shieldLine, fill, glyphs);
     // the fabricated plate, painted in shop stages over the same sheet
     const madeC = document.createElement('canvas'); madeC.width = 900; madeC.height = 1200;
@@ -68,7 +68,7 @@ export default {
     const rule = new THREE.Mesh(new THREE.BoxGeometry(RW, 620 * S, .12), [steelSide(), steelSide(), steelSide(), steelSide(), new THREE.MeshBasicMaterial({ map: rt }), steelSide()]); rule.position.set(-(cx + 33) * S, 0, .08); board.add(rule);   // tight beside the plate: nothing of the drawing crosses the spine
     function steelSide() { return new THREE.MeshStandardMaterial({ color: '#cfd6dc', roughness: .5, metalness: .4 }); }
     const cursor = new THREE.Mesh(new THREE.BoxGeometry((P.w + 130) * S, .32, .1), holo.glassMat(holo.AMBER, { opacity: .55, scan: 0 })); cursor.position.set(-8 * S, -(262 - cy) * S, .2); cursor.userData.cursor = true; board.add(cursor);
-    const readout = holo.label(' ', { h: 1, color: '#ffd7a8', bg: 'rgba(6,18,28,.84)', align: 'left' }); readout.position.z = .4; board.add(readout);
+    const readout = holo.label(' ', { h: 1, color: '#8a3f1c', bg: 'rgba(6,18,28,.84)', align: 'left' }); readout.position.z = .4; board.add(readout);
     const knob = holo.handle('build', { label: 'draw it', kind: 'knob' }); knob.position.set(-9.5, 0, 8.5); group.add(knob);
 
     // the shop sequence

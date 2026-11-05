@@ -27,7 +27,7 @@ export function textPlane({ w, h, px = 44, draw }) {
 }
 
 /** Glass card background for textPlane draws. */
-export function cardBg(ctx, w, h, { stroke = 'rgba(88,214,255,.85)', fill = 'rgba(8,22,34,.78)' } = {}) {
+export function cardBg(ctx, w, h, { stroke = 'rgba(29,95,135,.85)', fill = 'rgba(255,253,248,.96)' } = {}) {
   ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.roundRect(2, 2, w - 4, h - 4, 14); ctx.fill(); ctx.stroke();
 }

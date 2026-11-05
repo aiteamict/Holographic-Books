@@ -42,7 +42,8 @@ const snd = new Sound();
 const ui = new UI(document.getElementById('ui'), { title: BOOK.title, subtitle: BOOK.subtitle, count: N + 1, labels: { [N + 1]: 'Back page' }, titles: ['Cover', ...LESSONS.slice(1).map(l => l.title), COVER.insideBack.title], onNav: (k, rel) => goTo(rel ? cur + k : k), onAgain: () => { built[cur]?.reset?.(); ui.refreshActions(); snd.play('tick'); }, muted: snd.muted, onMute: m => snd.setMuted(m) });
 ui.onSheet = open => book.setLeftQuiet(open); book.setLeftQuiet(ui.sheetOpen);
 // phones (and any short, wide screen): the phone shell — one card, one toolbar, the hologram full-screen
-const PHONE = matchMedia('(max-width: 820px), (pointer: coarse) and (max-height: 520px)').matches;   // narrow, or a touch screen held sideways; never a short laptop window ui.setPhone(PHONE); if (PHONE) book.setLeftQuiet(false);
+// narrow, or a touch screen held sideways; never a short laptop window
+const PHONE = matchMedia('(max-width: 820px), (pointer: coarse) and (max-height: 520px)').matches; ui.setPhone(PHONE); if (PHONE) book.setLeftQuiet(false);
 const ctx = { THREE, holo, sign, ui, QUIZ, scene, camera, hero: makeHero, snd };
 const heroReady = initHero();
 const built = {};
@@ -59,9 +60,9 @@ const coverHolo = new THREE.Group();
   const S = .03, o = sign.shieldOutline().map(p => ({ x: p.x - 225, y: p.y - 300 }));
   const up = new THREE.Group(); up.position.y = 12;
   up.add(holo.outline(o, holo.CYAN, { scale: S }), holo.fillPoly(o, holo.CYAN, { scale: S, opacity: .08 }));
-  const gc = document.createElement('canvas'); gc.width = 450; gc.height = 600; sign.drawFace(gc, '42', { yellow: 'rgba(0,0,0,0)', ink: '#9fe8ff', noBorder: true });
+  const gc = document.createElement('canvas'); gc.width = 450; gc.height = 600; sign.drawFace(gc, '42', { yellow: 'rgba(0,0,0,0)', ink: '#1d5f87', noBorder: true });
   const gt = new THREE.CanvasTexture(gc); gt.colorSpace = THREE.SRGBColorSpace;
-  up.add(new THREE.Mesh(new THREE.PlaneGeometry(450 * S, 600 * S), new THREE.MeshBasicMaterial({ map: gt, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })));
+  up.add(new THREE.Mesh(new THREE.PlaneGeometry(450 * S, 600 * S), new THREE.MeshBasicMaterial({ map: gt, transparent: true, opacity: .55, blending: THREE.NormalBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })));
   coverHolo.add(holo.projector(11), up); coverHolo.userData.up = up; coverHolo.userData.pop = 0;
   coverHolo.position.set(PAGE_W + 1, -book.pageTopAt(0) - .05 - .9, 0);   // beside the closed book, standing on the desk, never on the cover's title
   holoRoot.add(coverHolo);

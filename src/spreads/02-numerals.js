@@ -33,31 +33,31 @@ export default {
     // Plate 5 as hologram tables
     let gaps = [], number = '744', even = false;      // 744 opens the page: two code-4 pairs, where Plate 5 is most visible
     const t1 = textPlane({ w: 9.6, h: 9.2, px: 48, draw: (c, W, Hh) => {
-      cardBg(c, W, Hh); c.fillStyle = '#8fd8f3'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('TABLE 1 · CODE NUMBER FOR THE PAIR (Plate 5)', 18, 30);
+      cardBg(c, W, Hh); c.fillStyle = '#1d5f87'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('TABLE 1 · CODE NUMBER FOR THE PAIR (Plate 5)', 18, 30);
       const x0 = 18, y0 = 52, cw = [110, 72, 150, 72], rh = 32; const cols = ['preceding', '1, 5', '2 3 6 8 9 0', '4, 7'];
-      c.font = '600 15px Inter, Segoe UI, Arial'; c.fillStyle = '#9fb0c4'; let x = x0; cols.forEach((h, i) => { c.fillText(h, x + 6, y0 + 20); x += cw[i]; });
+      c.font = '600 15px Inter, Segoe UI, Arial'; c.fillStyle = '#5c6168'; let x = x0; cols.forEach((h, i) => { c.fillText(h, x + 6, y0 + 20); x += cw[i]; });
       ROWS.forEach((r, ri) => { const y = y0 + rh * (ri + 1); x = x0; const used = gaps.filter(g => g.a === r);
         for (let ci = 0; ci < 4; ci++) { const lit = ci > 0 && used.some(g => groupOf(g.b) === SPEC.spacingGroups[ci - 1]);
-          if (lit) { c.fillStyle = 'rgba(125,255,176,.22)'; c.fillRect(x + 1, y + 2, cw[ci] - 2, rh - 4); }
-          c.fillStyle = lit ? '#9dffc2' : ci ? '#e6f6ff' : '#ffd7a8'; c.font = `${lit ? 800 : 500} 17px Inter, Segoe UI, Arial`;
+          if (lit) { c.fillStyle = 'rgba(47,143,85,.22)'; c.fillRect(x + 1, y + 2, cw[ci] - 2, rh - 4); }
+          c.fillStyle = lit ? '#1f7a45' : ci ? '#1f2328' : '#8a3f1c'; c.font = `${lit ? 800 : 500} 17px Inter, Segoe UI, Arial`;
           c.fillText(ci ? String(SPEC.spacingCode[r][ci - 1]) : r, x + (ci ? cw[ci] / 2 - 5 : 40), y + 23); x += cw[ci]; }
-        c.strokeStyle = 'rgba(79,216,255,.18)'; c.beginPath(); c.moveTo(x0, y + rh); c.lineTo(x0 + 404, y + rh); c.stroke(); });
+        c.strokeStyle = 'rgba(29,95,135,.18)'; c.beginPath(); c.moveTo(x0, y + rh); c.lineTo(x0 + 404, y + rh); c.stroke(); });
     } });
     t1.position.set(9.2, 13.2, -1); group.add(t1);
     const t2 = textPlane({ w: 9.6, h: 3.6, px: 48, draw: (c, W, Hh) => {
-      cardBg(c, W, Hh); c.fillStyle = '#8fd8f3'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('TABLE 2 · SPACING FOR THE CODE', 18, 30);
-      [[1, 47], [2, 38], [4, 13]].forEach(([code, mm], i) => { const y = 58 + i * 34, lit = !even && gaps.some(g => g.code === code); if (lit) { c.fillStyle = 'rgba(125,255,176,.22)'; c.fillRect(18, y - 24, 404, 32); }
-        c.fillStyle = lit ? '#9dffc2' : '#e6f6ff'; c.font = `${lit ? 800 : 500} 18px Inter, Segoe UI, Arial`; c.fillText(`code ${code}`, 30, y); c.fillText(`${mm} mm`, 300, y); });
+      cardBg(c, W, Hh); c.fillStyle = '#1d5f87'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('TABLE 2 · SPACING FOR THE CODE', 18, 30);
+      [[1, 47], [2, 38], [4, 13]].forEach(([code, mm], i) => { const y = 58 + i * 34, lit = !even && gaps.some(g => g.code === code); if (lit) { c.fillStyle = 'rgba(47,143,85,.22)'; c.fillRect(18, y - 24, 404, 32); }
+        c.fillStyle = lit ? '#1f7a45' : '#1f2328'; c.font = `${lit ? 800 : 500} 18px Inter, Segoe UI, Arial`; c.fillText(`code ${code}`, 30, y); c.fillText(`${mm} mm`, 300, y); });
     } });
     t2.position.set(9.2, 6.4, -1); group.add(t2);
 
     // the 100 m strip: the numeral band of two faces, even gaps above, Plate 5 below, slightly out of focus
     const faceA = document.createElement('canvas'), faceB = document.createElement('canvas'); faceA.width = faceB.width = 450; faceA.height = faceB.height = 600;
     const far = textPlane({ w: 9.6, h: 5.6, px: 48, draw: (c, W, Hh) => {
-      cardBg(c, W, Hh); c.fillStyle = '#8fd8f3'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('THE SAME NUMBER FROM 100 M · tap to swap', 18, 30);
+      cardBg(c, W, Hh); c.fillStyle = '#1d5f87'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('THE SAME NUMBER FROM 100 M · tap to swap', 18, 30);
       sign.drawFace(faceA, number, { even: EVEN }); sign.drawFace(faceB, number);
       const sy = sign.numeralsTop() - 10, sh = SPEC.numerals.h + 20, dw = 200, dh = dw * sh / 450;
-      [[faceA, `even · ${EVEN} mm`, '#ffb3b3'], [faceB, 'Plate 5', '#9dffc2']].forEach(([cv, lbl, col], i) => {
+      [[faceA, `even · ${EVEN} mm`, '#b3362b'], [faceB, 'Plate 5', '#1f7a45']].forEach(([cv, lbl, col], i) => {
         const y = 44 + i * (dh + 10);
         c.fillStyle = col; c.font = '700 16px Inter, Segoe UI, Arial'; c.fillText(lbl, 18, y + dh / 2 + 6);
         c.save(); c.filter = 'blur(1px)'; c.drawImage(cv, 0, sy, 450, sh, W - dw - 18, y, dw, dh); c.restore();

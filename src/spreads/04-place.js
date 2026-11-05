@@ -34,13 +34,13 @@ export default {
     // chainage ticks on the near-side verge, every 25 m, labelled every 50
     const ticks = []; for (const m of CHAIN) ticks.push([hw + .2, 0, zAt(m)], [hw + .7, 0, zAt(m)]);
     plan.add(holo.segments(ticks, holo.DIM, .9, { width: .05 }));
-    for (const m of [50, 100, 150]) { const l = holo.label(`${m} m`, { h: .75, color: '#7fb4c8' }); l.position.set(hw + 1.9, .3, zAt(m)); plan.add(l); }
+    for (const m of [50, 100, 150]) { const l = holo.label(`${m} m`, { h: .75, color: '#5c6168' }); l.position.set(hw + 1.9, .3, zAt(m)); plan.add(l); }
     // the zones the standard allows: 100–150 m before (amber), 15–30 m after (green)
     const okA = holo.zone(hw + .55, zAt(100), zAt(150), .9, holo.AMBER, .09), okC = holo.zone(hw + .55, zJ - hw - 15 * M, zJ - hw - 30 * M, .9, holo.GREEN, .09); plan.add(okA, okC);
     plan.add(holo.tag('100–150 m before the junction · cl. 3.4', [hw + 1, 0, zAt(125)], [4.5, 2.2, 0], { accent: holo.AMBER }));
     plan.add(holo.tag('confirmatory · 15–30 m after · Plate 2', [hw + 1, 0, zJ - hw - 22 * M], [4.5, 2.2, 0], { accent: holo.GREEN }));
-    const arrow = holo.label('↓ traffic', { h: .85, color: '#ffc98a' }); arrow.position.set(-2.2, .4, zAt(170)); plan.add(arrow);
-    const jl = holo.label('junction', { h: .75, color: '#7fb4c8' }); jl.position.set(-2.4, .3, zJ); plan.add(jl);
+    const arrow = holo.label('↓ traffic', { h: .85, color: '#b0532a' }); arrow.position.set(-2.2, .4, zAt(170)); plan.add(arrow);
+    const jl = holo.label('junction', { h: .75, color: '#5c6168' }); jl.position.set(-2.4, .3, zJ); plan.add(jl);
 
     // markers as plan symbols: a disc you can drag, with the shield as its icon
     const mk = (name, kind) => { const g = new THREE.Group(); g.userData.marker = name; const d = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, .1, 20), holo.glassMat(holo.AMBER, { opacity: .35, scan: 0 })); d.position.y = .05; g.add(d); const ic = holo.label(kind ? 'NH 42 ⬆' : 'NH 42', { h: .8, color: '#1a1200', bg: SPEC.colours.face.hex, weight: 800 }); ic.position.set(0, 1.1, 0); g.add(ic); return g; };
@@ -53,25 +53,25 @@ export default {
     const faceC = sign.faceTexture('42').canvas, defC = document.createElement('canvas'); defC.width = 600; defC.height = 500; sign.drawDefinitionPlate(defC, 'ahead');
     const view = { dist: 150, legible: false };
     const screen = textPlane({ w: 10, h: 7, px: 44, draw: (c, W, H) => {
-      c.fillStyle = '#071018'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#fbf8f1'; c.fillRect(0, 0, W, H);
       const hz = H * .46, f = W * 1.15, eye = 1.2, lat = 3.5 + (st.kerb ? .6 : 2.5);   // m from lane centre to the post
-      c.strokeStyle = 'rgba(79,216,255,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, hz); c.lineTo(W, hz); c.stroke();
-      c.strokeStyle = 'rgba(79,216,255,.8)'; c.beginPath(); c.moveTo(W * .5 - f * 3.5 / 6, H); c.lineTo(W * .5 - f * 3.5 / 600, hz); c.moveTo(W * .5 + f * 3.5 / 6, H); c.lineTo(W * .5 + f * 3.5 / 600, hz); c.stroke();
+      c.strokeStyle = 'rgba(29,95,135,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, hz); c.lineTo(W, hz); c.stroke();
+      c.strokeStyle = 'rgba(29,95,135,.8)'; c.beginPath(); c.moveTo(W * .5 - f * 3.5 / 6, H); c.lineTo(W * .5 - f * 3.5 / 600, hz); c.moveTo(W * .5 + f * 3.5 / 6, H); c.lineTo(W * .5 + f * 3.5 / 600, hz); c.stroke();
       const d = Math.max(view.dist, 4), sx = W * .5 + (st.right ? -1 : 1) * f * lat / d, top = hz - f * (2.25 - eye) / d, hgt = f * .6 / d, wid = f * .45 / d;
       c.save(); c.filter = view.dist > LEGIBLE ? `blur(${Math.min(6, (view.dist - LEGIBLE) / 18)}px)` : 'none';
       c.drawImage(faceC, sx - wid / 2, top, wid, hgt); c.drawImage(defC, sx - wid / 3, top + hgt * 1.25, wid * .67, hgt * .42);
       c.fillStyle = '#222'; c.fillRect(sx - wid * .08, top + hgt, wid * .16, f * 1.25 / d); c.restore();
-      c.fillStyle = '#e6f6ff'; c.font = '600 22px Inter, Segoe UI, Arial'; c.fillText(`${Math.round(view.dist)} m to the sign`, 16, 30);
-      c.fillStyle = view.dist <= LEGIBLE ? '#9dffc2' : '#ffb27a'; c.font = '600 18px Inter, Segoe UI, Arial'; c.fillText(view.dist <= LEGIBLE ? 'numerals legible' : `legible from ≈ ${LEGIBLE} m (200 mm numerals)`, 16, 56);
-      c.fillStyle = '#ffd7a8'; c.font = '600 18px Inter, Segoe UI, Arial'; c.fillText(`${st.speed} km/h · ${((view.dist + st.d) / V).toFixed(1)} s to the junction`, 16, 82);
-      c.fillStyle = '#7fb4c8'; c.font = '500 14px Inter, Segoe UI, Arial'; c.fillText('eye 1.2 m · shield top 2.25 m', 16, H - 14);
+      c.fillStyle = '#1f2328'; c.font = '600 22px Inter, Segoe UI, Arial'; c.fillText(`${Math.round(view.dist)} m to the sign`, 16, 30);
+      c.fillStyle = view.dist <= LEGIBLE ? '#1f7a45' : '#b0532a'; c.font = '600 18px Inter, Segoe UI, Arial'; c.fillText(view.dist <= LEGIBLE ? 'numerals legible' : `legible from ≈ ${LEGIBLE} m (200 mm numerals)`, 16, 56);
+      c.fillStyle = '#8a3f1c'; c.font = '600 18px Inter, Segoe UI, Arial'; c.fillText(`${st.speed} km/h · ${((view.dist + st.d) / V).toFixed(1)} s to the junction`, 16, 82);
+      c.fillStyle = '#5c6168'; c.font = '500 14px Inter, Segoe UI, Arial'; c.fillText('eye 1.2 m · shield top 2.25 m', 16, H - 14);
     } });
     const inset1 = new THREE.Group(); inset1.position.set(-7, 12.5, -8); inset1.add(holo.frame(10, 7, 'Driver’s view'), screen); group.add(inset1);
 
     // ---- inset 2: the section, one scale (2.3 cm per m), looking along the road
     const s2 = 2.3, inset2 = new THREE.Group(); inset2.position.set(3.5, 12.5, -8); group.add(inset2);
     inset2.add(holo.frame(10, 7, 'Section · looking along the road'));
-    { const stack = holo.label('2250 = 600 shield + 150 gap + 250 plate + 1250 post · Plate 2', { h: .5, color: '#ffd7a8' }); stack.position.set(0, 3.05, .1); inset2.add(stack); }
+    { const stack = holo.label('2250 = 600 shield + 150 gap + 250 plate + 1250 post · Plate 2', { h: .5, color: '#8a3f1c' }); stack.position.set(0, 3.05, .1); inset2.add(stack); }
     const sec = new THREE.Group(); sec.position.set(-4.5, -3, .05); inset2.add(sec);
     sec.add(holo.segments([[0, 0, 0], [7.4 * s2 * .55, 0, 0]], holo.CYAN, .9, { width: .07 }));
     sec.add(holo.polyline([[0, .2, 0], [3.5 * s2 * .55, 0, 0]], holo.CYAN, { opacity: .7, width: .06 }));
@@ -89,21 +89,21 @@ export default {
 
     // ---- inset 4: plan view of the face turned slightly away (cl. 3.3): angle in = angle out, so 8° on the sign is 16° on the ray
     const turnPlane = textPlane({ w: 9, h: 7, px: 44, draw: (c, W, H) => {
-      c.fillStyle = '#071018'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#fbf8f1'; c.fillRect(0, 0, W, H);
       const lx = W * .34, lw = W * .3;                                            // the lane, running up the inset
-      c.strokeStyle = 'rgba(79,216,255,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(lx, 40); c.lineTo(lx, H - 10); c.moveTo(lx + lw, 40); c.lineTo(lx + lw, H - 10); c.stroke();
-      c.setLineDash([6, 8]); c.strokeStyle = 'rgba(79,216,255,.3)'; c.beginPath(); c.moveTo(lx + lw / 2, 40); c.lineTo(lx + lw / 2, H - 10); c.stroke(); c.setLineDash([]);
+      c.strokeStyle = 'rgba(29,95,135,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(lx, 40); c.lineTo(lx, H - 10); c.moveTo(lx + lw, 40); c.lineTo(lx + lw, H - 10); c.stroke();
+      c.setLineDash([6, 8]); c.strokeStyle = 'rgba(29,95,135,.3)'; c.beginPath(); c.moveTo(lx + lw / 2, 40); c.lineTo(lx + lw / 2, H - 10); c.stroke(); c.setLineDash([]);
       const Hx = lx + lw * .62, Hy = H - 60, Sx = lx + lw + 34, Sy = 92, th = st.turn * Math.PI / 180;   // headlamp, sign face centre
       // the face: a short bar on the verge, square to the lane then turned away from it
       c.save(); c.translate(Sx, Sy); c.rotate(-th); c.fillStyle = SPEC.colours.face.hex; c.fillRect(-22, -4, 44, 8); c.fillStyle = '#111'; c.fillRect(-22, -4, 44, 2); c.restore();
       const n = { x: -Math.sin(th), y: Math.cos(th) };                            // face normal, toward the traffic, turned by θ
       const il = Math.hypot(Sx - Hx, Sy - Hy), i = { x: (Sx - Hx) / il, y: (Sy - Hy) / il }, d = i.x * n.x + i.y * n.y, r = { x: i.x - 2 * d * n.x, y: i.y - 2 * d * n.y };
-      c.strokeStyle = 'rgba(255,162,74,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(Hx, Hy); c.lineTo(Sx, Sy); c.stroke();
-      c.strokeStyle = st.turn ? '#9dffc2' : '#ffd27a'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(Sx, Sy); c.lineTo(Sx + r.x * 420, Sy + r.y * 420); c.stroke();
-      c.fillStyle = '#fff3cc'; c.beginPath(); c.arc(Hx, Hy, 5, 0, 7); c.fill(); c.strokeStyle = '#e6f6ff'; c.lineWidth = 1.5; c.beginPath(); c.arc(Hx, Hy + 14, 7, 0, 7); c.stroke();
-      c.fillStyle = '#e6f6ff'; c.font = '600 20px Inter, Segoe UI, Arial'; c.fillText(`turned ${st.turn}°`, 16, 30);
-      c.fillStyle = st.turn ? '#9dffc2' : '#ffb27a'; c.font = '600 16px Inter, Segoe UI, Arial'; c.fillText(st.turn ? `reflected ray ${2 * st.turn}° wide of the eye` : 'reflected ray straight back into the eye', 16, 54);
-      c.fillStyle = '#7fb4c8'; c.font = '500 13px Inter, Segoe UI, Arial'; c.fillText('plan · headlamp ● eye ○ · angle in = angle out', 16, H - 14);
+      c.strokeStyle = 'rgba(176,83,42,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(Hx, Hy); c.lineTo(Sx, Sy); c.stroke();
+      c.strokeStyle = st.turn ? '#1f7a45' : '#a8700c'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(Sx, Sy); c.lineTo(Sx + r.x * 420, Sy + r.y * 420); c.stroke();
+      c.fillStyle = '#fff3cc'; c.beginPath(); c.arc(Hx, Hy, 5, 0, 7); c.fill(); c.strokeStyle = '#1f2328'; c.lineWidth = 1.5; c.beginPath(); c.arc(Hx, Hy + 14, 7, 0, 7); c.stroke();
+      c.fillStyle = '#1f2328'; c.font = '600 20px Inter, Segoe UI, Arial'; c.fillText(`turned ${st.turn}°`, 16, 30);
+      c.fillStyle = st.turn ? '#1f7a45' : '#b0532a'; c.font = '600 16px Inter, Segoe UI, Arial'; c.fillText(st.turn ? `reflected ray ${2 * st.turn}° wide of the eye` : 'reflected ray straight back into the eye', 16, 54);
+      c.fillStyle = '#5c6168'; c.font = '500 13px Inter, Segoe UI, Arial'; c.fillText('plan · headlamp ● eye ○ · angle in = angle out', 16, H - 14);
     } });
     const inset4 = new THREE.Group(); inset4.position.set(13.5, 12.5, -8); inset4.add(holo.frame(9, 7, 'Turned slightly away · cl. 3.3'), turnPlane); group.add(inset4);
     const setTurn = deg => { const from = st.turn, to = deg; anims.stop('turn'); anims.add({ dur: .6, tag: 'turn', update: k => { st.turn = Math.round(from + (to - from) * k); turnPlane.redraw(); }, done: () => { st.turn = to; turnPlane.redraw(); } }); };
@@ -111,26 +111,26 @@ export default {
     // ---- inset 3: the long section, distances to scale along the strip, heights exaggerated; the sight line from the eye to the shield top
     const SPAN = 185, LW = 27.5, LH = 5.2, PXM = 44;
     const longSec = textPlane({ w: LW, h: LH, px: PXM, draw: (c, W, H) => {
-      c.fillStyle = '#071018'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#fbf8f1'; c.fillRect(0, 0, W, H);
       const x0 = 40, xj = W - 130, k = (xj - x0) / (SPAN + 60), vpm = 56, gy = H - 34;      // px per m along (junction at the right), px per m up, ground line
       c.font = '500 17px Inter, Segoe UI, Arial';
       const X = m => xj - m * k, Y = h => gy - h * vpm, d = Math.max(view.dist, 1), eyeH = 1.2, topH = 2.25, xs = X(st.d);
-      c.strokeStyle = 'rgba(79,216,255,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(16, gy); c.lineTo(W - 16, gy); c.stroke();
-      c.fillStyle = '#9fb0c4'; c.font = '500 17px Inter, Segoe UI, Arial'; c.textAlign = 'center'; c.fillText('junction', xj, gy + 22); c.fillRect(xj - 1, Y(2.8), 2, 2.8 * vpm);
+      c.strokeStyle = 'rgba(29,95,135,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(16, gy); c.lineTo(W - 16, gy); c.stroke();
+      c.fillStyle = '#5c6168'; c.font = '500 17px Inter, Segoe UI, Arial'; c.textAlign = 'center'; c.fillText('junction', xj, gy + 22); c.fillRect(xj - 1, Y(2.8), 2, 2.8 * vpm);
       // the standard's window before the junction, and the legibility tick before the sign (rule of thumb)
-      c.fillStyle = 'rgba(255,162,74,.25)'; c.fillRect(X(150), gy - 8, 50 * k, 8);
-      c.fillStyle = '#ffb27a'; c.textAlign = 'left'; c.fillText('100–150 m · cl. 3.4', X(150), gy + 22);
-      c.strokeStyle = '#9dffc2'; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(X(st.d + LEGIBLE), gy); c.lineTo(X(st.d + LEGIBLE), Y(2.7)); c.stroke(); c.setLineDash([]);
-      c.fillStyle = '#9dffc2'; c.textAlign = 'right'; c.fillText(`legible from ≈ ${LEGIBLE} m before the sign`, X(st.d + LEGIBLE) - 6, Y(2.7) + 14);
+      c.fillStyle = 'rgba(176,83,42,.25)'; c.fillRect(X(150), gy - 8, 50 * k, 8);
+      c.fillStyle = '#b0532a'; c.textAlign = 'left'; c.fillText('100–150 m · cl. 3.4', X(150), gy + 22);
+      c.strokeStyle = '#1f7a45'; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(X(st.d + LEGIBLE), gy); c.lineTo(X(st.d + LEGIBLE), Y(2.7)); c.stroke(); c.setLineDash([]);
+      c.fillStyle = '#1f7a45'; c.textAlign = 'right'; c.fillText(`legible from ≈ ${LEGIBLE} m before the sign`, X(st.d + LEGIBLE) - 6, Y(2.7) + 14);
       // the sign: post, shield at 2.25 m, definition plate
       c.fillStyle = '#222'; c.fillRect(xs - 2, Y(1.25), 4, 1.25 * vpm); c.fillStyle = SPEC.colours.face.hex; c.fillRect(xs - 7, Y(topH), 14, .6 * vpm); c.fillRect(xs - 5, Y(1.5), 10, .25 * vpm);
-      c.fillStyle = '#9fb0c4'; c.textAlign = 'left'; c.fillText(`shield top 2.25 m · ${Math.round(st.d)} m out`, xs + 12, Y(topH) + 6);
+      c.fillStyle = '#5c6168'; c.textAlign = 'left'; c.fillText(`shield top 2.25 m · ${Math.round(st.d)} m out`, xs + 12, Y(topH) + 6);
       // the driver's eye and the sight line to the shield top
       const ex = X(st.d + d), ey = Y(eyeH), ang = THREE.MathUtils.radToDeg(Math.atan2(topH - eyeH, d));
-      c.fillStyle = '#ffd27a'; c.fillRect(ex - 9, Y(.5), 18, .5 * vpm); c.beginPath(); c.arc(ex, ey, 4, 0, 7); c.fill();
-      c.strokeStyle = d <= LEGIBLE ? '#9dffc2' : '#ffd27a'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(ex, ey); c.lineTo(xs, Y(topH)); c.stroke();
-      c.fillStyle = '#e6f6ff'; c.font = '600 19px Inter, Segoe UI, Arial'; c.textAlign = ex < W / 2 ? 'left' : 'center'; c.fillText(`eye 1.2 m · ${Math.round(d)} m to the sign · sight line ${ang.toFixed(1)}° up`, ex < W / 2 ? ex - 9 : ex, ey - 14);
-      c.fillStyle = '#7fb4c8'; c.font = '500 15px Inter, Segoe UI, Arial'; c.textAlign = 'right'; c.fillText(`distances to scale · heights × ${Math.round(vpm / k)}`, W - 16, 16);
+      c.fillStyle = '#a8700c'; c.fillRect(ex - 9, Y(.5), 18, .5 * vpm); c.beginPath(); c.arc(ex, ey, 4, 0, 7); c.fill();
+      c.strokeStyle = d <= LEGIBLE ? '#1f7a45' : '#a8700c'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(ex, ey); c.lineTo(xs, Y(topH)); c.stroke();
+      c.fillStyle = '#1f2328'; c.font = '600 19px Inter, Segoe UI, Arial'; c.textAlign = ex < W / 2 ? 'left' : 'center'; c.fillText(`eye 1.2 m · ${Math.round(d)} m to the sign · sight line ${ang.toFixed(1)}° up`, ex < W / 2 ? ex - 9 : ex, ey - 14);
+      c.fillStyle = '#5c6168'; c.font = '500 15px Inter, Segoe UI, Arial'; c.textAlign = 'right'; c.fillText(`distances to scale · heights × ${Math.round(vpm / k)}`, W - 16, 16);
     } });
     const inset3 = new THREE.Group(); inset3.position.set(2.25, 6.1, -8); inset3.add(holo.frame(LW, LH, 'Long section · the sight line'), longSec); group.add(inset3);
 
@@ -149,7 +149,7 @@ export default {
     const driver = new THREE.Group(); plan.add(driver); driver.visible = false;
     const dot = new THREE.Mesh(new THREE.SphereGeometry(.38, 14, 10), new THREE.MeshBasicMaterial({ color: 0xffd27a, toneMapped: false })); dot.position.y = .35; driver.add(dot);
     const dring = holo.ring(.8, holo.AMBER, { width: .08 }); dring.position.y = .05; driver.add(dring);
-    const dlab = holo.label(' ', { h: .8, color: '#ffd7a8' }); dlab.position.set(-2.6, 1.3, 0); driver.add(dlab);
+    const dlab = holo.label(' ', { h: .8, color: '#8a3f1c' }); dlab.position.set(-2.6, 1.3, 0); driver.add(dlab);
     const driveIt = () => {
       anims.stop('drive'); const laneX = hw / 2, z0 = zAt(185), z1 = zJ - 6.5, dur = ((z0 - z1) / M) / V / 2, zA = zAt(st.d), zC = zJ - hw - st.dc * M;   // half real time: slow enough to read the captions
       driver.visible = true;

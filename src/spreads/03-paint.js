@@ -51,13 +51,13 @@ export default {
     // the colour schedule
     const C = SPEC.colours;
     const schedule = textPlane({ w: 8.4, h: 6.6, px: 48, draw: (c, W, Hh) => {
-      cardBg(c, W, Hh); c.fillStyle = '#8fd8f3'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('COLOUR SCHEDULE', 18, 30);
+      cardBg(c, W, Hh); c.fillStyle = '#1d5f87'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('COLOUR SCHEDULE', 18, 30);
       [[C.face.hex, 'Face', `Canary Yellow · IS Colour No. ${C.face.is} · ${C.face.ref}`], [C.ink.hex, 'Border, letters, numerals', 'Black · cl. 2.2'], [C.back.hex, 'Back of the sign', `Unobtrusive grey · IS Colour No. ${C.back.is} · cl. 6`], [null, 'Post', '25 cm bands, black and white, lowest black · cl. 6']].forEach(([hex, name, note], i) => {
         const y = 52 + i * 62;
         if (hex) { c.fillStyle = hex; c.fillRect(18, y, 64, 46); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1; c.strokeRect(18.5, y + .5, 63, 45); }
         else { for (let k = 0; k < 4; k++) { c.fillStyle = k % 2 ? '#f4f4f4' : '#111'; c.fillRect(18 + k * 16, y, 16, 46); } c.strokeStyle = 'rgba(255,255,255,.35)'; c.strokeRect(18.5, y + .5, 63, 45); }
-        c.fillStyle = '#eef3f9'; c.font = '700 17px Inter, Segoe UI, Arial'; c.fillText(name, 96, y + 19);
-        c.fillStyle = '#9fb0c4'; c.font = '500 14px Inter, Segoe UI, Arial'; c.fillText(note, 96, y + 39);
+        c.fillStyle = '#1f2328'; c.font = '700 17px Inter, Segoe UI, Arial'; c.fillText(name, 96, y + 19);
+        c.fillStyle = '#5c6168'; c.font = '500 14px Inter, Segoe UI, Arial'; c.fillText(note, 96, y + 39);
       });
     } });
     schedule.position.set(13.2, 12.4, -2); group.add(schedule);

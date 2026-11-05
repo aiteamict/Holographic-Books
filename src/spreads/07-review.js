@@ -43,9 +43,9 @@ export default {
     ];
     function paint(c, w, h, it, open) {
       const pass = open && it.verdict.startsWith('PASS');
-      cardBg(c, w, h, open ? { stroke: pass ? 'rgba(125,255,176,.9)' : 'rgba(255,107,107,.9)' } : {});
-      c.fillStyle = open ? (pass ? '#9dffc2' : '#ff9a9a') : '#58d6ff'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText(open ? (pass ? '☑ PASS' : '☒ FAIL · corrected') : '☐ CHECK · tap to inspect', 20, 28);
-      c.fillStyle = '#eef3f9'; c.font = `${open ? 500 : 600} ${open ? 19 : 20}px Inter, Segoe UI, Arial`;
+      cardBg(c, w, h, open ? { stroke: pass ? 'rgba(47,143,85,.9)' : 'rgba(194,59,47,.9)' } : {});
+      c.fillStyle = open ? (pass ? '#1f7a45' : '#b3362b') : '#1d5f87'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText(open ? (pass ? '☑ PASS' : '☒ FAIL · corrected') : '☐ CHECK · tap to inspect', 20, 28);
+      c.fillStyle = '#1f2328'; c.font = `${open ? 500 : 600} ${open ? 19 : 20}px Inter, Segoe UI, Arial`;
       let y = 56; for (const line of wrapText(c, open ? it.verdict : it.q, w - 40)) { c.fillText(line, 20, y); y += open ? 23 : 25; }
     }
     const cards = ITEMS.map((it, i) => {

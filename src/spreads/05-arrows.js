@@ -54,7 +54,7 @@ export default {
     // the plan in front: the junction, the car, the route
     const plan = new THREE.Group(); plan.position.set(-5, .25, 0); group.add(plan);   // under the floating plate, clear of the page caption
     const w = .8, L = 4.6, roads = new THREE.Group(); plan.add(roads);
-    const jLabel = holo.label(' ', { h: .85, color: '#bfefff' }); jLabel.position.set(0, 1.4, -6.3); plan.add(jLabel);
+    const jLabel = holo.label(' ', { h: .85, color: '#1d5f87' }); jLabel.position.set(0, 1.4, -6.3); plan.add(jLabel);
     const drawJunction = () => {
       roads.clear(); const J = JUNCTIONS[junction], E = [];
       for (const a of J.arms) { const [dx, dz] = D[a], px = -dz, pz = dx; for (const s of [-1, 1]) E.push([dx * w + px * w * s, 0, dz * w + pz * w * s], [dx * L + px * w * s, 0, dz * L + pz * w * s]); }
