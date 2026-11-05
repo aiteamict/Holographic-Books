@@ -80,8 +80,8 @@ function moveCam(preset, dur = 1.5) {
   camT.from = { pos: camera.position.clone(), look: look.clone() };
   const to = new THREE.Vector3(...preset.pos), at = new THREE.Vector3(...preset.look);
   if (camera.aspect < 1) {                                                   // portrait phones: frame the hologram page; the text is read in the sheet
-    const cx = PAGE_W / 2; to.x += cx - at.x; at.x = cx;
-    to.sub(at).multiplyScalar(1.9).add(at);
+    const cx = PAGE_W / 2 + 3; to.x += cx - at.x; at.x = cx; at.y -= 1.5;   // the cards and dims hang to the right of the page centre
+    to.sub(at).multiplyScalar(2.15).add(at);
   }
   camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur;
 }
