@@ -1,6 +1,6 @@
 // The DOM layer over the canvas: title, step card, dots, actions, captions.
 export class UI {
-  constructor(root, { title, subtitle, count, labels = {}, onNav, onAgain, muted = false, onMute }) {
+  constructor(root, { title, subtitle, count, labels = {}, titles = [], onNav, onAgain, muted = false, onMute }) {
     this.root = root; this.count = count; this.onNav = onNav; this.onMute = onMute;
     root.innerHTML = `
       <div class="brand"><h1>${title}</h1><p>${subtitle}</p></div>
@@ -15,7 +15,19 @@ export class UI {
       <div class="sr" id="mirror" role="group" aria-label="Keyboard controls for the hologram"></div>
       <section class="sheet glass" id="sheet" aria-label="Page text"></section>
       <button class="sheet-toggle glass" id="sheet-toggle" aria-expanded="false">Read the page</button>
-      <div class="lens" id="lens" aria-hidden="true"><canvas width="416" height="416"></canvas></div>`;
+      <div class="lens" id="lens" aria-hidden="true"><canvas width="416" height="416"></canvas></div>
+      <div class="mshell" id="mshell">
+        <section class="mcard glass" id="mcard">
+          <button class="mhead" id="mhead" aria-expanded="true"><span id="mtitle"></span><span class="chev">▲</span></button>
+          <div class="mbody" id="mbody" data-tab="guide"><div class="mtabs"><button data-tab="guide" class="on">Steps</button><button data-tab="page">Page</button></div><div id="mslot"></div></div>
+        </section>
+        <nav class="mbar glass" id="mbar" aria-label="Book controls">
+          <button id="m-menu" aria-label="Contents">☰</button><button id="m-prev" aria-label="Previous spread">‹</button><button id="m-watch" aria-label="Watch the tour">▶</button>
+          <span id="m-where"></span>
+          <button id="m-next" class="primary" aria-label="Next spread">›</button><button id="m-mute" aria-label="Sound">🔊</button><button id="m-again" aria-label="Reset this spread">↺</button>
+        </nav>
+        <div class="mmenu glass" id="mmenu" hidden></div>
+      </div>`;
     this.$ = id => root.querySelector('#' + id);
     const dots = this.$('dots');
     const up = document.createElement('button'); up.className = 'arrow'; up.textContent = '︿'; up.setAttribute('aria-label', 'Previous spread'); up.onclick = () => onNav(-1, true); dots.append(up);
@@ -25,7 +37,24 @@ export class UI {
     this.muted = muted; this.$('mute').onclick = () => { this.setMuted(!this.muted); this.onMute?.(this.muted); };
     this.$('sheet-toggle').onclick = () => { const s = this.$('sheet'), open = !s.classList.contains('open'); s.classList.toggle('open', open); this.$('sheet-toggle').setAttribute('aria-expanded', String(open)); this.$('sheet-toggle').textContent = open ? 'Hide the page' : 'Read the page'; this.onSheet?.(open); };
     this.capTimer = 0;
+    // the phone shell: one collapsible card (steps / page text) and one toolbar; wired here, shown by setPhone()
+    this.titles = titles; this.phone = false;
+    this.$('mhead').onclick = () => this.openCard(!this.$('mcard').classList.contains('open'));
+    this.$('mbody').querySelectorAll('.mtabs button').forEach(b => { b.onclick = () => { this.$('mbody').dataset.tab = b.dataset.tab; this.$('mbody').querySelectorAll('.mtabs button').forEach(x => x.classList.toggle('on', x === b)); }; });
+    this.$('m-prev').onclick = () => onNav(-1, true); this.$('m-next').onclick = () => onNav(1, true);
+    this.$('m-again').onclick = onAgain; this.$('m-mute').onclick = () => this.$('mute').click();
+    this.$('m-watch').onclick = () => { const w = (this.actions || []).find(a => a.label === '▶ Watch'); w?.run(); };
+    this.$('m-menu').onclick = () => { const m = this.$('mmenu'); if (!m.hidden) { m.hidden = true; return; } m.textContent = ''; (this.titles || []).forEach((t, k) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = k ? `${k} · ${t}` : t; b.classList.toggle('on', k === this.cur); b.onclick = () => { m.hidden = true; onNav(k); }; m.append(b); }); m.hidden = false; };
   }
+  /** switch the DOM into phone mode: the panels move into the card, the toolbar takes over navigation */
+  setPhone(on) {
+    this.phone = on; document.body.classList.toggle('phone', on); if (!on) return;
+    const slot = this.$('mslot'); for (const id of ['gpanel', 'steps', 'actions', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); }
+    this.$('sheet').classList.add('open'); this.openCard(true);
+  }
+  openCard(open) { const c = this.$('mcard'); c.classList.toggle('open', open); this.$('mhead').setAttribute('aria-expanded', String(open)); if (open) this.$('mmenu').hidden = true; }
+  /** keep the card's panels in reading order whatever order they were created in */
+  _order() { if (!this.phone) return; const slot = this.$('mslot'); for (const id of ['gpanel', 'steps', 'actions', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); } }
   /**
    * The magnifier: a round lens up-right of the cursor showing the page canvas around (u, v) at about 3×.
    * lens(false) hides it. src: the page's canvas; u, v in 0..1 from the page's top-left.
@@ -52,8 +81,10 @@ export class UI {
     if (spec.title) { const h = document.createElement('h3'); h.textContent = spec.title; s.append(h); }
     for (const t of [spec.lede, ...(spec.paras || []), ...(spec.notes || [])].filter(Boolean)) { const p = document.createElement('p'); p.append(...rich(t)); s.append(p); }
   }
-  setMuted(m) { this.muted = m; const b = this.$('mute'); b.textContent = m ? '🔇' : '🔊'; b.classList.toggle('off', m); b.setAttribute('aria-pressed', String(m)); }
+  setMuted(m) { this.muted = m; const b = this.$('mute'); b.textContent = m ? '🔇' : '🔊'; b.classList.toggle('off', m); b.setAttribute('aria-pressed', String(m)); const mm = this.$('m-mute'); if (mm) mm.textContent = m ? '🔇' : '🔊'; }
   setStep(k, title, prompt) {
+    this.cur = k; this.$('mtitle').textContent = k ? `${k} · ${title}` : title; this.$('m-where').textContent = k ? `${k} · ${title}` : title;
+    if (this.phone) { this.openCard(true); this.$('mbody').dataset.tab = 'guide'; this.$('mbody').querySelectorAll('.mtabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === 'guide')); }
     const s = this.$('step');
     s.querySelector('.n').textContent = String(k).padStart(2, '0');
     s.querySelector('b').textContent = title; s.querySelector('span').textContent = prompt;
@@ -78,7 +109,7 @@ export class UI {
    */
   setGuidePanel(info, on = {}) {
     let p = this.$('gpanel');
-    if (!p) { p = document.createElement('section'); p.id = 'gpanel'; p.className = 'gpanel glass'; p.setAttribute('aria-live', 'polite'); this.root.append(p); this._glassEls = null; }
+    if (!p) { p = document.createElement('section'); p.id = 'gpanel'; p.className = 'gpanel glass'; p.setAttribute('aria-live', 'polite'); (this.phone ? this.$('mslot') : this.root).prepend(p); this._order(); this._glassEls = null; }
     p.textContent = ''; p.style.display = info ? '' : 'none'; if (!info) return;
     const h = document.createElement('small'); h.textContent = info.title; p.append(h);
     const t = document.createElement('p'); t.textContent = info.text; p.append(t);
@@ -88,7 +119,7 @@ export class UI {
   /** The guided-step strip: one chip per step plus Explore. items: [titles]; active: index (>= length = Explore). */
   setSteps(items = [], active = 0, onPick) {
     let s = this.$('steps');
-    if (!s) { s = document.createElement('nav'); s.id = 'steps'; s.className = 'steps glass'; s.setAttribute('aria-label', 'Guided steps'); this.root.append(s); this._glassEls = null; }
+    if (!s) { s = document.createElement('nav'); s.id = 'steps'; s.className = 'steps glass'; s.setAttribute('aria-label', 'Guided steps'); (this.phone ? this.$('mslot') : this.root).append(s); this._order(); this._glassEls = null; }
     s.textContent = ''; s.style.display = items.length ? '' : 'none';
     [...items, 'Explore'].forEach((t, k) => {
       const b = document.createElement('button'); b.type = 'button'; b.textContent = k < items.length ? `${k + 1} · ${t}` : t;

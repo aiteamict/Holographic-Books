@@ -39,8 +39,10 @@ scene.add(book.group);
 // ---- holograms -----------------------------------------------------------------------------------
 const holoRoot = new THREE.Group(); holoRoot.position.set(PAGE_W / 2, book.pageTopAt(0) + .05, 0); scene.add(holoRoot);
 const snd = new Sound();
-const ui = new UI(document.getElementById('ui'), { title: BOOK.title, subtitle: BOOK.subtitle, count: N + 1, labels: { [N + 1]: 'Back page' }, onNav: (k, rel) => goTo(rel ? cur + k : k), onAgain: () => { built[cur]?.reset?.(); ui.refreshActions(); snd.play('tick'); }, muted: snd.muted, onMute: m => snd.setMuted(m) });
+const ui = new UI(document.getElementById('ui'), { title: BOOK.title, subtitle: BOOK.subtitle, count: N + 1, labels: { [N + 1]: 'Back page' }, titles: ['Cover', ...LESSONS.slice(1).map(l => l.title), COVER.insideBack.title], onNav: (k, rel) => goTo(rel ? cur + k : k), onAgain: () => { built[cur]?.reset?.(); ui.refreshActions(); snd.play('tick'); }, muted: snd.muted, onMute: m => snd.setMuted(m) });
 ui.onSheet = open => book.setLeftQuiet(open); book.setLeftQuiet(ui.sheetOpen);
+// phones (and any short, wide screen): the phone shell — one card, one toolbar, the hologram full-screen
+const PHONE = matchMedia('(max-width: 820px), (max-height: 520px)').matches; ui.setPhone(PHONE); if (PHONE) book.setLeftQuiet(false);
 const ctx = { THREE, holo, sign, ui, QUIZ, scene, camera, hero: makeHero, snd };
 const heroReady = initHero();
 const built = {};
@@ -80,8 +82,8 @@ function moveCam(preset, dur = 1.5) {
   camT.from = { pos: camera.position.clone(), look: look.clone() };
   const to = new THREE.Vector3(...preset.pos), at = new THREE.Vector3(...preset.look);
   if (camera.aspect < 1) {                                                   // portrait phones: frame the hologram page; the text is read in the sheet
-    const cx = PAGE_W / 2 + 3; to.x += cx - at.x; at.x = cx; at.y -= 11;   // aim low: the hologram rises into the free top half, above the phone's bottom panels
-    to.sub(at).multiplyScalar(2).add(at);
+    const cx = PAGE_W / 2 + 1.5; to.x += cx - at.x; at.x = cx; at.y -= 7;  // aim low: the hologram sits in the upper two thirds, above the card
+    to.sub(at).multiplyScalar(2.05).add(at);
   }
   camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur;
 }
@@ -136,7 +138,7 @@ const toNdc = e => { const r = canvas.getBoundingClientRect(); ndc.set(((e.clien
 const pick = (e, targets) => { if (!targets?.length) return null; toNdc(e); ray.setFromCamera(ndc, camera); return ray.intersectObjects(targets, true)[0] || null; };
 let drag = null, hoverObj = null;
 canvas.addEventListener('pointerdown', e => {
-  endTour(true); snd.unlock();
+  endTour(true); snd.unlock(); if (PHONE) ui.openCard(false);   // a touch on the scene folds the card away
   const i = built[cur];
   if (!i || book.busy) { swipe = book.busy ? null : { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // the cover and the back page: a swipe is the only touch gesture
   const hit = pick(e, i.targets);
