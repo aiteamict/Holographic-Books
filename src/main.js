@@ -42,7 +42,7 @@ const snd = new Sound();
 const ui = new UI(document.getElementById('ui'), { title: BOOK.title, subtitle: BOOK.subtitle, count: N + 1, labels: { [N + 1]: 'Back page' }, titles: ['Cover', ...LESSONS.slice(1).map(l => l.title), COVER.insideBack.title], onNav: (k, rel) => goTo(rel ? cur + k : k), onAgain: () => { built[cur]?.reset?.(); ui.refreshActions(); snd.play('tick'); }, muted: snd.muted, onMute: m => snd.setMuted(m) });
 ui.onSheet = open => book.setLeftQuiet(open); book.setLeftQuiet(ui.sheetOpen);
 // phones (and any short, wide screen): the phone shell — one card, one toolbar, the hologram full-screen
-const PHONE = matchMedia('(max-width: 820px), (max-height: 520px)').matches; ui.setPhone(PHONE); if (PHONE) book.setLeftQuiet(false);
+const PHONE = matchMedia('(max-width: 820px), (pointer: coarse) and (max-height: 520px)').matches;   // narrow, or a touch screen held sideways; never a short laptop window ui.setPhone(PHONE); if (PHONE) book.setLeftQuiet(false);
 const ctx = { THREE, holo, sign, ui, QUIZ, scene, camera, hero: makeHero, snd };
 const heroReady = initHero();
 const built = {};

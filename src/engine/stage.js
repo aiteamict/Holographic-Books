@@ -8,26 +8,26 @@ import { LiquidGlassEffect } from './liquidglass.js';
 /** A procedural laminate: dark blue-grey with grain and faint streaks, tiled across the drafting table. */
 function laminateTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
-  g.fillStyle = '#1a1f27'; g.fillRect(0, 0, 512, 512);
+  g.fillStyle = '#d8c7aa'; g.fillRect(0, 0, 512, 512);   // light oak
   let seed = 11; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-  for (let i = 0; i < 9000; i++) { const v = 18 + rnd() * 26; g.fillStyle = `rgba(${v + 4},${v + 8},${v + 16},${.25 + rnd() * .35})`; g.fillRect(rnd() * 512, rnd() * 512, 1 + rnd() * 2, 1 + rnd() * 2); }
-  for (let i = 0; i < 90; i++) { g.strokeStyle = `rgba(255,255,255,${.012 + rnd() * .02})`; g.lineWidth = .6 + rnd() * 1.2; g.beginPath(); const y = rnd() * 512; g.moveTo(0, y); g.bezierCurveTo(170, y + (rnd() - .5) * 60, 340, y + (rnd() - .5) * 60, 512, y + (rnd() - .5) * 20); g.stroke(); }
+  for (let i = 0; i < 9000; i++) { const v = rnd() * 40; g.fillStyle = `rgba(${150 + v},${120 + v},${85 + v},${.12 + rnd() * .2})`; g.fillRect(rnd() * 512, rnd() * 512, 1 + rnd() * 2, 1 + rnd() * 2); }
+  for (let i = 0; i < 90; i++) { g.strokeStyle = `rgba(120,88,52,${.04 + rnd() * .06})`; g.lineWidth = .6 + rnd() * 1.2; g.beginPath(); const y = rnd() * 512; g.moveTo(0, y); g.bezierCurveTo(170, y + (rnd() - .5) * 60, 340, y + (rnd() - .5) * 60, 512, y + (rnd() - .5) * 20); g.stroke(); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(7, 7); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 /** A cutting-mat grid that lies under the book only: 1 cm lines, 5 cm heavier, very faint. */
 function matTexture() {
   const c = document.createElement('canvas'); c.width = 700; c.height = 480; const g = c.getContext('2d');   // 10 px per cm
-  g.fillStyle = 'rgba(70,96,112,.16)'; g.fillRect(0, 0, 700, 480);
-  for (let x = 0; x <= 700; x += 10) { g.fillStyle = x % 50 ? 'rgba(130,170,190,.10)' : 'rgba(130,170,190,.24)'; g.fillRect(x, 0, 1, 480); }
-  for (let y = 0; y <= 480; y += 10) { g.fillStyle = y % 50 ? 'rgba(130,170,190,.10)' : 'rgba(130,170,190,.24)'; g.fillRect(0, y, 700, 1); }
-  g.strokeStyle = 'rgba(160,200,220,.35)'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, 697, 477);
+  g.fillStyle = 'rgba(150,170,160,.9)'; g.fillRect(0, 0, 700, 480);   // grey-green cutting mat
+  for (let x = 0; x <= 700; x += 10) { g.fillStyle = x % 50 ? 'rgba(60,80,72,.14)' : 'rgba(60,80,72,.32)'; g.fillRect(x, 0, 1, 480); }
+  for (let y = 0; y <= 480; y += 10) { g.fillStyle = y % 50 ? 'rgba(60,80,72,.14)' : 'rgba(60,80,72,.32)'; g.fillRect(0, y, 700, 1); }
+  g.strokeStyle = 'rgba(60,80,72,.5)'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, 697, 477);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 /** The far backdrop: a vertical gradient with a soft cyan glow behind the hologram side, dithered so it never bands. */
 function backdropMaterial() {
   return new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false,
-    uniforms: { uBottom: { value: new THREE.Color('#05070b') }, uTop: { value: new THREE.Color('#151d2a') }, uGlow: { value: new THREE.Color('#174553') }, uGlowDir: { value: new THREE.Vector3(.5, .3, -.8).normalize() } },
+    uniforms: { uBottom: { value: new THREE.Color('#e3ddd2') }, uTop: { value: new THREE.Color('#f6f3ee') }, uGlow: { value: new THREE.Color('#0b0d10') }, uGlowDir: { value: new THREE.Vector3(.5, .3, -.8).normalize() } },   // warm studio, no glow
     vertexShader: 'varying vec3 vPos; void main(){ vPos = (modelMatrix * vec4(position,1.)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
     fragmentShader: `varying vec3 vPos; uniform vec3 uBottom, uTop, uGlow, uGlowDir;
       void main(){ vec3 d = normalize(vPos); float h = smoothstep(-.15, .9, d.y);
@@ -46,8 +46,8 @@ export function createStage(canvas) {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#07080c');
-  scene.fog = new THREE.Fog('#0a0e15', 140, 380);
+  scene.background = new THREE.Color('#ece7de');
+  scene.fog = new THREE.Fog('#e9e4da', 160, 400);
   // the room: a far backdrop sphere (gradient + glow behind the hologram side) and an environment map for the metals
   scene.add(new THREE.Mesh(new THREE.SphereGeometry(390, 48, 24), backdropMaterial()));
   const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), .04).texture; scene.environmentIntensity = .3; pmrem.dispose();
@@ -56,14 +56,14 @@ export function createStage(canvas) {
   camera.position.set(8, 62, 58);
 
   // world units are centimetres, so lights use decay 0 and plain intensities instead of candela falloff
-  scene.add(new THREE.HemisphereLight(0x9fb4d4, 0x14161c, 1.1));
+  scene.add(new THREE.HemisphereLight(0xfffaf0, 0xb3a58e, .85));    // bright room, warm bounce from the wood; kept low so cream paper stays cream
   // a desk lamp: a tighter, warmer pool on the open spread; a cool spill from the hologram side so the right page glows faintly cyan
-  const key = new THREE.SpotLight(0xfff0dc, 3.6, 500, Math.PI / 6.5, .65, 0);
+  const key = new THREE.SpotLight(0xfff0dc, 2.1, 500, Math.PI / 6.5, .65, 0);
   key.position.set(-30, 110, 50); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -.0006; key.shadow.normalBias = .4;
   key.target.position.set(0, 0, 0); scene.add(key, key.target);
   const fill = new THREE.DirectionalLight(0x9fc3ff, .55); fill.position.set(60, 40, -40); scene.add(fill);
-  const holoLight = new THREE.PointLight(0x4fd8ff, .9, 120, 0); holoLight.position.set(12, 16, 0); scene.add(holoLight);
-  const cool = new THREE.SpotLight(0x4fd8ff, 1.1, 320, Math.PI / 6, .9, 0); cool.position.set(70, 80, 30); cool.target.position.set(26, 0, 0); scene.add(cool, cool.target);
+  const holoLight = new THREE.PointLight(0xffffff, .3, 120, 0); holoLight.position.set(12, 16, 0); scene.add(holoLight);
+  const cool = new THREE.SpotLight(0xdde8f2, .45, 320, Math.PI / 6, .9, 0); cool.position.set(70, 80, 30); cool.target.position.set(26, 0, 0); scene.add(cool, cool.target);
 
   // the drafting table: laminate top with a bevelled edge, and a cutting mat under the book
   const desk = new THREE.Mesh(new THREE.BoxGeometry(600, 4, 600), new THREE.MeshStandardMaterial({ map: laminateTexture(), roughness: .55, metalness: .04 }));
@@ -105,8 +105,8 @@ export function createStage(canvas) {
   // white text white where ACES would grey it down
   const bloom = new BloomEffect({ luminanceThreshold: .86, luminanceSmoothing: .15, intensity: .6, mipmapBlur: true, radius: .4 });
   const tone = new ToneMappingEffect({ mode: ToneMappingMode.NEUTRAL ?? ToneMappingMode.AGX ?? ToneMappingMode.ACES_FILMIC });
-  const vignette = new VignetteEffect({ offset: .3, darkness: .45 });
-  const effects = [bloom, vignette, tone]; if (!msaa) effects.push(new SMAAEffect());
+  const vignette = new VignetteEffect({ offset: .35, darkness: .22 });
+  const effects = [vignette, tone];   // light theme: no bloom (cream paper would glow); lines are ink, not light if (!msaa) effects.push(new SMAAEffect());
   const fxPass = new EffectPass(camera, ...effects); fxPass.dithering = true;   // no banding rings in the dark gradient
   composer.addPass(fxPass);
   const glass = new LiquidGlassEffect();
