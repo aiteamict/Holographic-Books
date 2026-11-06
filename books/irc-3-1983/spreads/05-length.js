@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { tagged } from '@engine/util.js';
 import { makeGuide } from '@engine/guide.js';
 import { MAT, wheel } from '../vehicles.js';
-import { SM } from '../scene.js';
+import { SM } from '@engine/scene.js';
 
 const S = .45, R = 12, LANE = 3.5, Ri = R - LANE / 2, Ro = R + LANE * 1.5, L1 = 26, LA = R * Math.PI / 2, L2 = 12;
 const OFF = new THREE.Vector3(-1.8, 0, -1);                       // where the bend's centre sits on the page (cm)

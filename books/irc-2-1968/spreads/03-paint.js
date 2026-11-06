@@ -28,6 +28,7 @@ function paintBackdrop(c, key) {
 }
 
 export default {
+  cam: { pos: [3, 37, 55], look: [4, 10, -2], portrait: { pos: [14, 52, 62], look: [12.8, 4, 0] } },
   shots: [
     { pos: [4, 14, 40], look: [13, 14, 0], dur: 1.8, hold: 2.6, text: 'Canary Yellow, IS 309, black letters and border (cl. 2.2). The schedule beside the sign names every shade by its Indian Standard number.' },
     { pos: [36, 17, 26], look: [13, 7, 0], dur: 2, hold: 2.6, text: 'The post in 25 cm bands, the lowest black, against whatever stands behind it (cl. 6). Show the back for the grey, IS 630.' },
@@ -37,7 +38,7 @@ export default {
     const group = new THREE.Group(); group.add(holo.projector(14));
     const sg = sign.makeSign({ number: '42', kind: 'ahead', scale: S }); group.add(sg.group);
     const face = sg.plate.material[4]; face.roughness = .28; face.metalness = .25;
-    const person = ctx.hero(s); person.position.set(-9.5, 0, 1.5); person.rotation.y = .7; group.add(person);
+    const person = ctx.hero(s); person.position.set(10.2, 0, -8); person.rotation.y = -.6; group.add(person);   // behind, to the right: never in front of the spine
 
     // the backdrop behind the post, and two plain posts (all white, all black) to compare against the banded one
     const bdCanvas = document.createElement('canvas'); bdCanvas.width = 256; bdCanvas.height = 384; paintBackdrop(bdCanvas, 'sky');
@@ -60,17 +61,17 @@ export default {
         c.fillStyle = '#5c6168'; c.font = '500 14px Inter, Segoe UI, Arial'; c.fillText(note, 96, y + 39);
       });
     } });
-    schedule.position.set(13.2, 12.4, -2); group.add(schedule);
+    schedule.position.set(5, 2.6, 10.5); schedule.rotation.x = -.6; group.add(schedule);   // lies at the front right
 
     // two plate samples: enamelled and painted steel (cl. 7); tap one to give the sign that finish
-    const sample = (x, finish, rough, metal) => { const m = new THREE.Mesh(new THREE.BoxGeometry(3, .25, 3), new THREE.MeshStandardMaterial({ color: C.face.hex, roughness: rough, metalness: metal })); m.position.set(x, .3, 2); m.userData.finish = finish; group.add(m); const l = holo.label(finish + ' steel', { h: .75 }); l.position.set(x, 1.7, 2); group.add(l); return m; };
-    const enamelled = sample(11.2, 'enamelled', .12, .35), painted = sample(15.2, 'painted', .75, .05);
+    const sample = (x, finish, rough, metal) => { const m = new THREE.Mesh(new THREE.BoxGeometry(3, .25, 3), new THREE.MeshStandardMaterial({ color: C.face.hex, roughness: rough, metalness: metal })); m.position.set(x, .3, 2.2); m.userData.finish = finish; group.add(m); const l = holo.label(finish + ' steel', { h: .75 }); l.position.set(x, 1.7, 2); group.add(l); return m; };
+    const enamelled = sample(7.8, 'enamelled', .12, .35), painted = sample(11.2, 'painted', .75, .05);   // on the page, not the desk
     // a cut of the post: 75 × 75 × 10 mm T-iron (Plate 2), standing beside the plate samples
-    { const t = props.tIronSection(s, .3); t.position.set(7.6, 0, 2); group.add(t); const l = holo.label('75 × 75 × 10 T-iron · Plate 2', { h: .7 }); l.position.set(7.6, 3.6, 2); group.add(l); }
+    { const t = props.tIronSection(s, .3); t.position.set(5, 0, 2.2); group.add(t); const l = holo.label('75 × 75 × 10 T-iron · Plate 2', { h: .7 }); l.position.set(5, 3.6, 2.2); group.add(l); }
 
     const tagBack = holo.tag('unobtrusive grey · IS 630 · cl. 6', [-3, 16, -.6], [-6, 2, 0]); group.add(tagBack);
     group.add(holo.tag('25 cm bands, lowest black · cl. 6', [.4, 3.5, .4], [6, .5, 0]));
-    const lever = holo.handle('turn', { label: 'turn the sign · drag', kind: 'lever' }); lever.position.set(-10.5, 0, 5.5); group.add(lever);
+    const lever = holo.handle('turn', { label: 'turn the sign · drag', kind: 'lever' }); lever.position.set(-2.2, 0, 6.2); group.add(lever);
 
     let angle = 0, target = 0, pressAngle = 0, bandsOk = true, bd = 0;
     const anims = new Anims();
@@ -104,7 +105,7 @@ export default {
     };
     // guided sequence: the schedule, the backdrop test, the lowest band
     const guide = makeGuide(ctx, {
-      anchor: [13.2, 19.6, -2], w: 10.5, h: 5,
+      anchor: [-5.6, 2.2, 10.5], w: 10, h: 5,
       steps: [
         { title: 'The schedule', show: ['Show the back'], text: 'Every colour has a number: Canary Yellow IS 309 on the face, black border and letters, unobtrusive grey IS 630 on the back (cl. 2.2, 6). Show the back, and tap a plate sample for its finish (cl. 7).' },
         { title: 'Behind the post', show: ['Change the background'], enter: () => { if (bd !== 0) setBackdrop(0); },
@@ -112,7 +113,7 @@ export default {
         { title: 'The lowest band', show: ['Swap the bands (wrong)'], text: 'cl. 6 is specific: the band next to the ground is black. Swap the bands and look at the foot of the post: a white band at the ground is the first thing dust and mud hide.' },
       ],
     });
-    group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
     return api;
   },
 };

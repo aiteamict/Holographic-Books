@@ -9,6 +9,7 @@ import { Anims } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
 
 export default {
+  cam: { pos: [3, 36, 53], look: [4, 10, -2], portrait: { pos: [14, 52, 62], look: [12.8, 4, 0] } },
   shots: [
     { pos: [14, 26, 22], look: [13, 10, -3], dur: 1.8, hold: 2.6, text: 'A shield on a 450 by 600 mm plate (cl. 2.1), drawn the way Plate 1 draws it, with a steel rule down the left.' },
     { pos: [22, 18, 8], look: [16, 10, -3], dur: 1.8, hold: 2.6, text: 'Down the right: 12, 75, 100, 75, 200, 126, 12. The bands add up to 600.' },
@@ -68,8 +69,8 @@ export default {
     const rule = new THREE.Mesh(new THREE.BoxGeometry(RW, 620 * S, .12), [steelSide(), steelSide(), steelSide(), steelSide(), new THREE.MeshBasicMaterial({ map: rt }), steelSide()]); rule.position.set(-(cx + 33) * S, 0, .08); board.add(rule);   // tight beside the plate: nothing of the drawing crosses the spine
     function steelSide() { return new THREE.MeshStandardMaterial({ color: '#cfd6dc', roughness: .5, metalness: .4 }); }
     const cursor = new THREE.Mesh(new THREE.BoxGeometry((P.w + 130) * S, .32, .1), holo.glassMat(holo.AMBER, { opacity: .55, scan: 0 })); cursor.position.set(-8 * S, -(262 - cy) * S, .2); cursor.userData.cursor = true; board.add(cursor);
-    const readout = holo.label(' ', { h: 1, color: '#8a3f1c', bg: 'rgba(6,18,28,.84)', align: 'left' }); readout.position.z = .4; board.add(readout);
-    const knob = holo.handle('build', { label: 'draw it', kind: 'knob' }); knob.position.set(-9.5, 0, 8.5); group.add(knob);
+    const readout = holo.label(' ', { h: 1, color: '#8a3f1c', bg: 'rgba(255,253,248,.95)', align: 'left' }); readout.position.z = .4; board.add(readout);
+    const knob = holo.handle('build', { label: 'draw it', kind: 'knob' }); knob.position.set(8.5, 0, 9); group.add(knob);
 
     // the shop sequence
     const STAGES = [
@@ -93,7 +94,7 @@ export default {
       const z = zones.find(z => inner >= z.top && inner < z.bottom), outside = wrong && mm > 500;
       const text = outside ? `${mm} mm · off the 500 mm sheet` : z ? `${mm} mm · ${z.label}` : `${mm} mm from the top`;
       readout.userData.text = text; readout.userData.setText(text);
-      readout.position.set((cx + 70) * S + readout.scale.x / 2, cursor.position.y, .4);
+      readout.position.set(0, cursor.position.y + .9, .4);   // over the plate, above the cursor line: never off the page
       quads.forEach(q => setBand(q, q.userData.zone === z ? .28 : bandsOn ? .1 : 0));
     };
     const api = {
@@ -131,14 +132,14 @@ export default {
     };
     // guided sequence: measure with the rule, add the bands up, then make it in the shop
     const guide = makeGuide(ctx, {
-      anchor: [12.5, 20.5, -3], rotY: -.15, w: 10.5, h: 5,
+      anchor: [-5.4, 2.2, 10.5], w: 10.5, h: 5,   // the card lies at the front of the page, tilted to the reader
       steps: [
         { title: 'The rule', show: ['Tint the bands'], text: 'A 600 mm steel rule runs down the left of the plate. Drag the amber cursor across it: the readout gives the height from the top and names the band you are in.' },
         { title: 'The bands', show: ['Tint the bands'], check: { q: 'From the top: 12 + 75 + 100 + 75 + 200 + 126 + 12. What does the plate add up to?', options: ['500 mm', '600 mm', '650 mm'], answer: 1, why: 'Exactly the 450 × 600 mm plate of cl. 2.1. Every band is fixed, so every shop in India draws the same shield.' } },
         { title: 'Make it', show: ['Make it', 'Wrong plate (450 × 500)'], text: 'Make it paints the plate in shop order: blank sheet, IS 309 coat, border, N H stencils, numerals. Then try Wrong plate: a 450 × 500 sheet squashes the whole design.' },
       ],
     });
-    group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
     // compass construction for the bottom (illustrative; labelled from the plate)
     const radii = new THREE.Group(); radii.visible = false;
     const arcPts = (ax, ay, r, a0, a1, n = 40) => { const o = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; o.push({ x: ax + r * Math.cos(a) - cx, y: ay + r * Math.sin(a) - cy }); } return o; };

@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { textPlane, cardBg, tagged } from '@engine/util.js';
 import { makeGuide } from '@engine/guide.js';
 import { TYPES, INK, CSS, FORM_NAME, MAXLEN, makeRig } from '../vehicles.js';
-import { road, checkpost } from '../scene.js';
+import { road, checkpost } from '@engine/scene.js';
 
 const S = .8, CPX = -6, LANE_Z = 1.75 * S, F = 'Inter, Segoe UI, Arial';
 const BARRIER_X = CPX + 1.8 * S, STOP_FRONT = BARRIER_X + .35, END_FRONT = -12.5;

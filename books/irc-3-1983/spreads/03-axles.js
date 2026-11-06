@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { textPlane, cardBg, tagged } from '@engine/util.js';
 import { makeGuide } from '@engine/guide.js';
 import { CSS, INK, MAT, axleWheels } from '../vehicles.js';
-import { SM } from '../scene.js';
+import { SM } from '@engine/scene.js';
 
 const S = 3, X0 = -2.4, DMIN = .4, DMAX = 3.5, F = 'Inter, Segoe UI, Arial';
 const HIT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });

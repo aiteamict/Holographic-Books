@@ -12,6 +12,7 @@ const ROWS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 const EVEN = 35; // the gap a sign-writer would pick if every pair got the same air
 
 export default {
+  cam: { pos: [4, 32, 48], look: [4.5, 8, -2], portrait: { pos: [14, 52, 62], look: [12.8, 4, 0] } },
   shots: [
     { pos: [8, 20, 24], look: [8, 11, 0], dur: 1.8, hold: 2.6, text: 'N H at 100 mm, the route number in 200 mm numerals (Fig. 1, Plate 5). The amber slugs are the spacers.' },
     // shots are in world space: the hologram root sits at world (13, 1.34, 0)
@@ -22,7 +23,7 @@ export default {
     const { holo, sign, ui } = ctx; const { SPEC, groupOf } = sign; const S = .3;
     const group = new THREE.Group(); group.add(holo.projector(12));
     const sg = sign.makeSign({ number: '42', post: false, defPlate: false, scale: S });
-    sg.group.position.set(-5.5, 11 - 195 * S, 0); sg.group.rotation.y = .18; group.add(sg.group); sg.plate.userData.plate = true;
+    sg.group.position.set(-4.4, 11 - 195 * S, 0); sg.group.rotation.y = .06; group.add(sg.group); sg.plate.userData.plate = true;   // centred on the right page, clear of the spine
     const inSign = new THREE.Group(); sg.group.add(inSign);
     const pcy = 195, pz = 75 / 20 + .3 + .35;
     const Pt = (px, py) => [(px - 225) / 10, pcy + (300 - py) / 10, pz];
@@ -43,13 +44,13 @@ export default {
           c.fillText(ci ? String(SPEC.spacingCode[r][ci - 1]) : r, x + (ci ? cw[ci] / 2 - 5 : 40), y + 23); x += cw[ci]; }
         c.strokeStyle = 'rgba(29,95,135,.18)'; c.beginPath(); c.moveTo(x0, y + rh); c.lineTo(x0 + 404, y + rh); c.stroke(); });
     } });
-    t1.position.set(9.2, 13.2, -1); group.add(t1);
+    t1.position.set(8.9, 9.2, -3.5); t1.rotation.y = -.12; group.add(t1);
     const t2 = textPlane({ w: 9.6, h: 3.6, px: 48, draw: (c, W, Hh) => {
       cardBg(c, W, Hh); c.fillStyle = '#1d5f87'; c.font = '600 17px Inter, Segoe UI, Arial'; c.fillText('TABLE 2 · SPACING FOR THE CODE', 18, 30);
       [[1, 47], [2, 38], [4, 13]].forEach(([code, mm], i) => { const y = 58 + i * 34, lit = !even && gaps.some(g => g.code === code); if (lit) { c.fillStyle = 'rgba(47,143,85,.22)'; c.fillRect(18, y - 24, 404, 32); }
         c.fillStyle = lit ? '#1f7a45' : '#1f2328'; c.font = `${lit ? 800 : 500} 18px Inter, Segoe UI, Arial`; c.fillText(`code ${code}`, 30, y); c.fillText(`${mm} mm`, 300, y); });
     } });
-    t2.position.set(9.2, 6.4, -1); group.add(t2);
+    t2.position.set(8.9, 2.4, -2.6); t2.rotation.y = -.12; group.add(t2);
 
     // the 100 m strip: the numeral band of two faces, even gaps above, Plate 5 below, slightly out of focus
     const faceA = document.createElement('canvas'), faceB = document.createElement('canvas'); faceA.width = faceB.width = 450; faceA.height = faceB.height = 600;
@@ -63,14 +64,14 @@ export default {
         c.save(); c.filter = 'blur(1px)'; c.drawImage(cv, 0, sy, 450, sh, W - dw - 18, y, dw, dh); c.restore();
       });
     } });
-    far.position.set(9.2, 1.6, 2.6); far.rotation.x = -.55; group.add(far);
+    far.position.set(5, 2.6, 10.5); far.rotation.x = -.6; group.add(far);   // lies at the front right, like the other books’ readouts
 
     const marks = new THREE.Group(); inSign.add(marks);
     const letterDims = new THREE.Group(); letterDims.visible = false; inSign.add(letterDims);
     const numDims = new THREE.Group(); numDims.visible = false; inSign.add(numDims);   // numeral width and stroke, rebuilt with the number
     const x0 = (450 - (67 * 2 + 45)) / 2;
     letterDims.add(dim([x0 - 22, 87], [x0 - 22, 187], '100'), dim([x0 + 67, 72], [x0 + 67 + 45, 72], '45'), dim([x0, 202], [x0 + 67, 202], '67'), dim([x0 + 67 + 45, 202], [x0 + 67 + 45 + 16, 202], '16', { h: .8 }));
-    const dial = holo.handle('number', { label: 'route number · drag', kind: 'dial' }); dial.position.set(-13, 0, 5); group.add(dial);
+    const dial = holo.handle('number', { label: 'route number · drag', kind: 'dial' }); dial.position.set(.6, 0, 5.6); group.add(dial);
     let dialStart = 0, dialIdx = PRESETS.indexOf('744'); const anims = new Anims();
     function apply(n) {
       number = n; const lay = sg.setNumber(n, { even: even ? EVEN : 0 }); gaps = lay.gaps; marks.clear(); pulse(anims, sg.plate, 1.04, .35, 'stamp');
@@ -103,13 +104,13 @@ export default {
           { label: 'Letter sizes', toggle: () => letterDims.visible, run: () => { letterDims.visible = numDims.visible = !letterDims.visible; if (letterDims.visible) ui.caption('N and H: 100 mm high, 16 mm stroke, 67 mm wide, 45 mm apart (Fig. 1). Numerals: 200 mm high, 31 mm stroke, most 134 mm wide (Plate 5).', 'Sizes', 6000); } },
         ]),
       key(e) { if (/^\d$/.test(e.key)) apply((number.length >= 3 || number === '0' ? '' : number) + e.key); else if (e.key === 'Backspace') apply(number.slice(0, -1) || '0'); },
-      update(dt, t) { anims.tick(dt); sg.group.rotation.y = .18 + Math.sin(t * .5) * .03; },
+      update(dt, t) { anims.tick(dt); sg.group.rotation.y = .06 + Math.sin(t * .5) * .03; },
       reset() { even = false; apply('744'); letterDims.visible = numDims.visible = false; guide.reset(); },
       get debug() { return { number, even, gaps: gaps.map(g => [g.a, g.b, g.code, g.mm]), guide: guide.debug }; },
     };
     // the guided sequence: pair → code, code → slug, the proof from 100 m; then everything is live
     const guide = makeGuide(ctx, {
-      anchor: [9.2, 20.8, -1], w: 11, h: 5,
+      anchor: [-5.6, 2.2, 10.5], w: 10, h: 5,
       steps: [
         { title: 'The pair', show: ['NH 47', 'NH 100', 'NH 744'], enter: () => { if (even) { even = false; apply(number); } },
           text: 'Numerals are spaced pair by pair. Table 1 reads the pair: a 4 after a 7 is code 4 (the lit cell). Pick another route and watch the lit cells move.' },
@@ -119,7 +120,7 @@ export default {
           text: 'The proof is under the tables: the same number from 100 m, even 35 mm gaps above, Plate 5 below. Switch Even spacing on and see the sign go wrong.' },
       ],
     });
-    group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
     apply('744'); return api;
   },
 };

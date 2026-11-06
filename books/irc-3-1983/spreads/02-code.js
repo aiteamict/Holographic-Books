@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { textPlane, cardBg, tagged } from '@engine/util.js';
 import { makeGuide } from '@engine/guide.js';
 import { TYPES, FORM_NAME, makeRig, drawSilhouette } from '../vehicles.js';
-import { road } from '../scene.js';
+import { road } from '@engine/scene.js';
 
 const S = 1.0, GY = .3, DRIVE_FROM = -22, F = 'Inter, Segoe UI, Arial';
 const HIT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });

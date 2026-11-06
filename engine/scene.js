@@ -1,4 +1,4 @@
-// Solid scene props for the Design Vehicle book: road, overbridge, checkpost. Built in metres inside a group scaled to
+// Solid scene props shared by the books: road, overbridge, checkpost, materials. Built in metres inside a group scaled to
 // s (world cm per real metre), like the vehicles. Road runs along x; its width is along z.
 import * as THREE from 'three';
 

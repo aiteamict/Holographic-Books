@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { tagged, textPlane, cardBg } from '@engine/util.js';
 import { makeGuide } from '@engine/guide.js';
 import { TYPES, INK, makeRig } from '../vehicles.js';
-import { road, SM, LAYERS } from '../scene.js';
+import { road, SM, LAYERS } from '@engine/scene.js';
 
 const S = 1.0, GY = 2.4, LZ = 1.75, T3 = TYPES.find(t => t.id === '3');
 const HIT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });

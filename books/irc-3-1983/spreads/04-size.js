@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { tagged } from '@engine/util.js';
 import { makeGuide } from '@engine/guide.js';
 import { TYPES, makeRig, makeBus } from '../vehicles.js';
-import { road, overbridge } from '../scene.js';
+import { road, overbridge } from '@engine/scene.js';
 
 const S = .8, BX = -1, DEPTH = 2.2, LANE_Z = 1.75 * S, END_X = -14;   // the scene is turned 90°: the road runs toward the reader
 const HIT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
