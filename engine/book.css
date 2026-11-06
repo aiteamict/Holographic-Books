@@ -170,3 +170,8 @@
   /* ---- phone touch targets: every control in the card is at least 44 px tall (thumb-sized), in every book ---- */
   body.phone #actions button,body.phone #mirror button,body.phone #steps button,body.phone #gpanel .opts button,body.phone #gpanel .next,body.phone .mtabs button{min-height:44px;font-size:14px;padding:10px 14px;line-height:1.2}
   body.phone .mbar button{width:44px;height:44px}
+  /* folded phone card: title plus a one-line peek at the current step */
+  body.phone .mhead .mt{display:flex;flex-direction:column;gap:2px;min-width:0}
+  body.phone #mpeek{font:600 12px var(--sans);color:#b0532a;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.phone #mpeek:empty{display:none}
+  body.phone .mcard.open #mpeek{display:none}

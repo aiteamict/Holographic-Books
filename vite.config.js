@@ -16,5 +16,7 @@ export default defineConfig({
   publicDir: resolve(__dirname, 'public'),          // public/<slug>/... lands next to that book's page
   resolve: { alias: { '@engine': resolve(__dirname, 'engine') } },
   server: { fs: { allow: [__dirname] } },
+  // the root is books/, so engine/ sits outside it: watch it too, or engine edits are never picked up in dev
+  plugins: [{ name: 'watch-engine', configureServer(s) { s.watcher.add(resolve(__dirname, 'engine')); } }],
   build: { outDir: resolve(__dirname, 'dist'), emptyOutDir: true, chunkSizeWarningLimit: 1400, rollupOptions: { input } },
 });

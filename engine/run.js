@@ -143,7 +143,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     if (!i || book.busy) { swipe = book.busy ? null : { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // the cover and the back page: a swipe is the only touch gesture
     const hit = pick(e, i.targets);
     if (!hit) { swipe = { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // empty canvas: maybe a page swipe
-    canvas.setPointerCapture(e.pointerId);
+    try { canvas.setPointerCapture(e.pointerId); } catch { /* a pointer that is already gone (or synthetic) must not break the book */ }
     const n = i.dragPlane === 'xy' ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
     const plane = new THREE.Plane(n, -n.dot(hit.point));
     drag = { i, hit, plane, start: hit.point.clone(), last: hit.point.clone(), moved: false, sx: e.clientX, sy: e.clientY };

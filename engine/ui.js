@@ -18,7 +18,7 @@ export class UI {
       <div class="lens" id="lens" aria-hidden="true"><canvas width="416" height="416"></canvas></div>
       <div class="mshell" id="mshell">
         <section class="mcard glass" id="mcard">
-          <button class="mhead" id="mhead" aria-expanded="true"><span id="mtitle"></span><span class="chev">▲</span></button>
+          <button class="mhead" id="mhead" aria-expanded="false"><span class="mt"><span id="mtitle"></span><small id="mpeek"></small></span><span class="chev">▲</span></button>
           <div class="mbody" id="mbody" data-tab="guide"><div class="mtabs"><button data-tab="guide" class="on">Steps</button><button data-tab="page">Page</button></div><div id="mslot"></div></div>
         </section>
         <nav class="mbar glass" id="mbar" aria-label="Book controls">
@@ -50,7 +50,7 @@ export class UI {
   setPhone(on) {
     this.phone = on; document.body.classList.toggle('phone', on); if (!on) return;
     const slot = this.$('mslot'); for (const id of ['gpanel', 'actions', 'steps', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); }
-    this.$('sheet').classList.add('open'); this.openCard(true);
+    this.$('sheet').classList.add('open'); this.openCard(false);   // folded by default: the scene stays visible; the peek line says what to do
   }
   openCard(open) { const c = this.$('mcard'); c.classList.toggle('open', open); this.$('mhead').setAttribute('aria-expanded', String(open)); if (open) this.$('mmenu').hidden = true; }
   /** keep the card's panels in reading order whatever order they were created in */
@@ -84,7 +84,7 @@ export class UI {
   setMuted(m) { this.muted = m; const b = this.$('mute'); b.textContent = m ? '🔇' : '🔊'; b.classList.toggle('off', m); b.setAttribute('aria-pressed', String(m)); const mm = this.$('m-mute'); if (mm) mm.textContent = m ? '🔇' : '🔊'; }
   setStep(k, title, prompt) {
     this.cur = k; this.$('mtitle').textContent = k ? `${k}. ${title}` : title; { const w = this.$('m-where'); w.textContent = ''; if (k) { const n = document.createElement('b'); n.textContent = k; w.append(n); } w.append(title); }
-    if (this.phone) { this.openCard(true); this.$('mbody').dataset.tab = 'guide'; this.$('mbody').querySelectorAll('.mtabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === 'guide')); }
+    if (this.phone) { this.$('mpeek').textContent = ''; this.$('mbody').dataset.tab = 'guide'; this.$('mbody').querySelectorAll('.mtabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === 'guide')); }
     const s = this.$('step');
     s.querySelector('.n').textContent = String(k).padStart(2, '0');
     s.querySelector('b').textContent = title; s.querySelector('span').textContent = prompt;
@@ -108,6 +108,7 @@ export class UI {
    * Hidden by CSS on wide screens, where the 3-D card is readable. info: guide.current or null; on: { pick(k), next() }.
    */
   setGuidePanel(info, on = {}) {
+    if (this.phone) this.$('mpeek').textContent = info ? (info.free ? 'Explore · everything is live' : info.title) + ' · tap to open' : '';
     let p = this.$('gpanel');
     if (!p) { p = document.createElement('section'); p.id = 'gpanel'; p.className = 'gpanel glass'; p.setAttribute('aria-live', 'polite'); (this.phone ? this.$('mslot') : this.root).prepend(p); this._order(); this._glassEls = null; }
     p.textContent = ''; p.style.display = info ? '' : 'none'; if (!info) return;
