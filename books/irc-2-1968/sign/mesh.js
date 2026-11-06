@@ -2,11 +2,12 @@
 import * as THREE from 'three';
 import { SPEC } from './spec.js';
 import { drawFace, drawBack, drawDefinitionPlate } from './face.js';
+import { PHONE } from '@engine/page.js';
 
 const mm = v => v / 10;
 
 export function faceTexture(number, opts) {
-  const c = document.createElement('canvas'); c.width = 900; c.height = 1200;
+  const c = document.createElement('canvas'); c.width = PHONE ? 450 : 900; c.height = PHONE ? 600 : 1200;   // drawFace scales to the canvas
   const layout = drawFace(c, number, opts);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
   return { texture: t, canvas: c, layout };

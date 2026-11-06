@@ -1,7 +1,10 @@
 // Typesets a book page onto a canvas and returns a texture. Pages are 26 × 34 cm at 40 px/cm.
 import * as THREE from 'three';
 
-export const PAGE_W = 26, PAGE_H = 34, PX = 56;   // 1456 × 1904 px pages: more texels than screen pixels even up close
+// 1456 × 1904 px pages on desktop: more texels than screen pixels even up close. Touch devices get 884 × 1156: still more
+// than a phone shows a page at, and 24 pages at full size (~600 MB of canvas + GPU memory) crashed phone browsers.
+export const PHONE = typeof matchMedia === 'function' && (matchMedia('(pointer: coarse)').matches || /[?&]phone\b/.test(location.search));   // ?phone tests it on desktop
+export const PAGE_W = 26, PAGE_H = 34, PX = PHONE ? 34 : 56;
 const W = PAGE_W * PX, H = PAGE_H * PX;
 const SERIF = '"Source Serif 4","Georgia","Times New Roman",serif';
 const SANS = 'Inter,"Segoe UI",Arial,sans-serif';

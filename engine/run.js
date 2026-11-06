@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import './book.css';
 import { createStage } from './stage.js';
 import { Book } from './book.js';
-import { renderPage as rawPage, renderCover, PAGE_W, PAGE_H } from './page.js';
+import { renderPage as rawPage, renderCover, PAGE_W, PAGE_H, PHONE } from './page.js';
 import { UI } from './ui.js';
 import * as holo from './holo.js';
 import { TIERS, measureFrameMs, pickTier } from './quality.js';
@@ -60,6 +60,14 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     if (!k || !SPREADS[k]) return null;
     if (!built[k]) { const i = SPREADS[k].build({ ...ctx, ui: scopedUI(k) }); i.group.visible = false; i.group.userData.pop = 0; holoRoot.add(i.group); built[k] = i; }
     return built[k];
+  }
+  /** Free a built spread's GPU memory. Shared materials and textures are safe to dispose: three re-uploads them on next use. */
+  function drop(k) {
+    const g = built[k].group; holoRoot.remove(g); delete built[k];
+    g.traverse(o => {
+      o.geometry?.dispose();
+      for (const m of [o.material].flat()) if (m) { for (const v of Object.values(m)) if (v?.isTexture) v.dispose(); m.dispose(); }
+    });
   }
   // cover hologram: the book supplies it; it stands on the desk beside the closed book, never on the cover's title
   const coverHolo = makeCoverHolo ? makeCoverHolo({ THREE, holo }) : new THREE.Group();
@@ -140,6 +148,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     k = THREE.MathUtils.clamp(k, 0, N + 1); if (k === cur) return;     // N + 1 is the back page: text only
     const prev = cur; cur = k; endTour(true);
     if (built[prev]) { built[prev].leave?.(); built[prev].group.visible = false; }
+    if (PHONE) for (const j in built) if (Math.abs(j - k) > 1) drop(j);   // phones: keep only the neighbours; a revisit rebuilds
     coverHolo.visible = false;
     book.goTo(k); snd.play(Math.abs(k - prev) > 1 ? 'riffle' : 'page');
     const i = inst(k), back = k > N;
