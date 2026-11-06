@@ -32,7 +32,7 @@ const pursue = (lead, p, d) => { const v = p.clone().sub(lead); return lead.clon
 export default {
   cam: { pos: [6, 47, 24], look: [8, 0, -2], portrait: { pos: [12.6, 68, 26], look: [12.6, 0, 0] } },
   shots: [
-    { pos: [11, 30, 10], look: [12, 0, -3], dur: 1.8, hold: 2.6, text: 'Watch the rear wheels: they cut inside the path of the front wheels. The longer the vehicle, the wider the strip it sweeps.' },
+    { pos: [11, 30, 10], look: [12, 0, -3], dur: 1.8, hold: 2.6, text: 'Watch the rear wheels: they cut inside the path of the front wheels, so every vehicle sweeps a strip wider than itself.' },
   ],
   build(ctx) {
     const { holo, ui } = ctx;
@@ -155,7 +155,7 @@ export default {
         { title: 'Four lengths', show: Object.values(V).map(v => v.label),
           text: '11 m truck, 12 m bus, 16 m semi-trailer rig, 18 m truck-trailer (cl. 5.3). Pick one and watch it round the bend, or drag the vehicle to drive it yourself.' },
         { title: 'Why length', show: Object.values(V).map(v => v.label),
-          check: { q: 'Why does the standard use overall length to design curves (cl. 1.1)?', options: ['a longer vehicle sweeps a wider strip', 'a longer vehicle is heavier', 'a longer vehicle is taller'], answer: 0, why: 'The rear wheels cut inside the front ones; the longer the vehicle, the wider the strip it sweeps on a bend. Curves and overtaking rules therefore depend on length (cl. 1.1).' } },
+          check: { q: 'Why does the standard use overall length to design curves (cl. 1.1)?', options: ['the rear wheels cut inside the front', 'long vehicles are heavier', 'long vehicles are taller'], answer: 0, why: 'On a bend the rear wheels track inside the front ones, so a vehicle needs more width than its own 2.5 m; its length, and where it is coupled, set how much (cl. 1.1). Run the 16 m semi-trailer and the 18 m truck-trailer: the shorter one sweeps more.' } },
         { title: 'The limits', show: [...Object.values(V).map(v => v.label), 'Clear paths'],
           check: { q: 'What is the longest a truck-trailer combination may be?', options: ['16 m', '18 m', '20 m'], answer: 1, why: '18 m (cl. 5.3.4). A truck-tractor with a semi-trailer may be 16 m (cl. 5.3.3), a single unit truck 11 m and a bus 12 m.' } },
       ],

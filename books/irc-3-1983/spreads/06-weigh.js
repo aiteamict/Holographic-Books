@@ -28,7 +28,7 @@ export default {
     const { holo, ui, camera } = ctx;
     const group = new THREE.Group();
     const rigRoot = new THREE.Group(); group.add(rigRoot);   // truck, pavement and columns turn together
-    const st = { i: START, f: 1, yaw: 0, drive: DRIVE_FROM, shown: [], dragged: false };
+    const st = { i: START, f: 1, fa: [], yaw: 0, drive: DRIVE_FROM, shown: [], dragged: false };   // fa: load factor per axle (1 = the Table)
     let rig = null, bars = [], barRoot = new THREE.Group(), bowls = null, man = null, turnHit = null, hint = null;
     rigRoot.add(barRoot);
 
@@ -42,13 +42,14 @@ export default {
     const weighDeck = holo.wireBox(PW - 2, .12, PD - .6, holo.CYAN, { fill: .1, width: .05 }); weighDeck.position.y = GY + .06; rigRoot.add(weighDeck);
 
     const T = () => TYPES[st.i];
-    const target = k => +(rig.groups[k].limit * st.f).toFixed(1);
+    const fa = k => st.fa[k] ?? st.f, worst = () => Math.max(...rig.groups.map((a, k) => fa(k))), anyOver = () => worst() > 1.0001;
+    const target = k => +(rig.groups[k].limit * fa(k)).toFixed(1);
     const targets = () => rig.groups.map((a, k) => target(k));
 
     // ---- the weighbridge ticket
     const ticket = textPlane({ w: 9.8, h: 7.6, px: 50, draw: (c, W, H) => {
       if (!rig) return;                                             // first draw happens before the vehicle exists
-      const t = T(), L = targets(), gross = +L.reduce((a, b) => a + b, 0).toFixed(1), over = st.f > 1.0001;
+      const t = T(), L = targets(), gross = +L.reduce((a, b) => a + b, 0).toFixed(1), over = anyOver();
       cardBg(c, W, H, { stroke: over ? 'rgba(194,59,47,.9)' : 'rgba(42,109,104,.85)' });
       c.textAlign = 'left'; c.fillStyle = '#2a6d68'; c.font = `700 15px ${F}`; c.fillText('WEIGHBRIDGE TICKET · IRC 3-1983, TABLE', 22, 30);
       c.fillStyle = '#1f2328'; c.font = `800 30px ${F}`; c.fillText(t.code === '2' ? t.name : `Type ${t.code}`, 22, 68);
@@ -69,7 +70,7 @@ export default {
       const msg = over ? `OVERLOADED +${+(gross - t.gross).toFixed(1)} t` : 'WITHIN THE TABLE', col = over ? CSS.over : '#2f8f55';
       c.save(); c.translate(W - 150, H - 40); c.rotate(-.06); c.strokeStyle = col; c.lineWidth = 3; c.strokeRect(-128, -22, 256, 40);
       c.fillStyle = col; c.font = `800 18px ${F}`; c.textAlign = 'center'; c.fillText(msg, 0, 5); c.restore();
-      c.fillStyle = '#5c6168'; c.font = `500 14px ${F}`; c.fillText(over ? `road wear ×${(st.f ** 4).toFixed(1)} per pass` : `load ${Math.round(st.f * 100)} % of the Table`, 22, H - 34);
+      c.fillStyle = '#5c6168'; c.font = `500 14px ${F}`; c.fillText(over ? `worst axle wears the road ×${(worst() ** 4).toFixed(1)} per pass` : `every axle within the Table`, 22, H - 34);
     } });
     ticket.position.set(5, 2.6, 10.5); ticket.rotation.x = -.6; group.add(ticket);   // cards lie in front of the truck, tilted to the reader: they never hide the columns
 
@@ -119,7 +120,7 @@ export default {
       st.i = (i + TYPES.length) % TYPES.length;
       if (rig) rigRoot.remove(rig.group);
       rig = makeRig(T(), S); rig.group.position.set(DRIVE_FROM, GY, 0); rigRoot.add(rig.group);
-      st.drive = DRIVE_FROM; st.shown = rig.groups.map(() => 0);
+      st.drive = DRIVE_FROM; st.shown = rig.groups.map(() => 0); st.fa = rig.groups.map(() => st.f);
       if (turnHit) rigRoot.remove(turnHit);
       turnHit = new THREE.Mesh(new THREE.BoxGeometry(rig.L * S, 4.2 * S, 3.5), HIT); turnHit.position.y = GY + 2.1 * S; turnHit.userData.turn = true; rigRoot.add(turnHit);
       if (man) rigRoot.remove(man);
@@ -129,17 +130,19 @@ export default {
     const announce = () => ui.caption(`${T().name}: ${FORM_NAME[T().form]}, ${T().gross} t gross in the Table.`, 'Vehicle', 4000);
     function sayLoad() {
       const g = +targets().reduce((a, b) => a + b, 0).toFixed(1), t = T().gross;   // the ticket in words: on phones the card can cover the 3-D ticket
-      ui.caption(st.f > 1.0001 ? `Gross ${g} t, ${+(g - t).toFixed(1)} t over the Table (${t} t). Road wear ×${(st.f ** 4).toFixed(1)}.` : `Gross ${g} t of ${t} t allowed: within the Table.`, `Load ${Math.round(st.f * 100)} %`, 5000);
+      const bad = rig.groups.map((a, k) => ({ a, k, v: target(k) })).filter(o => o.v > o.a.limit + 1e-9);
+      ui.caption(bad.length ? `${bad.map(o => `Axle ${o.k + 1} carries ${o.v} t, over its ${o.a.limit} t`).join('; ')}. Gross ${g} t against ${t} t. Worst axle wears the road ×${(worst() ** 4).toFixed(1)}.` : `Gross ${g} t of ${t} t allowed: every axle within the Table.`, bad.length ? 'Overloaded' : 'Within the Table', 6000);
     }
     function setLoad(f, quiet) {
       const nf = Math.round(THREE.MathUtils.clamp(f, .5, 1.4) * 100) / 100; if (nf === st.f && quiet) return;
-      st.f = nf; ticket.redraw(); if (!quiet) sayLoad();
+      st.f = nf; st.fa = rig.groups.map(() => nf); ticket.redraw(); if (!quiet) sayLoad();
     }
     function explain(k) {
       const a = rig.groups[k], cl = a.kind === 't' ? 'cl. 6.2' : 'cl. 6.1';
       ui.caption(`Axle ${k + 1}: ${KIND_NAME[a.kind]}. ${target(k)} t on it; the standard allows ${a.limit} t (${cl}).`, 'Axle load', 6000);
     }
 
+    function setAxle(k, f) { st.fa[k] = Math.round(THREE.MathUtils.clamp(f, .5, 1.4) * 100) / 100; ticket.redraw(); }
     let grip = null;   // what a press grabbed: { mode: 'load' | 'turn', f0, yaw0, moved }
     const api = {
       group, dragPlane: 'xy',
@@ -151,13 +154,13 @@ export default {
         { label: 'Legal load', run: () => setLoad(1) },
       ],
       press(hit) {
-        if (tagged(hit.object, 'bar')) grip = { mode: 'load', f0: st.f, moved: false };
+        const bar = tagged(hit.object, 'bar'); if (bar) grip = { mode: 'load', k: bar.userData.axle, f0: fa(bar.userData.axle), moved: false };
         else if (tagged(hit.object, 'turn') || tagged(hit.object, 'axle')) grip = { mode: 'turn', yaw0: st.yaw, moved: false };
         else grip = null;
       },
       drag({ dx, dy }) {
         if (!grip) return; grip.moved = true;
-        if (grip.mode === 'load') { setLoad(grip.f0 - dy / 240, true); if (!st.dragged) { st.dragged = true; if (hint) hint.visible = false; } }
+        if (grip.mode === 'load') { setAxle(grip.k, grip.f0 - dy / 240); if (!st.dragged) { st.dragged = true; if (hint) hint.visible = false; } }
         else st.yaw = THREE.MathUtils.clamp(grip.yaw0 + dx / 160, -1.3, 1.3);
       },
       release() { if (grip?.moved && grip.mode === 'load') sayLoad(); grip = null; },
@@ -177,7 +180,7 @@ export default {
         // the columns follow the load once the truck is on the deck
         const on = st.drive > -.6; let moving = false;
         rig.groups.forEach((a, k) => {
-          const goal = on ? a.limit * st.f : 0, v = st.shown[k] ?? 0, nv = v + (goal - v) * Math.min(1, dt * 6);
+          const goal = on ? a.limit * fa(k) : 0, v = st.shown[k] ?? 0, nv = v + (goal - v) * Math.min(1, dt * 6);
           if (Math.abs(nv - v) > 1e-3) moving = true; st.shown[k] = Math.abs(goal - nv) < .01 ? goal : nv;
         });
         if (moving || st.drive < 0) placeBars();
@@ -187,14 +190,14 @@ export default {
         guide.card.position.x = tall ? -4.5 : -5.4; ticket.position.x = tall ? 4.5 : 5; guide.card.scale.setScalar(tall ? .86 : 1); ticket.scale.setScalar(tall ? .86 : 1);
         rigRoot.rotation.y += (want - rigRoot.rotation.y) * Math.min(1, dt * 5);
       },
-      reset() { st.f = 1; st.yaw = 0; setType(START); guide.reset(); },
-      get debug() { const L = targets(); return { type: T().id, f: st.f, loads: L, shown: st.shown.map(v => +v.toFixed(2)), gross: +L.reduce((a, b) => a + b, 0).toFixed(1), table: T().gross, yaw: st.yaw, drive: +st.drive.toFixed(2), guide: guide.debug }; },
+      reset() { st.f = 1; st.fa = []; st.yaw = 0; setType(START); guide.reset(); },
+      get debug() { const L = targets(); return { type: T().id, f: st.f, fa: rig.groups.map((a, k) => fa(k)), loads: L, shown: st.shown.map(v => +v.toFixed(2)), gross: +L.reduce((a, b) => a + b, 0).toFixed(1), table: T().gross, yaw: st.yaw, drive: +st.drive.toFixed(2), guide: guide.debug }; },
     };
     const guide = makeGuide(ctx, {
       anchor: [-5.4, 2.2, 10.5], w: 10, h: 5,
       steps: [
-        { title: 'Read the axles', show: [], enter: () => { if (st.i !== START || st.f !== 1) { st.f = 1; setType(START); } },
-          text: 'The road feels axles, not trucks. Each column is the load on one axle: teal single tyres (6 t), amber dual tyres (10.2 t), purple a tandem pair (18 t). Tap a column; drag the truck to turn it.' },
+        { title: 'Read the axles', show: [], enter: () => { if (st.i !== START || anyOver() || st.f !== 1) { st.f = 1; st.fa = []; setType(START); } },
+          text: 'The road feels axles, not trucks. Each column is the load on one axle: teal single tyres (6 t), amber dual tyres (10.2 t), purple a tandem pair (18 t). Drag a column to load that axle; drag the truck to turn it.' },
         { title: 'Add it up', show: ['◀ Vehicle', 'Vehicle ▶'],
           check: { q: 'This 3-S2 has a 6 t front axle and two 18 t tandems. What may it weigh in all?', options: ['36 t', '42 t', '48 t'], answer: 1, why: 'The gross limit is the sum of the axle limits (cl. 6.3): 6 + 18 + 18 = 42 t, the Table value. Step through the other vehicles to see it hold.' } },
         { title: 'Overload it', show: ['Load −10 %', 'Load +10 %', 'Legal load'],

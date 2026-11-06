@@ -3,7 +3,7 @@
 // Tap one and the road element it decides comes in around the truck: the lane lights up, a bridge beam comes down, a
 // curve is traced ahead, the pavement layers are measured, the road tilts into a gradient.
 import * as THREE from 'three';
-import { tagged } from '@engine/util.js';
+import { tagged, textPlane, cardBg } from '@engine/util.js';
 import { makeGuide } from '@engine/guide.js';
 import { TYPES, INK, makeRig } from '../vehicles.js';
 import { road, SM, LAYERS } from '../scene.js';
@@ -35,29 +35,51 @@ export default {
     const rearX = rig.groups[1].wx, frontX = -rig.L * S / 2, backX = rig.L * S / 2;
 
     // ---- the five road elements, each a group faded in when its number is chosen
+    // ---- the sweep card for "length": a top view, redrawn as an 11 m truck rounds a bend (front axle on the lane, rear axle pursuing)
+    const SW = (() => { const R = 12, wb = 7, out = []; let F = [20, -R], Rr = [27, -R];
+      const path = d => d < 20 ? [20 - d, -R] : d < 20 + R * Math.PI / 2 ? (a => [R * Math.cos(a), R * Math.sin(a)])(-Math.PI / 2 - (d - 20) / R) : [-R, d - 20 - R * Math.PI / 2];
+      for (let d = 0; d <= 46; d += .25) { F = path(d); const v = [Rr[0] - F[0], Rr[1] - F[1]], L = Math.hypot(...v); Rr = [F[0] + v[0] / L * wb, F[1] + v[1] / L * wb]; out.push([F, Rr]); }
+      return out; })();
+    let swT = 0;
+    const sweepCard = textPlane({ w: 9.4, h: 6.6, px: 46, draw: (c, W, H) => {
+      cardBg(c, W, H, { stroke: 'rgba(176,83,42,.8)' });
+      c.fillStyle = '#b0532a'; c.font = '700 14px Inter, Segoe UI, Arial'; c.textAlign = 'left'; c.fillText('TOP VIEW · AN 11 m TRUCK ON A BEND', 18, 26);
+      const k = (W - 60) / 36, ox = 30 + 14.5 * k, oz = 46 + 4 * k, P = ([x, z]) => [ox + x * k, oz + (z + 13) * k];
+      c.lineWidth = 3.5 * k; c.strokeStyle = 'rgba(80,84,90,.85)'; c.beginPath();   // the lane
+      for (let i = 0; i < SW.length; i += 2) { const [x, y] = P(SW[i][0]); i ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke();
+      const n = Math.min(SW.length - 1, Math.floor(swT * SW.length)), corners = i => { const [F, Rr] = SW[i], d = [F[0] - Rr[0], F[1] - Rr[1]], L = Math.hypot(...d), u = [d[0] / L, d[1] / L], nn = [-u[1] * 1.25, u[0] * 1.25];
+        const fr = [F[0] + u[0] * 1.4, F[1] + u[1] * 1.4], rr = [Rr[0] - u[0] * 2.6, Rr[1] - u[1] * 2.6]; return [[fr[0] + nn[0], fr[1] + nn[1]], [fr[0] - nn[0], fr[1] - nn[1]], [rr[0] - nn[0], rr[1] - nn[1]], [rr[0] + nn[0], rr[1] + nn[1]]]; };
+      c.fillStyle = 'rgba(201,122,16,.28)';                          // the swept strip so far: every body outline up to now
+      for (let i = 0; i <= n; i += 2) { const q = corners(i).map(P); c.beginPath(); c.moveTo(...q[0]); for (const p of q.slice(1)) c.lineTo(...p); c.closePath(); c.fill(); }
+      const q = corners(n).map(P); c.fillStyle = '#e8e1d2'; c.strokeStyle = '#1f2328'; c.lineWidth = 2; c.beginPath(); c.moveTo(...q[0]); for (const p of q.slice(1)) c.lineTo(...p); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = '#5c6168'; c.font = '500 13px Inter, Segoe UI, Arial'; c.fillText('the rear cuts inside the front: the strip is wider than the truck', 18, H - 14);
+    } });
+    sweepCard.position.set(4.3, 2.6, 10.5); sweepCard.rotation.x = -.6; sweepCard.scale.setScalar(.92);
     const E = {};
     { const g = new THREE.Group();                                   // width → lanes and shoulders
       const lane = new THREE.Mesh(new THREE.PlaneGeometry(22, 3.5), new THREE.MeshBasicMaterial({ color: holo.GREEN, transparent: true, opacity: .22, depthWrite: false, toneMapped: false })); lane.material.userData.fade = true; lane.rotation.x = -Math.PI / 2; lane.position.set(0, GY + .08, LZ); g.add(lane);
       g.add(holo.dimension([backX + .6, GY + 4.2, LZ - 1.25], [backX + .6, GY + 4.2, LZ + 1.25], '2.5 m', { color: holo.AMBER, h: .9, tick: .35 }));
       g.add(holo.tag('lane and shoulder widths', [-6, GY + .1, LZ + 1.75], [-3, 3.4, 2], { accent: holo.GREEN, h: .75 })); E.width = g; }
-    { const g = new THREE.Group(), beam = new THREE.Group(); g.add(beam);   // height → a bridge beam comes down
-      const b = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.0, 12), SM.concrete); b.position.set(frontX - 3.4, GY + 4.6 + .5, 0); b.castShadow = true; beam.add(b);
-      for (const z of [-5.6]) { const p = new THREE.Mesh(new THREE.BoxGeometry(.8, 4.6, .8), SM.concreteDark);   // a cantilever gantry: one pier on the far verge, so the beam reads from the reader’s side
-      p.position.set(frontX - 3.4, GY + 2.3, z); p.castShadow = true; beam.add(p); }
+    { const g = new THREE.Group(), beam = new THREE.Group(); g.add(beam);   // height → a see-through overbridge settles over the truck
+      const deckY = GY + 4.8;
+      const deck = holo.wireBox(4.2, .8, 12.4, holo.CYAN, { fill: .16, width: .07 }); deck.position.set(0, deckY + .4, 0); beam.add(deck);
+      for (const z of [-5.8, 5.8]) { const p = holo.wireBox(.8, 4.8, .8, holo.CYAN, { fill: .1, width: .05 }); p.position.set(0, GY + 2.4, z); beam.add(p); }
       g.add(holo.dimension([frontX - .4, GY, LZ + 1.4], [frontX - .4, GY + 3.8, LZ + 1.4], '3.8 m', { color: holo.AMBER, h: .9, tick: .35 }));
-      g.add(holo.tag('clearance under bridges and electric lines', [frontX - 3.4, GY + 5.6, 3], [3.4, 1.6, 0], { accent: holo.CYAN, h: .75 })); g.userData.beam = beam; E.height = g; }
-    { const g = new THREE.Group(), pts = [];                         // length → a curve traced ahead
-      for (let i = 0; i <= 30; i++) { const a = i / 30 * Math.PI / 2; pts.push([frontX - 7 * Math.sin(a), GY + .12, LZ - 7 + 7 * Math.cos(a)]); }
-      g.add(holo.polyline(pts, holo.AMBER, { width: .12, dashed: true }));
+      beam.add(holo.dimension([2.6, GY + 3.8, LZ + 1.4], [2.6, deckY, LZ + 1.4], 'clearance', { color: holo.GREEN, h: .75, tick: .3 }));
+      g.add(holo.tag('clearance under bridges and electric lines', [2, deckY + .8, 5.6], [3.2, .2, 0], { accent: holo.CYAN, h: .75 })); g.userData.beam = beam; E.height = g; }
+    { const g = new THREE.Group();                                   // length → a top-view card: the 11 m truck rounds a bend and sweeps a strip
       g.add(holo.dimension([frontX, GY + 4.4, LZ], [backX, GY + 4.4, LZ], '11 m', { color: holo.AMBER, h: .9, tick: .35 }));
-      g.add(holo.tag('curves · passing and overtaking', [frontX - 5, GY + .1, LZ - 2.6], [-1.5, 3.2, -1], { accent: holo.AMBER, h: .75 })); E.length = g; }
+      g.add(sweepCard); E.length = g; }
     { const g = new THREE.Group(), h = 18 * .3;                       // axle load → pavement thickness
       const col = holo.wireBox(2.1, h, 1.1, INK.t, { fill: .24, width: .07 }); col.position.set(rearX, GY + 4.6 + h / 2, LZ); g.add(col);
       const l = holo.label('18 t', { h: .95, color: '#6a4a8c', weight: 700 }); l.position.set(rearX, GY + 4.6 + h + .9, LZ); g.add(l);
       g.add(holo.dimension([10.6, 0, 5.2], [10.6, GY, 5.2], 'pavement thickness', { color: holo.AMBER, h: .75, tick: .35 })); E.axle = g; }
-    { const g = new THREE.Group();                                   // gross weight → gradient (the whole road tilts too)
-      g.add(holo.segments([[-10, GY + .1, -5.4], [10, GY + .1, -5.4], [-10, GY + .1, -5.4], [-10, GY + 1.7, -5.4]], holo.AMBER, .9, { width: .07 }));
-      g.add(holo.tag('limiting gradient', [-10, GY + 1.7, -5.4], [2, 2.6, 0], { accent: holo.AMBER, h: .75 })); E.gross = g; }
+    { const g = new THREE.Group();                                   // gross weight → gradient: the road tilts, the loaded truck crawls up it
+      g.add(holo.segments([[-10, .02, 5.15], [10, .02, 5.15], [10, .02, 5.15], [10, 1.6, 5.15]], holo.AMBER, .9, { width: .07 }));   // run and rise on the cut face
+      const lr = holo.label('rise', { h: .6, color: '#b0532a' }); lr.position.set(10.9, .8, 5.15); g.add(lr);
+      g.add(holo.segments([[0, GY + 7.2, LZ], [0, GY + 4.4, LZ], [0, GY + 4.4, LZ], [-.5, GY + 5.1, LZ], [0, GY + 4.4, LZ], [.5, GY + 5.1, LZ]], holo.AMBER, .95, { width: .09 }));   // the weight, straight down
+      const lw = holo.label('24 t pulls back down the slope', { h: .7, color: '#b0532a', weight: 700 }); lw.position.set(0, GY + 7.9, LZ); g.add(lw);
+      g.add(holo.tag('limiting gradient (slope exaggerated)', [-10, GY + .1, -4.2], [1.5, 3, 0], { accent: holo.AMBER, h: .75 })); E.gross = g; }
     for (const key in E) { E[key].visible = false; E[key].userData.k = 0; root.add(E[key]); }
 
     // ---- the five numbers, as tappable badges floating over the truck
@@ -90,8 +112,10 @@ export default {
           const kk = g.userData.k; g.visible = kk > .01; holo.setOpacity(g, kk);
           if (g.userData.beam) g.userData.beam.position.y = (1 - kk) * 9;
         }
+        if (E.length.userData.k > .3) { swT = (swT + dt / 5) % 1.15; if (Math.floor(t * 30) % 2 === 0) sweepCard.redraw(); }
+        if (E.gross.userData.k > .3) for (const a of rig.groups) for (const w of a.wheels) w.rotation.y -= dt * .9;
         const tall = camera.aspect < 1;
-        root.rotation.z = -.07 * E.gross.userData.k; root.rotation.y += ((tall ? -.5 : 0) - root.rotation.y) * Math.min(1, dt * 5);
+        root.rotation.z = -.12 * E.gross.userData.k; root.rotation.y += ((tall ? -.5 : 0) - root.rotation.y) * Math.min(1, dt * 5);
         if (st.tall !== tall) drawBadges();
         for (const b of badges) b.g.position.y = b.g.userData.by + Math.sin(t * 1.6 + b.g.position.x) * .12;
         guide.card.position.x = tall ? -4.5 : -5.4; guide.card.scale.setScalar(tall ? .86 : 1);

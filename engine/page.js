@@ -17,13 +17,18 @@ function wrap(ctx, text, maxW) {
 /** Draw text where **bold** runs come out white and bold. Returns the y after the block. */
 function paragraph(ctx, text, x, y, maxW, { size = 30, lh = 1.42, color = INK.ink, font = SERIF, italic = false } = {}) {
   const base = `${italic ? 'italic ' : ''}400 ${size}px ${font}`, bold = `${italic ? 'italic ' : ''}700 ${size}px ${font}`;
-  const words = text.split(/(\*\*[^*]+\*\*)/).filter(Boolean).flatMap(t => {
-    const b = t.startsWith('**'); return (b ? t.slice(2, -2) : t).split(' ').filter(Boolean).map(w => ({ b, t: w }));
-  });
+  // words, each marked `glue` when it touches the run before it with no space ("**axles**." → the stop hugs the word)
+  const words = []; let prevSpace = true;
+  for (const t of text.split(/(\*\*[^*]+\*\*)/).filter(Boolean)) {
+    const b = t.startsWith('**'), s = b ? t.slice(2, -2) : t;
+    s.split(' ').forEach((w, i) => { if (w) words.push({ b, t: w, glue: i === 0 && words.length > 0 && !prevSpace && !/^\s/.test(s) }); });
+    prevSpace = /\s$/.test(s);
+  }
   let cx = x, cy = y; ctx.font = base; const space = ctx.measureText(' ').width;
   for (const w of words) {
     ctx.font = w.b ? bold : base; const ww = ctx.measureText(w.t).width;
-    if (cx + ww > x + maxW && cx > x) { cx = x; cy += size * lh; }
+    if (w.glue) cx -= space;                                   // no space between a bold run and the punctuation after it
+    else if (cx + ww > x + maxW && cx > x) { cx = x; cy += size * lh; }
     ctx.fillStyle = w.b ? INK.bold : color; ctx.fillText(w.t, cx, cy); cx += ww + space;
   }
   return cy + size * lh;

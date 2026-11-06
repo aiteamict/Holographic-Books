@@ -97,7 +97,8 @@ export default {
       setCode(c);
       const newRole = role === 'plus' ? 'S' : (role === 'S' || role === 'dash') && !c.hitch ? 'truck' : role;
       setTimeout(() => highlight(newRole), 900);
-      ui.caption(ROLE_TEXT[newRole](newRole === 'truck' ? c.a : c.n), `Type ${T().code}`, 6000);
+      const hill = c.hitch === 'T' ? ' In steep and mountainous terrain roads need not be designed for truck-trailers (cl. 2.2).' : '';
+      ui.caption(ROLE_TEXT[newRole](newRole === 'truck' ? c.a : c.n) + hill, `Type ${T().code}`, 6500);
     }
     function refuseThird() {
       if (ghost) rigRoot.remove(ghost);

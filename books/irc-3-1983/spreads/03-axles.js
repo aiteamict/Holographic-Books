@@ -16,7 +16,7 @@ const VERDICT = {
   single: d => `${d.toFixed(2)} m apart: inside planes 1 m apart, so one single axle (cl. 3.7). On dual tyres: 10.2 t (cl. 6.1).`,
   neither: d => `${d.toFixed(2)} m apart: more than 1 m, so not a single axle; not more than 1.2 m, so not a tandem. Neither definition applies.`,
   tandem: d => `${d.toFixed(2)} m apart: more than 1.2 m and not more than 2.5 m, so a tandem axle (cl. 3.8): 18 t for the pair (cl. 6.2).`,
-  separate: d => `${d.toFixed(2)} m apart: beyond 2.5 m, two separate single axles, 10.2 t each.`,
+  separate: d => `${d.toFixed(2)} m apart: beyond 2.5 m the pair is no longer a tandem. This book reads them as two single axles, 10.2 t each; the standard says no more.`,
 };
 
 export default {
@@ -41,6 +41,15 @@ export default {
     const handle = holo.handle('rear', { label: 'drag', kind: 'lever', r: .9 }); group.add(handle);
     const rearHit = new THREE.Mesh(new THREE.BoxGeometry(3.6, 4.4, 9), HIT); rearHit.userData.rear = true; group.add(rearHit);
 
+    // the two transverse planes of cl. 3.7, 1 m apart, riding on the front axle: green while the rear axle is inside them
+    const planeMat = new THREE.MeshBasicMaterial({ color: holo.GREEN, transparent: true, opacity: .14, side: THREE.DoubleSide, depthWrite: false, toneMapped: false });
+    const planes = new THREE.Group(); group.add(planes);
+    for (const dx of [0, 1]) {
+      const px = X0 + dx * S, p = new THREE.Mesh(new THREE.PlaneGeometry(3 * S, 2.4 * S), planeMat); p.rotation.y = Math.PI / 2; p.position.set(px, 1.2 * S, 0); planes.add(p);
+      planes.add(holo.polyline([[px, 0, -1.5 * S], [px, 2.4 * S, -1.5 * S], [px, 2.4 * S, 1.5 * S], [px, 0, 1.5 * S]], holo.GREEN, { width: .05, opacity: .8 }));
+    }
+    const planeTag = holo.label('two planes 1 m apart · cl. 3.7', { h: .7, color: '#2f8f55' }); planeTag.position.set(X0 + .5 * S, 2.8 * S, -1.5 * S); planes.add(planeTag);
+
     // the ruler, tilted toward the reader in front of the wheels, origin at the front axle
     const RW = (DMAX + .6) * S, ruler = textPlane({ w: RW, h: 2.6, px: 40, draw: (c, W, H) => {
       const k = W / RW * S, x0 = .3 * S * W / RW;                    // px per metre, x of the front axle
@@ -61,6 +70,7 @@ export default {
     function rebuild() {
       group.remove(deco); deco = new THREE.Group(); group.add(deco);
       const d = st.shown, kind = classify(d), xr = X0 + d * S, top = 4.6, K = .32;
+      planeMat.color.setHex(kind === 'single' ? holo.GREEN : holo.DIM);
       deco.add(holo.dimension([X0, .25, 4.6], [xr, .25, 4.6], `${d.toFixed(2)} m`, { color: holo.AMBER, h: 1.1, tick: .5 }));
       const col = (x0, x1, t, color, txt) => {
         const h = t * K, w = Math.max(1.4, x1 - x0 + 1.2), b = holo.wireBox(w, h, 1.2, color, { fill: .24, width: .07 }); b.position.set((x0 + x1) / 2, top + h / 2, 0); deco.add(b);

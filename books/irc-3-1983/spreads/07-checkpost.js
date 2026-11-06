@@ -11,12 +11,14 @@ import { road, checkpost } from '../scene.js';
 const S = .8, CPX = -6, LANE_Z = 1.75 * S, F = 'Inter, Segoe UI, Arial';
 const BARRIER_X = CPX + 1.8 * S, STOP_FRONT = BARRIER_X + .35, END_FRONT = -12.5;
 const HIT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
-const OPTIONS = ['Pass', 'Stop · height', 'Stop · length', 'Stop · axle load'];
+const OPTIONS = ['Pass', 'Height', 'Length', 'Width', 'Axle load', 'Too many'];   // stop reasons, short enough for the card
 const T = id => TYPES.find(t => t.id === id);
 const CASES = [
-  { type: T('2-S2'), top: 3.6, loads: [6, 10.2, 18], answer: 0, why: 'Height 3.6 m, length 16 m, and every axle at or under its limit. Pass.' },
-  { type: T('3'), top: 3.6, loads: [6, 21.4], answer: 3, why: 'The tandem carries 21.4 t; two axles in tandem may put at most 18 t on the road (cl. 6.2). Stop.' },
+  { type: T('2-S2'), top: 3.6, loads: [6, 10.2, 18], answer: 0, why: 'Height 3.6 m, length 16 m, width 2.5 m, and every axle at or under its limit. Pass.' },
+  { type: T('3'), top: 3.6, loads: [6, 21.4], answer: 4, why: 'The tandem carries 21.4 t; two axles in tandem may put at most 18 t on the road (cl. 6.2). Stop.' },
+  { type: T('2'), top: 3.6, wide: 2.8, loads: [6, 10.2], answer: 3, why: 'The load sticks out to 2.8 m. Overall width includes the load (cl. 3.14) and may not exceed 2.5 m (cl. 5.1). Stop.' },
   { type: { ...T('2-2'), len: 19 }, top: 3.6, loads: [6, 10.2, 10.2, 10.2], answer: 2, why: '19 m long: a truck-trailer combination may be 18 m at most (cl. 5.3.4). Stop.' },
+  { type: T('2-2'), top: 3.6, extra: true, loads: [6, 10.2, 10.2, 10.2], answer: 5, alt: [2], why: 'A truck pulling two trailers: no combination may comprise more than two vehicles (cl. 5.3.5). At 27 m it is far too long as well (cl. 5.3.4). Stop.' },
   { type: T('3-S2'), top: 4.2, iso: true, loads: [6, 18, 18], answer: 0, why: '4.2 m tall, but it carries ISO series 1 freight containers, for which 4.2 m is allowed (cl. 5.2). Pass.' },
 ];
 
@@ -46,14 +48,16 @@ export default {
       if (!rig) return;
       const k = C(), t = k.type, L = rig.L, maxL = MAXLEN[t.form], longBad = L > maxL, hMax = k.iso ? 4.2 : 3.8, hBad = k.top > hMax;
       cardBg(c, W, H, { stroke: 'rgba(42,109,104,.85)' });
-      c.textAlign = 'left'; c.fillStyle = '#2a6d68'; c.font = `700 15px ${F}`; c.fillText(`CHECKPOST · VEHICLE ${st.i + 1} OF 4`, 22, 30);
+      c.textAlign = 'left'; c.fillStyle = '#2a6d68'; c.font = `700 15px ${F}`; c.fillText(`CHECKPOST · VEHICLE ${st.i + 1} OF ${CASES.length}`, 22, 30);
       c.fillStyle = '#1f2328'; c.font = `800 28px ${F}`; c.fillText(`Type ${t.code}`, 22, 64);
       c.fillStyle = '#5c6168'; c.font = `500 15px ${F}`; c.fillText(`${FORM_NAME[t.form]}${k.iso ? ' · carrying ISO containers' : ''}`, 22, 86);
       const row = (y, name, val, lim, bad) => { c.fillStyle = '#1f2328'; c.font = `500 17px ${F}`; c.fillText(name, 22, y); c.textAlign = 'right'; c.fillStyle = bad ? CSS.over : '#1f2328'; c.font = `700 17px ${F}`; c.fillText(val, W - 120, y); c.fillStyle = '#5c6168'; c.font = `500 14px ${F}`; c.fillText(lim, W - 22, y); c.textAlign = 'left'; };
       const show = st.meas > .5;
       row(120, 'Height', show ? `${k.top.toFixed(1)} m` : '…', `max ${hMax} m`, show && hBad);
       row(148, 'Length', show ? `${L} m` : '…', `max ${maxL} m`, show && longBad);
-      rig.groups.forEach((a, j) => row(176 + j * 26, `Axle ${j + 1} · ${a.kind === 't' ? 'tandem' : a.kind === 'd' ? 'dual' : 'single'}`, show ? `${k.loads[j]} t` : '…', `max ${a.limit}`, show && k.loads[j] > a.limit));
+      row(176, 'Width', show ? `${(k.wide ?? 2.5).toFixed(1)} m` : '…', 'max 2.5 m', show && (k.wide ?? 2.5) > 2.5);
+      if (k.extra) row(176 + 28 * 5, 'Vehicles', show ? '3' : '…', 'max 2', show);
+      rig.groups.forEach((a, j) => row(204 + j * 26, `Axle ${j + 1} · ${a.kind === 't' ? 'tandem' : a.kind === 'd' ? 'dual' : 'single'}`, show ? `${k.loads[j]} t` : '…', `max ${a.limit}`, show && k.loads[j] > a.limit));
       if (st.verdict) {
         const ok = st.verdict === 'pass', col = ok ? '#2f8f55' : CSS.over;
         c.save(); c.translate(W - 150, H - 36); c.rotate(-.06); c.strokeStyle = col; c.lineWidth = 3; c.strokeRect(-128, -22, 256, 40);
@@ -67,6 +71,7 @@ export default {
       const k = C(), fx = -halfL(), hMax = k.iso ? 4.2 : 3.8, base = (k.top + 1.2) * S;
       meas.add(holo.dimension([fx - .4, 0, 1.4 * S], [fx - .4, k.top * S, 1.4 * S], `${k.top.toFixed(1)} m`, { color: k.top > hMax ? holo.RED : holo.AMBER, h: .85, tick: .35 }));
       meas.add(holo.dimension([fx, .15, 2.6 * S], [halfL(), .15, 2.6 * S], `${rig.L} m`, { color: rig.L > MAXLEN[k.type.form] ? holo.RED : holo.AMBER, h: .85, tick: .35 }));
+      const wd = k.wide ?? 2.5; meas.add(holo.dimension([halfL() + .3, (k.top + .3) * S, -wd / 2 * S], [halfL() + .3, (k.top + .3) * S, wd / 2 * S], `${wd} m`, { color: wd > 2.5 ? holo.RED : holo.CYAN, h: .8, tick: .3 }));
       rig.groups.forEach((a, j) => {
         const over = k.loads[j] > a.limit, h = k.loads[j] * .22, w = a.kind === 't' ? 1.7 : .9;
         const col = holo.wireBox(w, h, .9, over ? INK.over : INK[a.kind], { fill: over ? .35 : .22, width: .06 }); col.position.set(a.wx, base + h / 2, 0); meas.add(col);
@@ -79,6 +84,15 @@ export default {
       st.i = i; st.verdict = null; st.open = 0; st.meas = 0; st.state = 'arriving';
       if (rig) root.remove(rig.group); if (stamp) { root.remove(stamp); stamp = null; }
       const k = C(); rig = makeRig(k.type, S, { top: k.top });
+      if (k.wide) {                                                 // a load sticking out past the body
+        const crate = new THREE.Mesh(new THREE.BoxGeometry(rig.L - 2.8, 1.6, k.wide), new THREE.MeshStandardMaterial({ color: 0xa8814f, roughness: .8 }));
+        crate.position.set((2.5 + rig.L) / 2 - rig.L / 2, 2.6, 0); crate.castShadow = true; rig.parts.truck.add(crate);
+      }
+      if (k.extra) {                                                // a second trailer on the first one's tail: three vehicles
+        const add = 9.4, second = rig.parts.trailer.clone(true); second.position.x = add; rig.parts.truck.parent.add(second);
+        rig.group.children[0].position.x = -add / 2 * S; rig.L += add; for (const a of rig.groups) a.wx -= add / 2 * S;
+        second.traverse(o => { if (o.userData.axle != null) rig.groups[rig.groups.length - 1].wheels.push(o); });   // its wheels turn too
+      }
       st.c = 13 + halfL(); rig.group.position.set(st.c, 0, LANE_Z); root.add(rig.group);
       if (vehHit) root.remove(vehHit); vehHit = new THREE.Mesh(new THREE.BoxGeometry(rig.L * S, k.top * S, 2.6 * S), HIT); vehHit.userData.veh = true; root.add(vehHit);
       measure(); ticket.redraw();
@@ -86,7 +100,7 @@ export default {
     function resolve() {                                            // the reader picked the right answer
       const ok = CASES[st.i].answer === 0; st.verdict = ok ? 'pass' : 'stop'; ticket.redraw();
       if (ok) st.state = 'leaving';
-      else { stamp = holo.label(`STOPPED · ${OPTIONS[CASES[st.i].answer].split('· ')[1]}`, { h: 1.1, weight: 800, color: '#ffffff', bg: 'rgba(194,59,47,.95)' }); stamp.position.set(st.c, (C().top + 1) * S + 6.4, LANE_Z); root.add(stamp); }
+      else { stamp = holo.label(`STOPPED · ${OPTIONS[CASES[st.i].answer].toLowerCase()}`, { h: 1.1, weight: 800, color: '#ffffff', bg: 'rgba(194,59,47,.95)' }); stamp.position.set(st.c, (C().top + 1) * S + 6.4, LANE_Z); root.add(stamp); }
     }
     const summary = () => { const k = C(); return `Type ${k.type.code}: ${k.top.toFixed(1)} m tall, ${rig.L} m long, axles ${k.loads.join(' / ')} t.`; };
 
@@ -107,7 +121,7 @@ export default {
         post.userData.setOpen(st.open);
         rig.group.position.x = st.c; meas.position.x = st.c; vehHit.position.set(st.c, C().top * S / 2, LANE_Z);
         if (stamp) stamp.position.y = (C().top + 1) * S + 6.4 + Math.sin(t * 3) * .1;
-        if (guide.free && !st.scored) { st.scored = true; const n = CASES.filter((_, j) => st.first[j]).length; ui.caption(`${n} of 4 right first time. ${n === 4 ? 'A perfect inspection.' : 'Step back through the four vehicles to see each clause again.'}`, 'Your score', 8000); }
+        if (guide.free && !st.scored) { st.scored = true; const n = CASES.filter((_, j) => st.first[j]).length; ui.caption(`${n} of ${CASES.length} right first time. ${n === CASES.length ? 'A perfect inspection.' : 'Step back through the vehicles to see each clause again.'}`, 'Your score', 8000); }
         const tall = camera.aspect < 1;
         root.rotation.y += ((tall ? -.5 : 0) - root.rotation.y) * Math.min(1, dt * 5);
         guide.card.position.x = tall ? -4.5 : -5.4; ticket.position.x = tall ? 4.4 : 4.6; guide.card.scale.setScalar(tall ? .86 : 1); ticket.scale.setScalar(tall ? .86 : 1);
@@ -119,11 +133,11 @@ export default {
       anchor: [-5.4, 2.2, 10.5], w: 10, h: 5,
       steps: CASES.map((k, j) => ({
         title: `Vehicle ${j + 1}`, show: [], enter: () => arrive(j),
-        check: { q: `Vehicle ${j + 1}: Type ${k.type.code}${k.iso ? ' with ISO containers' : ''}. Read the ticket. Pass or stop?`, options: OPTIONS, answer: k.answer, why: k.why },
+        check: { q: `Vehicle ${j + 1}: Type ${k.type.code}${k.iso ? ' with ISO containers' : ''}${k.extra ? ' and a second trailer' : ''}. Pass, or stop for which reason?`, options: OPTIONS, answer: k.answer, why: k.why },
       })),
     });
     const pick = guide.pick;                                        // hook the answer: score the first try, act on the right one
-    guide.pick = k => { if (!(st.i in st.first)) st.first[st.i] = k === CASES[st.i].answer; pick(k); if (k === CASES[st.i].answer && !st.verdict) resolve(); };
+    guide.pick = k => { const c = CASES[st.i], kk = c.alt?.includes(k) ? c.answer : k; if (!(st.i in st.first)) st.first[st.i] = kk === c.answer; pick(kk); if (kk === c.answer && !st.verdict) resolve(); };
     guide.card.rotation.x = -.6; group.add(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
 
     arrive(0);
