@@ -34,7 +34,7 @@ export const FORM_NAME = { rigid: 'single unit truck', semi: 'truck-tractor + se
  * Tandem axles are 1.3 m apart (inside the 1.2–2.5 m of cl. 3.8).
  */
 export function layout(T) {
-  const L = MAXLEN[T.form], units = [], groups = [];
+  const L = T.len ?? MAXLEN[T.form], units = [], groups = [];   // T.len: an over-length vehicle for the checkpost
   const put = (kind, x, unit) => groups.push({ kind, unit, x, xs: kind === 't' ? [x - .65, x + .65] : [x], limit: LIMIT[kind] });
   if (T.form === 'rigid') {
     units.push({ part: 'truck', cab: [0, 2.3], body: [2.5, L] });
@@ -55,10 +55,11 @@ export function layout(T) {
  */
 // shared materials for the solid model (built once): painted cab, steel, rubber, glass; rims carry the axle colour code
 const std = (color, roughness = .6, metalness = 0, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness, metalness, ...extra });
-const MAT = {
+export const MAT = {
   cab: std(0xe8e1d2, .45, .08), stripe: std(0x23395b, .5), glass: std(0x1d2a35, .15, .5), grille: std(0x2a2d31, .5, .4),
   chassis: std(0x2a2d31, .75), steel: std(0x8e979e, .35, .7), bumper: std(0x3b3f45, .4, .5), tyre: std(0x1a1b1d, .92),
   box: std(0xb8c1c7, .6, .1), rib: std(0xa3adb4, .55, .15), tarp: std(0x7d7650, .85), wood: std(0x86663f, .8),
+  container: std(0x2f6f8f, .55, .2), bus: std(0xd9c27a, .45, .05),
   head: new THREE.MeshBasicMaterial({ color: 0xfff3cc, toneMapped: false }), tail: std(0xb3271d, .4, 0, { emissive: 0x5a0d08 }),
   rim: { s: std(INK.s, .4, .4), d: std(INK.d, .4, .4), t: std(INK.t, .4, .4) },
 };
@@ -68,7 +69,7 @@ const MAT = {
  * Built in metres inside a group scaled to s (world cm per real metre). Wheel rims are coloured by axle kind.
  * Returns { group, groups: [{ kind, wx (world x), wheels: [groups] }], L, parts, X }.
  */
-export function makeRig(T, s) {
+export function makeRig(T, s, { top = 3.6 } = {}) {               // top: roof of the goods body, m (4.2 with ISO containers)
   const { L, units, groups } = layout(T), g = new THREE.Group(), X = m => (m - L / 2) * s, hw = WIDTH / 2;
   const inner = new THREE.Group(); inner.scale.setScalar(s); g.add(inner);
   const parts = { truck: new THREE.Group(), trailer: new THREE.Group() }; inner.add(parts.truck, parts.trailer);
@@ -99,16 +100,16 @@ export function makeRig(T, s) {
     const into = parts[u.part === 'bar' ? 'trailer' : u.part];
     if (u.part === 'truck') { cab(u.cab[0], into); rails(.2, (u.body || u.frame)[1] - .1, into); }
     if (u.frame) { const fw = mesh(new THREE.CylinderGeometry(.5, .5, .1, 20), MAT.steel, x(4.75), 1.12, 0, into); fw.receiveShadow = true; }   // fifth wheel under the kingpin
-    if (u.body && u.part === 'truck') ribbedBox(u.body[0], u.body[1], 1.15, 3.6, MAT.box, into);
+    if (u.body && u.part === 'truck') ribbedBox(u.body[0], u.body[1], 1.15, top, MAT.box, into);
     if (u.body && u.part === 'trailer') {
       if (u.low) {                                                 // semi-trailer: a container on its own frame, landing legs, underride bar
-        rails(u.body[0] + .3, u.body[1] - .1, into); ribbedBox(u.body[0], u.body[1], 1.35, 3.6, MAT.box, into);
+        rails(u.body[0] + .3, u.body[1] - .1, into); ribbedBox(u.body[0], u.body[1], 1.35, top, top > 3.9 ? MAT.container : MAT.box, into);
         for (const z of [-.9, .9]) { box(6.4, 6.52, .12, 1.32, .12, MAT.chassis, into, z); box(6.3, 6.62, 0, .12, .3, MAT.chassis, into, z); }
         box(u.body[1] - .15, u.body[1] - .05, .45, .6, WIDTH - .2, MAT.bumper, into);
       } else {                                                     // full trailer: a tarpaulin-covered body on its own frame
         rails(u.body[0] + .1, u.body[1] - .1, into);
         box(u.body[0], u.body[1], 1.15, 1.8, WIDTH, MAT.wood, into);
-        box(u.body[0] + .05, u.body[1] - .05, 1.8, 3.55, WIDTH - .06, MAT.tarp, into);
+        box(u.body[0] + .05, u.body[1] - .05, 1.8, top - .05, WIDTH - .06, MAT.tarp, into);
         for (const z of [-.95, .95]) box(u.body[1] - .02, u.body[1] + .01, .95, 1.12, .22, MAT.tail, into, z);
       }
     }
@@ -119,21 +120,49 @@ export function makeRig(T, s) {
   }
   const out = [];
   for (const a of groups) {
-    const wheels = [];
-    for (const xm of a.xs) for (const side of [-1, 1]) {
-      const dual = a.kind !== 's', tw = dual ? .62 : .3;           // dual tyres: two tyres side by side
-      const w = new THREE.Group(); w.rotation.x = Math.PI / 2; w.position.set(x(xm), .5, side * (hw - tw / 2));
-      const tyres = dual ? [-.165, .165] : [0];
-      for (const o of tyres) { const t = mesh(new THREE.CylinderGeometry(.5, .5, dual ? .28 : .3, 24), MAT.tyre, 0, o, 0, w); t.castShadow = true; }
-      mesh(new THREE.CylinderGeometry(.3, .3, tw + .02, 18), MAT.rim[a.kind], 0, 0, 0, w);       // the rim, in the axle's colour
-      mesh(new THREE.CylinderGeometry(.11, .11, tw + .05, 10), MAT.steel, 0, 0, 0, w);         // hub
-      w.userData.axle = out.length; parts[a.unit].add(w); wheels.push(w);
-    }
-    for (const xm of a.xs) { const sh = mesh(new THREE.CylinderGeometry(.06, .06, WIDTH - .4, 8), MAT.chassis, x(xm), .5, 0, parts[a.unit]); sh.rotation.x = Math.PI / 2; }   // axle beam
+    const wheels = axleWheels(a.kind, a.xs.map(x), parts[a.unit], out.length);
     out.push({ ...a, wx: X(a.x), wxs: a.xs.map(X), wheels });
   }
   g.userData.rig = true;
   return { group: g, groups: out, L, parts, X };
+}
+
+/** One wheel (both tyres of a dual set) in metres: a group whose local y is the axle, so spin = rotation.y. */
+export function wheel(kind) {
+  const dual = kind !== 's', tw = dual ? .62 : .3, w = new THREE.Group(); w.rotation.x = Math.PI / 2; w.userData.tw = tw;
+  const cyl = (r, h, mat, oy = 0) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, r > .2 ? 24 : 10), mat); m.position.y = oy; m.castShadow = true; w.add(m); };
+  for (const o of dual ? [-.165, .165] : [0]) cyl(.5, dual ? .28 : .3, MAT.tyre, o);   // dual tyres: two side by side
+  cyl(.3, tw + .02, MAT.rim[kind]);                                                  // the rim, in the axle's colour
+  cyl(.11, tw + .05, MAT.steel);                                                     // hub
+  return w;
+}
+/** Wheels for the axles at local x positions xs, both sides, plus axle beams; tagged with userData.axle = index. */
+export function axleWheels(kind, xs, into, index = 0) {
+  const wheels = [], hw = WIDTH / 2;
+  for (const xm of xs) {
+    for (const side of [-1, 1]) { const w = wheel(kind); w.position.set(xm, .5, side * (hw - w.userData.tw / 2)); w.userData.axle = index; into.add(w); wheels.push(w); }
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, WIDTH - .4, 8), MAT.chassis); beam.rotation.x = Math.PI / 2; beam.position.set(xm, .5, 0); into.add(beam);
+  }
+  return wheels;
+}
+
+/**
+ * A single unit bus, solid, 11 m long: single deck 3.2 m tall, or a double-decker at the 4.75 m of cl. 5.2.
+ * Same conventions as makeRig (front at -x, centred, built in metres inside a group scaled to s).
+ */
+export function makeBus(s, { double = false, len = 11 } = {}) {
+  const L = len, H = double ? 4.75 : 3.2, g = new THREE.Group(), inner = new THREE.Group(); inner.scale.setScalar(s); g.add(inner);
+  const x = m => m - L / 2, box = (x0, x1, y0, y1, w, mat, z = 0) => { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, y1 - y0, w), mat); m.position.set(x((x0 + x1) / 2), (y0 + y1) / 2, z); m.castShadow = true; inner.add(m); return m; };
+  box(0, L, .45, H, WIDTH, MAT.bus);                                               // body
+  box(-.02, .04, 1.2, 2.6, WIDTH - .3, MAT.glass);                                 // windscreen
+  const rows = double ? [[1.55, 2.25], [3.15, 4.05]] : [[1.55, 2.6]];
+  for (const [y0, y1] of rows) for (let wx = 1.2; wx < L - .8; wx += 1.45) box(wx, wx + 1.15, y0, y1, WIDTH + .02, MAT.glass);   // window bands, both sides
+  box(0, L, double ? 2.6 : 1.3, double ? 2.75 : 1.42, WIDTH + .03, MAT.stripe);      // a livery band
+  box(-.1, .12, .35, .65, WIDTH, MAT.bumper); box(L - .12, L + .1, .35, .65, WIDTH, MAT.bumper);
+  for (const z of [-.85, .85]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, .05, 16), MAT.head); h.rotation.z = Math.PI / 2; h.position.set(x(-.03), .9, z); inner.add(h); }
+  for (const z of [-1, 1]) box(.2, .26, 2.0, 2.45, .22, MAT.bumper, z * 1.38);    // mirrors (safety devices: excluded from the width, cl. 3.14)
+  const groups = [{ kind: 's', xs: [2.6], x: 2.6, limit: LIMIT.s }, { kind: 'd', xs: [L - 3.1], x: L - 3.1, limit: LIMIT.d }].map((a, k) => ({ ...a, wx: x(a.x) * s, wheels: axleWheels(a.kind, a.xs.map(x), inner, k) }));
+  return { group: g, groups, L, H };
 }
 
 /** Flat silhouette of a vehicle on a 2-D canvas, like the Fig. of the standard. x0,y0 = front bumper at ground. */

@@ -1,4 +1,9 @@
+import why from './01-why.js';
+import code from './02-code.js';
+import axles from './03-axles.js';
+import size from './04-size.js';
+import length from './05-length.js';
 import weigh from './06-weigh.js';
+import checkpost from './07-checkpost.js';
 
-// Spread 6 is built first as the live test; the others follow the same pattern (their page text is already in lessons.js).
-export const SPREADS = [null, null, null, null, null, null, weigh, null];
+export const SPREADS = [null, why, code, axles, size, length, weigh, checkpost];

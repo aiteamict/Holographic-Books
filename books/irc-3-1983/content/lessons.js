@@ -50,7 +50,7 @@ export const LESSONS = [null,
     right: { kicker: 'cl. 1.1', title: 'Five numbers, five road elements' },
   },
   {
-    id: 'code', title: 'Reading the code', prompt: 'Build a vehicle and watch its code write itself.',
+    id: 'code', title: 'Reading the code', prompt: 'Tap the code tiles to build a vehicle. Follow the three steps.',
     left: {
       kicker: 'Spread 2 · Notation', title: 'Reading the code',
       lede: 'Three kinds of commercial vehicle are recognised: the **single unit**, the **semi-trailer** and the **truck-trailer combination** (cl. 2.2).',
@@ -63,7 +63,7 @@ export const LESSONS = [null,
     right: { kicker: 'cl. 4 · Fig.', title: 'The vehicle types' },
   },
   {
-    id: 'axles', title: 'Single or tandem?', prompt: 'Drag two axles apart and watch what they count as.',
+    id: 'axles', title: 'Single or tandem?', prompt: 'Drag the rear axle along the ruler. Follow the three steps.',
     left: {
       kicker: 'Spread 3 · Axles', title: 'Single or tandem?',
       lede: 'An **axle** is the common axis of rotation of one or more wheels (cl. 3.1).',
@@ -76,7 +76,7 @@ export const LESSONS = [null,
     right: { kicker: 'cl. 3.7, 3.8', title: 'The axle ruler' },
   },
   {
-    id: 'size', title: 'How big?', prompt: 'Roll the truck under the bridge.',
+    id: 'size', title: 'How big?', prompt: 'Drive a vehicle under the bridge; drag the deck lower.',
     left: {
       kicker: 'Spread 4 · Width and height', title: 'How big?',
       lede: 'No vehicle may be wider than **2.5 m** (cl. 5.1).',
@@ -88,7 +88,7 @@ export const LESSONS = [null,
     right: { kicker: 'cl. 5.1, 5.2', title: 'Under the bridge' },
   },
   {
-    id: 'length', title: 'How long?', prompt: 'Drive each vehicle round the bend.',
+    id: 'length', title: 'How long?', prompt: 'Drive each vehicle round the bend and compare the strips they sweep.',
     left: {
       kicker: 'Spread 5 · Length', title: 'How long?',
       lede: 'Overall length is measured over any load or load-holding device, **excluding** front and rear bumpers (cl. 3.4, 5.3).',
@@ -115,7 +115,7 @@ export const LESSONS = [null,
     right: { kicker: 'cl. 6 · Table', title: 'The weighbridge' },
   },
   {
-    id: 'checkpost', title: 'The checkpost', prompt: 'Measure, weigh, decide.',
+    id: 'checkpost', title: 'The checkpost', prompt: 'Four vehicles arrive. Pass or stop each one.',
     left: {
       kicker: 'Spread 7 · Review', title: 'The checkpost',
       lede: 'Four vehicles arrive at the checkpost. Pass them, or stop them with the clause they break.',
