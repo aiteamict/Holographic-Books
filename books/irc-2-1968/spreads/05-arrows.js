@@ -7,6 +7,7 @@ import { arrowHead, tagged, textPlane } from '@engine/util.js';
 import * as props from '../props.js';
 import { Anims, drive, smooth, pulse } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
+import { SM } from '@engine/scene.js';
 
 const PATHS = {
   ahead: [[0, 0, 5], [0, 0, -5]], turnLeft: [[0, 0, 5], [0, 0, 0], [-5, 0, 0]], turnRight: [[0, 0, 5], [0, 0, 0], [5, 0, 0]],
@@ -23,6 +24,7 @@ const EXITS = [['left', 'NH goes left'], ['ahead', 'NH goes ahead'], ['right', '
 const JORDER = ['cross', 'tee', 'wye'];
 
 export default {
+  cam: { pos: [3, 34, 50], look: [4, 8, -2], portrait: { pos: [14, 54, 62], look: [12.8, 4, 0] } },
   shots: [
     { pos: [18, 14, 22], look: [19, 11, 0], dur: 1.8, hold: 2.4, text: 'The definition plate, 300 by 250 mm, hangs 150 mm under the shield (cl. 4.1, Plate 2).' },
     { pos: [6, 18, 23], look: [6.5, 11, -3], dur: 1.8, hold: 2.6, text: 'Plate 3: a 45 mm shaft and a 90 by 100 mm head, on every arrow. The junction decides which arrow.' },
@@ -30,10 +32,10 @@ export default {
   build(ctx) {
     const { holo, sign, ui } = ctx; const { SPEC } = sign; const S = .075;
     const group = new THREE.Group();
-    const sg = sign.makeSign({ number: '42', kind: 'ahead', scale: S }); sg.group.position.set(6, 0, -2); sg.group.rotation.y = -.25; group.add(sg.group);
-    const proj = holo.projector(7); proj.position.set(6, 0, -2); group.add(proj);
+    const sg = sign.makeSign({ number: '42', kind: 'ahead', scale: S }); sg.group.position.set(8.4, 0, -3.6); sg.group.rotation.y = -.25; group.add(sg.group);
+    const proj = holo.projector(5.5); proj.position.set(8.4, 0, -3.6); group.add(proj);
     // where the plate hangs: 150 mm under the shield, its bottom edge 1250 mm above the road (Plate 2)
-    { const P = SPEC.post, x = 6 + 3.4, z = -1.4, topShield = P.topOfShield / 10 * S, botShield = topShield - 60 * S, topDef = botShield - 15 * S, botDef = topDef - 25 * S;   // spec in mm, scale in cm
+    { const P = SPEC.post, x = 8.4 + 3.2, z = -3, topShield = P.topOfShield / 10 * S, botShield = topShield - 60 * S, topDef = botShield - 15 * S, botDef = topDef - 25 * S;   // spec in mm, scale in cm
       group.add(holo.dimension([x, 0, z], [x, botDef, z], '1250', { h: .8, tick: .3 }), holo.dimension([x, topDef, z], [x, botShield, z], '150', { h: .7, tick: .25, color: holo.AMBER })); }
     // the enlarged plate with its dimensions, redrawn for each arrow
     const defC = document.createElement('canvas'); defC.width = 600; defC.height = 500;
@@ -49,24 +51,27 @@ export default {
       c.fillText(`border ${b.border} · ${b.inset} in  ·  shaft ${b.shaft}  ·  head ${b.headL} × ${b.headW}  (mm)`, pad, py + ph + 26);
       if (wrong) { c.fillStyle = '#ff6b6b'; c.font = '800 18px Inter, Segoe UI, Arial'; c.textAlign = 'center'; c.fillText('WRONG ARROW FOR THIS JUNCTION', W / 2, py - 42); }
     } });
-    big.position.set(-6.5, 12.5, -3); group.add(big); const fr = holo.frame(10.8, 9, 'Definition plate · Plate 3'); fr.position.set(-6.5, 12.5, -3.05); group.add(fr);
-    group.add(holo.tag('same Canary Yellow; border and arrow black · cl. 4.2', [-1.2, 8.2, -3], [-4, -2.2, 0]));
+    big.position.set(-4.4, 11.6, -6.5); group.add(big); const fr = holo.frame(10.8, 9, 'Definition plate · Plate 3'); fr.position.set(-4.4, 11.6, -6.55); group.add(fr);
+    group.add(holo.tag('same Canary Yellow; border and arrow black · cl. 4.2', [.9, 7.3, -6.5], [1.6, -1.6, 0], { h: .75 }));
     // the plan in front: the junction, the car, the route
-    const plan = new THREE.Group(); plan.position.set(-5, .25, 0); group.add(plan);   // under the floating plate, clear of the page caption
+    const plan = new THREE.Group(); plan.position.set(.4, .25, -.4); group.add(plan);   // the junction in the middle of the page, between the plate and the cards
     const w = .8, L = 4.6, roads = new THREE.Group(); plan.add(roads);
     const jLabel = holo.label(' ', { h: .85, color: '#1d5f87' }); jLabel.position.set(0, 1.4, -6.3); plan.add(jLabel);
     const drawJunction = () => {
       roads.clear(); const J = JUNCTIONS[junction], E = [];
+      const slab = (sx, sz, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(sx, .06, sz), SM.asphalt); m.position.set(x, .02, z); m.receiveShadow = true; roads.add(m); };
+      slab(2 * w, 2 * w, 0, 0);                                    // solid asphalt: the junction square and each arm
+      for (const a of J.arms) { const [dx, dz] = D[a]; if (dx) slab(L - w, 2 * w, dx * (w + L) / 2, 0); else slab(2 * w, L - w, 0, dz * (w + L) / 2); }
       for (const a of J.arms) { const [dx, dz] = D[a], px = -dz, pz = dx; for (const s of [-1, 1]) E.push([dx * w + px * w * s, 0, dz * w + pz * w * s], [dx * L + px * w * s, 0, dz * L + pz * w * s]); }
       for (const a of J.close) {                                   // a closed arm gets a kerb across its mouth, not just a line
         const [dx, dz] = D[a]; const k = props.kerb(.3, 2 * w); k.rotation.y = dx ? 0 : Math.PI / 2; k.position.x = dx * w; k.position.z = dz * w; roads.add(k);
       }
-      roads.add(holo.segments(E, holo.CYAN, .8, { width: .07 }));
+      roads.add(holo.segments(E.map(([x, y, z]) => [x, .07, z]), 0xf3f0e6, .95, { width: .06 }));
       jLabel.userData.setText(J.label);
     };
     const sm = .28, you = props.car(sm); you.position.set(.45, 0, 4.4); you.rotation.y = Math.PI; you.userData.car = true; plan.add(you);
     const route = new THREE.Group(); plan.add(route);
-    const knob = holo.handle('junction', { label: 'next junction · tap', kind: 'knob' }); knob.position.set(-13, 0, 3); group.add(knob);
+    const knob = holo.handle('junction', { label: 'next junction · tap', kind: 'knob' }); knob.position.set(5.6, 0, 6.6); group.add(knob);
     const anims = new Anims();
     const go = () => {
       anims.stop('car'); const p = PATHS[kind];
@@ -91,13 +96,14 @@ export default {
       actions: JORDER.map(j => ({ label: JUNCTIONS[j].label, toggle: () => junction === j, run: () => setJunction(j) }))
         .concat(EXITS.map(([e, label]) => ({ label, toggle: () => exit === e && !wrong, hidden: () => !(e in JUNCTIONS[junction].exits), run: () => setExit(e) })))   // only exits this junction has
         .concat([{ label: 'Wrong arrow', toggle: () => wrong, run: () => { wrong = !wrong; apply(); } }]),
-      update(dt, t) { anims.tick(dt); sg.group.rotation.y = -.25 + Math.sin(t * .5) * .03; },
+      update(dt, t) { { const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.47 : -5.6; guide.card.scale.setScalar(tall ? .8 : 1); }   // phone-fit card
+        anims.tick(dt); sg.group.rotation.y = -.25 + Math.sin(t * .5) * .03; },
       reset() { junction = 'cross'; exit = 'ahead'; wrong = false; apply(); guide.reset(); },
       get debug() { return { junction, exit, wrong, kind, guide: guide.debug }; },
     };
     // guided sequence: the junction, the arm, the lie
     const guide = makeGuide(ctx, {
-      anchor: [-6.5, 20.8, -3], w: 10.8, h: 4.8,
+      anchor: [-5.6, 2.2, 10.5], w: 10, h: 5,
       steps: [
         { title: 'The junction', show: ['Crossroads', 'T-junction', 'Y-fork'], text: 'Pick the junction. The plan redraws, and so does the list of arms a highway can take there: only arrows for roads that exist are offered.' },
         { title: 'The arm', show: ['NH goes left', 'NH goes ahead', 'NH goes right', 'NH runs both ways'], enter: () => { if (junction !== 'tee') { junction = 'tee'; apply(); } },
@@ -105,7 +111,7 @@ export default {
         { title: 'The lie', show: ['Wrong arrow'], text: 'Wrong arrow hangs a plate that lies about this junction. The driver trusts the plate and leaves the road: the arrow is not decoration, it is an instruction.' },
       ],
     });
-    group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
     apply(); return api;
   },
 };

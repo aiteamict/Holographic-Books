@@ -115,7 +115,8 @@ export default {
         hovered = hit?.object || null; const z = hovered?.userData.zone;
         if (z) { setBand(hovered, .28); ui.caption(`${z.h} mm · ${z.label}`, 'Band', 2500); }
       },
-      update(dt) {
+      update(dt) { { const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.35 : -5.4; guide.card.scale.setScalar(tall ? .8 : 1); }   // phone-fit card
+       
         anims.tick(dt);
         if (building) {
           t += dt;

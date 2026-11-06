@@ -3,6 +3,7 @@
 // and the roadside section (the lateral clearance and the 2250 mm). A drive runs the whole thing.
 import * as THREE from 'three';
 import { tagged, textPlane } from '@engine/util.js';
+import { SM } from '@engine/scene.js';
 import * as props from '../props.js';
 import { Anims, drive, pulse, linear } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
@@ -13,7 +14,7 @@ const LEGIBLE = 90;             // m: 200 mm numerals read from about 30–40 ft
 const CHAIN = [25, 50, 75, 100, 125, 150];
 
 export default {
-  cam: { pos: [0, 50, 44], look: [0, 5, -4] },   // over the spine, like the default: the plan stays on the right page on screen
+  cam: { pos: [0, 50, 44], look: [0, 5, -4], portrait: { pos: [14, 74, 52], look: [13, 0, -1] } },   // over the spine, like the default: the plan stays on the right page on screen
   shots: [
     { pos: [15, 28, 20], look: [13, 2, -2], dur: 1.8, hold: 2.6, text: 'The plan, at one scale: the junction at the top, the approach running toward you, chainage every 25 m.' },
     { pos: [4, 22, 16], look: [4, 14, -8], dur: 1.8, hold: 2.6, text: 'Three insets: what the driver sees, the roadside section with the clearances, and the long section with the sight line from a 1.2 m eye to the 2.25 m shield top.' },
@@ -22,23 +23,26 @@ export default {
     const { holo, sign, ui } = ctx; const { SPEC } = sign;
     const M = .11;                                                    // cm per metre on the plan
     const group = new THREE.Group();
-    const plan = new THREE.Group(); plan.position.set(2, .25, 0); group.add(plan);
+    const plan = new THREE.Group(); plan.position.set(-3.4, .25, 0); group.add(plan);   // left of centre: the cards lie either side of the road
     const hw = SPEC.props.carriageway.width / 2 * M, zJ = -7.5;       // junction centre
     const zEdge = zJ + hw;                                            // kerb line of the side road; chainage 0
     const zAt = m => zEdge + m * M;                                   // metres before the junction → plan z
 
     // road: edges, centre dashes, the junction box and the side road to the right
-    plan.add(holo.segments([[-hw, 0, zJ - 7], [-hw, 0, zAt(185)], [hw, 0, zEdge], [hw, 0, zAt(185)], [hw, 0, zJ - hw], [hw, 0, zJ - 7], [hw, 0, zEdge], [9, 0, zEdge], [hw, 0, zJ - hw], [9, 0, zJ - hw]], holo.CYAN, .95, { width: .09 }));
-    plan.add(holo.polyline([[0, 0, zAt(185)], [0, 0, zJ - 7]], holo.CYAN, { opacity: .35, width: .04, dashed: true }));
-    const surf = new THREE.Mesh(new THREE.PlaneGeometry(hw * 2, zAt(185) - (zJ - 7)), holo.glassMat(holo.CYAN, { opacity: .03, scan: 0 })); surf.rotation.x = -Math.PI / 2; surf.position.set(0, .01, (zAt(185) + zJ - 7) / 2); surf.userData.road = true; plan.add(surf);
+    const slab = (x0, x1, z0, z1, mat, y = .03) => { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, .06, z1 - z0), mat); m.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); m.receiveShadow = true; plan.add(m); return m; };
+    slab(-hw - .17, hw + .17, zJ - 7, zAt(185), SM.shoulder, .02);                                  // shoulders
+    const surf = slab(-hw, hw, zJ - 7, zAt(185), SM.asphalt); surf.userData.road = true;          // the National Highway (tap it to drive)
+    slab(hw, 9, zJ - hw, zEdge, SM.asphalt);                                                       // the side road
+    plan.add(holo.segments([[-hw + .03, .07, zJ - 7], [-hw + .03, .07, zAt(185)], [hw - .03, .07, zEdge], [hw - .03, .07, zAt(185)], [hw - .03, .07, zJ - hw], [hw - .03, .07, zJ - 7]], 0xf3f0e6, .95, { width: .05 }));
+    plan.add(holo.polyline([[0, .07, zAt(185)], [0, .07, zJ - 7]], 0xf3f0e6, { opacity: .9, width: .04, dashed: true }));
     // chainage ticks on the near-side verge, every 25 m, labelled every 50
     const ticks = []; for (const m of CHAIN) ticks.push([hw + .2, 0, zAt(m)], [hw + .7, 0, zAt(m)]);
     plan.add(holo.segments(ticks, holo.DIM, .9, { width: .05 }));
     for (const m of [50, 100, 150]) { const l = holo.label(`${m} m`, { h: .75, color: '#5c6168' }); l.position.set(hw + 1.9, .3, zAt(m)); plan.add(l); }
     // the zones the standard allows: 100–150 m before (amber), 15–30 m after (green)
     const okA = holo.zone(hw + .55, zAt(100), zAt(150), .9, holo.AMBER, .09), okC = holo.zone(hw + .55, zJ - hw - 15 * M, zJ - hw - 30 * M, .9, holo.GREEN, .09); plan.add(okA, okC);
-    plan.add(holo.tag('100–150 m before the junction · cl. 3.4', [hw + 1, 0, zAt(125)], [4.5, 2.2, 0], { accent: holo.AMBER }));
-    plan.add(holo.tag('confirmatory · 15–30 m after · Plate 2', [hw + 1, 0, zJ - hw - 22 * M], [4.5, 2.2, 0], { accent: holo.GREEN }));
+    plan.add(holo.tag('100–150 m before the junction · cl. 3.4', [hw + 1, 0, zAt(125)], [1.4, 2.6, 0], { accent: holo.AMBER, h: .75 }));
+    plan.add(holo.tag('confirmatory · 15–30 m after · Plate 2', [hw + 1, 0, zJ - hw - 22 * M], [1.4, 2.6, 0], { accent: holo.GREEN, h: .75 }));
     const arrow = holo.label('↓ traffic', { h: .85, color: '#b0532a' }); arrow.position.set(-2.2, .4, zAt(170)); plan.add(arrow);
     const jl = holo.label('junction', { h: .75, color: '#5c6168' }); jl.position.set(-2.4, .3, zJ); plan.add(jl);
 
@@ -66,10 +70,10 @@ export default {
       c.fillStyle = '#8a3f1c'; c.font = '600 18px Inter, Segoe UI, Arial'; c.fillText(`${st.speed} km/h · ${((view.dist + st.d) / V).toFixed(1)} s to the junction`, 16, 82);
       c.fillStyle = '#5c6168'; c.font = '500 14px Inter, Segoe UI, Arial'; c.fillText('eye 1.2 m · shield top 2.25 m', 16, H - 14);
     } });
-    const inset1 = new THREE.Group(); inset1.position.set(-7, 12.5, -8); inset1.add(holo.frame(10, 7, 'Driver’s view'), screen); group.add(inset1);
+    const inset1 = new THREE.Group(); inset1.position.set(5.4, 2.8, 10.6); inset1.rotation.x = -.6; inset1.scale.setScalar(.92); inset1.add(holo.frame(10, 7, 'Driver’s view'), screen); group.add(inset1);   // lies at the front right
 
     // ---- inset 2: the section, one scale (2.3 cm per m), looking along the road
-    const s2 = 2.3, inset2 = new THREE.Group(); inset2.position.set(3.5, 12.5, -8); group.add(inset2);
+    const s2 = 2.3, inset2 = new THREE.Group(); inset2.position.set(2.2, 11, -10); group.add(inset2);
     inset2.add(holo.frame(10, 7, 'Section · looking along the road'));
     { const stack = holo.label('2250 = 600 shield + 150 gap + 250 plate + 1250 post · Plate 2', { h: .5, color: '#8a3f1c' }); stack.position.set(0, 3.05, .1); inset2.add(stack); }
     const sec = new THREE.Group(); sec.position.set(-4.5, -3, .05); inset2.add(sec);
@@ -105,7 +109,7 @@ export default {
       c.fillStyle = st.turn ? '#1f7a45' : '#b0532a'; c.font = '600 16px Inter, Segoe UI, Arial'; c.fillText(st.turn ? `reflected ray ${2 * st.turn}° wide of the eye` : 'reflected ray straight back into the eye', 16, 54);
       c.fillStyle = '#5c6168'; c.font = '500 13px Inter, Segoe UI, Arial'; c.fillText('plan · headlamp ● eye ○ · angle in = angle out', 16, H - 14);
     } });
-    const inset4 = new THREE.Group(); inset4.position.set(13.5, 12.5, -8); inset4.add(holo.frame(9, 7, 'Turned slightly away · cl. 3.3'), turnPlane); group.add(inset4);
+    const inset4 = new THREE.Group(); inset4.position.set(2.2, 11, -10); inset4.add(holo.frame(9, 7, 'Turned slightly away · cl. 3.3'), turnPlane); group.add(inset4);
     const setTurn = deg => { const from = st.turn, to = deg; anims.stop('turn'); anims.add({ dur: .6, tag: 'turn', update: k => { st.turn = Math.round(from + (to - from) * k); turnPlane.redraw(); }, done: () => { st.turn = to; turnPlane.redraw(); } }); };
 
     // ---- inset 3: the long section, distances to scale along the strip, heights exaggerated; the sight line from the eye to the shield top
@@ -132,7 +136,10 @@ export default {
       c.fillStyle = '#1f2328'; c.font = '600 19px Inter, Segoe UI, Arial'; c.textAlign = ex < W / 2 ? 'left' : 'center'; c.fillText(`eye 1.2 m · ${Math.round(d)} m to the sign · sight line ${ang.toFixed(1)}° up`, ex < W / 2 ? ex - 9 : ex, ey - 14);
       c.fillStyle = '#5c6168'; c.font = '500 15px Inter, Segoe UI, Arial'; c.textAlign = 'right'; c.fillText(`distances to scale · heights × ${Math.round(vpm / k)}`, W - 16, 16);
     } });
-    const inset3 = new THREE.Group(); inset3.position.set(2.25, 6.1, -8); inset3.add(holo.frame(LW, LH, 'Long section · the sight line'), longSec); group.add(inset3);
+    const inset3 = new THREE.Group(); inset3.position.set(2.2, 11, -10); inset3.scale.setScalar(.72); inset3.add(holo.frame(LW, LH, 'Long section · the sight line'), longSec); group.add(inset3);
+    // one inset at a time in the slot at the back: the one that answers the current question
+    const INSETS = { section: inset2, long: inset3, turn: inset4 };
+    const showInset = name => { for (const [k, g] of Object.entries(INSETS)) g.visible = k === name; };
 
     const place = () => {
       const x = (st.right ? -1 : 1) * (hw + .55), zA = zAt(st.d), zC = zJ - hw - st.dc * M;
@@ -147,7 +154,7 @@ export default {
     // ---- the drive
     const anims = new Anims();
     const driver = new THREE.Group(); plan.add(driver); driver.visible = false;
-    const dot = new THREE.Mesh(new THREE.SphereGeometry(.38, 14, 10), new THREE.MeshBasicMaterial({ color: 0xffd27a, toneMapped: false })); dot.position.y = .35; driver.add(dot);
+    const auto = props.car(M * 2.2); auto.rotation.y = Math.PI; driver.add(auto);              // drawn 2.2× scale so it reads on the plan
     const dring = holo.ring(.8, holo.AMBER, { width: .08 }); dring.position.y = .05; driver.add(dring);
     const dlab = holo.label(' ', { h: .8, color: '#8a3f1c' }); dlab.position.set(-2.6, 1.3, 0); driver.add(dlab);
     const driveIt = () => {
@@ -169,9 +176,9 @@ export default {
       tap(hit) { if (guide.tap(hit)) return; if (hit.object.userData.road) driveIt(); },
       actions: [
         { label: '▶ Drive it', run: driveIt },
-        { label: 'Turn it 8° away', toggle: () => st.turn > 0, run: () => { setTurn(st.turn ? 0 : 8); ui.caption(st.turn ? 'Square to the lane: the enamel face is a mirror and the headlamp comes straight back (cl. 3.3 says turn it slightly away).' : 'Eight degrees on the sign is sixteen on the reflected ray: the hot spot misses the eye while the face still reads (cl. 3.3).', 'cl. 3.3', 5000); } },
-        ...SPEEDS.map(s => ({ label: `${s} km/h`, toggle: () => st.speed === s, run: () => { st.speed = s; V = s / 3.6; place(); ui.caption(`At ${s} km/h, 100 m is ${(100 / V).toFixed(1)} s and 150 m is ${(150 / V).toFixed(1)} s. The standard fixes the distance; the speed decides how much time that buys.`, 'Time to act', 5000); } })),
-        { label: 'Kerbed road', toggle: () => st.kerb, run: () => { st.kerb = !st.kerb; place(); ui.caption(st.kerb ? 'With kerbs the post stands not less than 60 cm from the kerb edge (Plate 2).' : 'Without kerbs leave 2 to 3 m between the post and the carriageway edge (cl. 3.3).', 'Lateral clearance'); } },
+        { label: 'Turn it 8° away', toggle: () => st.turn > 0, run: () => { showInset('turn'); setTurn(st.turn ? 0 : 8); ui.caption(st.turn ? 'Square to the lane: the enamel face is a mirror and the headlamp comes straight back (cl. 3.3 says turn it slightly away).' : 'Eight degrees on the sign is sixteen on the reflected ray: the hot spot misses the eye while the face still reads (cl. 3.3).', 'cl. 3.3', 5000); } },
+        ...SPEEDS.map(s => ({ label: `${s} km/h`, toggle: () => st.speed === s, run: () => { showInset('long'); st.speed = s; V = s / 3.6; place(); ui.caption(`At ${s} km/h, 100 m is ${(100 / V).toFixed(1)} s and 150 m is ${(150 / V).toFixed(1)} s. The standard fixes the distance; the speed decides how much time that buys.`, 'Time to act', 5000); } })),
+        { label: 'Kerbed road', toggle: () => st.kerb, run: () => { showInset('section'); st.kerb = !st.kerb; place(); ui.caption(st.kerb ? 'With kerbs the post stands not less than 60 cm from the kerb edge (Plate 2).' : 'Without kerbs leave 2 to 3 m between the post and the carriageway edge (cl. 3.3).', 'Lateral clearance'); } },
         { label: 'Put it at 120 m', run: () => { st.d = 120; st.dc = 20; st.right = false; place(); } },
         { label: 'Wrong side', toggle: () => st.right, run: () => { st.right = !st.right; place(); if (st.right) ui.caption('The marker is fixed on the left-hand side as one approaches the junction (cl. 3.4).', 'Side'); } },
       ],
@@ -184,21 +191,22 @@ export default {
         else if (which === 'C') ui.caption(st.dc >= 15 && st.dc <= 30 ? `${Math.round(st.dc)} m after: in range for the confirmatory marker (Plate 2).` : 'The confirmatory marker stands 15 to 30 m after the junction (Plate 2).', 'Confirmatory marker');
         which = null;
       },
-      update(dt) { anims.tick(dt); },
+      update(dt) { { const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -5.33 : -8.6; guide.card.scale.setScalar(tall ? .8 : 1); }   // phone-fit card
+        anims.tick(dt); },
       reset() { anims.clear(); driver.visible = false; st.d = 120; st.dc = 20; st.kerb = st.right = false; st.speed = 60; st.turn = 0; V = 60 / 3.6; view.dist = 150; place(); turnPlane.redraw(); guide.reset(); },
       get debug() { return { ...st, driving: driver.visible, viewDist: Math.round(view.dist), secondsFromMarker: +(st.d / V).toFixed(1), guide: guide.debug }; },
     };
     // guided sequence: set it out, read it in time, turn it away
     const guide = makeGuide(ctx, {
-      anchor: [-7, 19.4, -8], w: 10, h: 5,
+      anchor: [-8.6, 2.2, 10.5], w: 8.4, h: 5.4,
       steps: [
-        { title: 'Setting out', show: ['Put it at 120 m', 'Kerbed road'], text: 'Drag the route marker along the approach: green between 100 and 150 m before the junction, on the left (cl. 3.4). The confirmatory marker belongs 15–30 m after it (Plate 2). Kerbed road changes the lateral rule.' },
-        { title: 'Time to read', show: ['▶ Drive it', '50 km/h', '65 km/h', '80 km/h'],
+        { title: 'Setting out', show: ['Put it at 120 m', 'Kerbed road'], enter: () => showInset('section'), text: 'Drag the route marker along the approach: green between 100 and 150 m before the junction, on the left (cl. 3.4). The confirmatory marker belongs 15–30 m after it (Plate 2). Kerbed road changes the lateral rule.' },
+        { title: 'Time to read', show: ['▶ Drive it', '50 km/h', '65 km/h', '80 km/h'], enter: () => showInset('long'),
           check: { q: 'At 80 km/h, how many seconds does 100 m give the driver?', options: ['2.5 s', '4.5 s', '7.2 s'], answer: 1, why: 'The standard fixes the distance; the speed decides the seconds (100 m ÷ 22.2 m/s). Pick 80 km/h and Drive it: the numerals read from about 90 m, and that is when the clock starts.' } },
-        { title: 'Turned away', show: ['Turn it 8° away'], text: 'cl. 3.3: the face is turned slightly away from the road. In plan, angle in equals angle out: square to the lane a headlamp comes straight back into the eye; 8° on the sign sends it 16° wide.' },
+        { title: 'Turned away', show: ['Turn it 8° away'], enter: () => showInset('turn'), text: 'cl. 3.3: the face is turned slightly away from the road. In plan, angle in equals angle out: square to the lane a headlamp comes straight back into the eye; 8° on the sign sends it 16° wide.' },
       ],
     });
-    group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
-    place(); return api;
+    guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    showInset('section'); place(); return api;
   },
 };

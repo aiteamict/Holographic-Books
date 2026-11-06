@@ -104,7 +104,8 @@ export default {
           { label: 'Letter sizes', toggle: () => letterDims.visible, run: () => { letterDims.visible = numDims.visible = !letterDims.visible; if (letterDims.visible) ui.caption('N and H: 100 mm high, 16 mm stroke, 67 mm wide, 45 mm apart (Fig. 1). Numerals: 200 mm high, 31 mm stroke, most 134 mm wide (Plate 5).', 'Sizes', 6000); } },
         ]),
       key(e) { if (/^\d$/.test(e.key)) apply((number.length >= 3 || number === '0' ? '' : number) + e.key); else if (e.key === 'Backspace') apply(number.slice(0, -1) || '0'); },
-      update(dt, t) { anims.tick(dt); sg.group.rotation.y = .06 + Math.sin(t * .5) * .03; },
+      update(dt, t) { { const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.47 : -5.6; guide.card.scale.setScalar(tall ? .8 : 1); }   // phone-fit card
+        anims.tick(dt); sg.group.rotation.y = .06 + Math.sin(t * .5) * .03; },
       reset() { even = false; apply('744'); letterDims.visible = numDims.visible = false; guide.reset(); },
       get debug() { return { number, even, gaps: gaps.map(g => [g.a, g.b, g.code, g.mm]), guide: guide.debug }; },
     };

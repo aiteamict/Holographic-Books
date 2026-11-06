@@ -6,6 +6,7 @@ import { tagged, textPlane, cardBg } from '@engine/util.js';
 import * as props from '../props.js';
 import { Anims, drive, pulse, smooth } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
+import { SM } from '@engine/scene.js';
 
 const M = .085;                                  // cm per metre: 150 m = 12.75 cm, fits the page
 const HW = 3.5 * M, FAR = 125 * M, NEAR = 22 * M, OFF = HW + .5;
@@ -40,7 +41,7 @@ const EX2 = {
 };
 
 export default {
-  cam: { pos: [0, 48, 38], look: [0, 7, -3] },   // over the spine, like the default
+  cam: { pos: [0, 48, 38], look: [0, 7, -3], portrait: { pos: [14, 72, 52], look: [13, 2, -1] } },   // over the spine, like the default
   shots: [
     { pos: [15, 34, 10], look: [13, 1, -1], dur: 1.8, hold: 2.6, text: 'The plan to scale: amber bands 100 to 150 m before each approach, green bands 15 to 30 m after each exit.' },
     { pos: [10, 22, 18], look: [13, 13, -3], dur: 1.8, hold: 2.6, text: 'The selected post, large enough to read: the travelled route with its arrow, the crossing route with a double-headed one (cl. 5.1).' },
@@ -48,7 +49,7 @@ export default {
   build(ctx) {
     const { holo, sign, ui } = ctx; const anims = new Anims();
     const group = new THREE.Group();
-    const showcase = new THREE.Group(); showcase.position.set(7.5, 4, -5); group.add(showcase);   // the big readable assembly, kept inside the frame
+    const showcase = new THREE.Group(); showcase.position.set(6.6, 3, -8.6); showcase.scale.setScalar(.82); group.add(showcase);   // the big readable assembly, kept inside the frame
     let big = null;
     // the schedule of signs: how a signing scheme is delivered. One row per post; click a row to select it.
     const ROW = 34, HEAD = 64, COLS = [['post', 14], ['where', 130], ['side', 270], ['shields', 322], ['definition plates', 440]];
@@ -71,12 +72,14 @@ export default {
     sched.position.set(-5.4, 11.5, -6); sched.userData.sched = true; group.add(sched);     // left edge stays right of the spine on screen
     const schedFrame = holo.frame(13.5, 9.6, 'Signing schedule'); schedFrame.position.set(-5.4, 11.5, -6.05); group.add(schedFrame);
     const scenes = [EX1, EX2].map(def => {
-      const g = new THREE.Group(); g.position.y = .25;
+      const g = new THREE.Group(); g.position.set(1.2, .25, 0); g.scale.setScalar(.86);   // kept clear of the spine
       // roads at true width
       for (const r of def.roads) {
         const a = new THREE.Vector3(r.a[0], 0, r.a[1]), b = new THREE.Vector3(r.b[0], 0, r.b[1]), d = b.clone().sub(a).normalize(), n = new THREE.Vector3(-d.z, 0, d.x).multiplyScalar(r.w / 2 * M);
-        g.add(holo.segments([a.clone().add(n), b.clone().add(n), a.clone().sub(n), b.clone().sub(n)], holo.CYAN, .9, { width: .08 }));
-        g.add(holo.polyline([a, b], holo.CYAN, { opacity: .3, width: .035, dashed: true }));
+        const len = a.distanceTo(b), slab = new THREE.Mesh(new THREE.BoxGeometry(len, .06, r.w * M), SM.asphalt);   // solid asphalt at true width
+        slab.position.copy(a).lerp(b, .5); slab.position.y = .02; slab.rotation.y = -Math.atan2(d.z, d.x); slab.receiveShadow = true; g.add(slab);
+        g.add(holo.segments([a.clone().add(n), b.clone().add(n), a.clone().sub(n), b.clone().sub(n)].map(v => v.setY(.07)), 0xf3f0e6, .95, { width: .05 }));
+        g.add(holo.polyline([a.clone().setY(.07), b.clone().setY(.07)], 0xf3f0e6, { opacity: .85, width: .035, dashed: true }));
       }
       for (const [t, x, z] of def.tags) { const l = holo.label(t, { h: .8, color: '#1d5f87' }); l.position.set(x, .3, z); g.add(l); }
       const discs = [];
@@ -152,15 +155,16 @@ export default {
         if (tagged(hit.object, 'car')) driveApproach(sel < 0 ? 0 : sel);
       },
       get a11y() { return scenes[cur].def.markers.map((m, i) => ({ label: `Show the post: ${m.text.split(':')[0]}`, run: () => show(i) })); },
-      update(dt) { anims.tick(dt); },
+      update(dt) { { const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.97 : -6.4; guide.card.scale.setScalar(tall ? .8 : 1); }   // phone-fit card
+        anims.tick(dt); },
       reset() { anims.clear(); guide.reset(); use(0); },
       get debug() { return { scene: cur, selected: sel, planOn, guide: guide.debug }; },
     };
     // guided sequence: the schedule, the plan, the fork
     const guide = makeGuide(ctx, {
-      anchor: [-5.4, 20.6, -6], w: 11, h: 4.8,
+      anchor: [-6.4, 2.2, 11], w: 9.4, h: 5,
       steps: [
-        { title: 'The schedule', show: [], enter: () => setPlan(false),
+        { title: 'The schedule', show: [], enter: () => setPlan(true),   // plan and schedule together: the page is never empty
           text: 'A signing scheme is delivered as a schedule: one row per post with its chainage, side, shields and plates. Tap a row: that post’s assembly appears large on the right, the crossing route with its double-headed arrow (cl. 5.1).' },
         { title: 'On the ground', show: ['▶ Drive the approach'], enter: () => setPlan(true),
           text: 'The same posts on the plan, to scale: amber bands 100–150 m before each approach, green bands 15–30 m after each exit. Tap a disc, or drive the approach and watch the pair, then the confirmatory shield.' },
@@ -168,7 +172,7 @@ export default {
           check: { q: 'Past the fork, driving up NH 26: what does the confirmatory shield carry?', options: ['NH 7 + NH 26', 'NH 26 only', 'NH 7 only'], answer: 1, why: 'After the junction you are on one road, and the confirmatory marker names only that road (Plate 4). The pair belongs before the junction, where the choice is made.' } },
       ],
     });
-    group.add(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
-    scenes[0].g.visible = true; show(0, true); setPlan(false); return api;
+    guide.card.rotation.x = -.6; group.add(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    scenes[0].g.visible = true; show(0, true); setPlan(true); return api;
   },
 };

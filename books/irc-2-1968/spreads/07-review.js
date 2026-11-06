@@ -6,8 +6,10 @@ import * as props from '../props.js';
 import { textPlane, cardBg, wrapText } from '@engine/util.js';
 import { Anims, pulse } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
+import { SM } from '@engine/scene.js';
 
 export default {
+  cam: { pos: [3, 36, 54], look: [4, 9, -3], portrait: { pos: [14, 56, 64], look: [12.8, 5, -1] } },
   shots: [{ pos: [4, 18, 28], look: [8, 9, 0], dur: 2, hold: 2.6, text: 'A sign as found on site. Four things are wrong with it. Tick the checklist.' }],
   build(ctx) {
     const { holo, sign, ui } = ctx; const S = .065, anims = new Anims();
@@ -20,11 +22,14 @@ export default {
     const man = ctx.hero(S * 100); man.position.set(-1.2, 0, -5); man.rotation.y = -.6;   // between the sign and the cards, behind both, clear of the tag labels group.add(man);
     // the site's measurements as floor dimensions beside the post: the kerb stands 0.35 m away as found, 0.60 m once corrected
     const sM = S * 100, kerb = props.kerb(sM, 9); group.add(kerb);
+    const road = new THREE.Mesh(new THREE.BoxGeometry(1, .06, 9), SM.asphalt); road.receiveShadow = true; road.position.y = .03; group.add(road);   // the carriageway beyond the kerb
+    const verge = new THREE.Mesh(new THREE.BoxGeometry(1, .04, 9), SM.verge); verge.receiveShadow = true; verge.position.y = .02; group.add(verge);
     const site = new THREE.Group(); group.add(site);
     const kerbX = d => -6 - d * sM - .15 * sM;
     const fixes = { kerb: false, dist: false };
     const measure = () => {
       site.clear(); const clear = fixes.kerb ? .6 : .35, dist = fixes.dist ? 120 : 90; kerb.position.x = kerbX(clear);
+      { const edge = kerbX(clear) - .15 * sM, x0 = -12.6; road.scale.x = edge - x0; road.position.x = (edge + x0) / 2; const v0 = kerbX(clear) + .15 * sM, v1 = -2; verge.scale.x = v1 - v0; verge.position.x = (v0 + v1) / 2; }
       site.add(holo.dimension([kerbX(clear) + .15 * sM, .3, 1.6], [-6, .3, 1.6], `${clear.toFixed(2)} m to the kerb${fixes.kerb ? ' ✓' : ''}`, { color: fixes.kerb ? holo.GREEN : holo.RED, h: .85, tick: .3 }));
       site.add(holo.dimension([-1.8, .3, 1.2], [-1.8, .3, -6.5], `${dist} m to the junction${fixes.dist ? ' ✓' : ''}`, { color: fixes.dist ? holo.GREEN : holo.RED, h: .85, tick: .3 }));
     };
@@ -50,7 +55,7 @@ export default {
     }
     const cards = ITEMS.map((it, i) => {
       const card = textPlane({ w: 11, h: 2.9, draw: (c, w, h) => paint(c, w, h, it, false) });
-      card.position.set(7.3, 20 - i * 3.1, 0); card.userData.q = i; card.userData.open = false; group.add(card); return card;
+      card.position.set(6.8, 16.6 - i * 2.42, -5.5); card.scale.setScalar(.8); card.userData.q = i; card.userData.open = false; group.add(card); return card;   // a column at the back right, all on the page
     });
     const set = (card, open) => {
       if (card.userData.open === open) return; card.userData.open = open; anims.stop('card' + card.userData.q);
@@ -63,7 +68,8 @@ export default {
       actions: [{ label: 'Inspect everything', run: () => cards.forEach((c, i) => anims.after(i * .25, () => { set(c, true); if (i === cards.length - 1) score(); })) }],
       tap(hit) { if (guide.tap(hit)) return; const card = cards.find(c => c === hit.object); if (card) { set(card, true); ui.caption(ITEMS[card.userData.q].verdict, 'Inspection', 6000); score(); } },
       a11y: ITEMS.map((it, i) => ({ label: `Inspect: ${it.q}`, run: () => { set(cards[i], true); ui.caption(it.verdict, 'Inspection', 6000); } })),
-      update(dt, t) { anims.tick(dt); sg.group.rotation.y = sg2.group.rotation.y = -.2 + Math.sin(t * .4) * .04; cards.forEach((c, i) => { c.position.z = Math.sin(t * .8 + i) * .12; }); },
+      update(dt, t) { { const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.47 : -5.6; guide.card.scale.setScalar(tall ? .8 : 1); }   // phone-fit card
+        anims.tick(dt); sg.group.rotation.y = sg2.group.rotation.y = -.2 + Math.sin(t * .4) * .04; const tall = ctx.camera.aspect < 1; cards.forEach((c, i) => { c.position.z = -5.5 + Math.sin(t * .8 + i) * .12; c.position.x = tall ? 3.6 : 6.8; c.scale.setScalar(tall ? .62 : .8); c.position.y = (tall ? 14.2 - i * 1.9 : 16.6 - i * 2.42); }); },
       reset() {
         anims.clear(); cards.forEach(c => { c.scale.x = 1; c.userData.open = false; c.redraw(); });
         sg.setBands(false); sg.setNumber('44', { yellow: LEMON }); pairUp(false);
@@ -73,14 +79,14 @@ export default {
     };
     // the capstone: inspect, then one last reasoning check before the full audit
     const guide = makeGuide(ctx, {
-      anchor: [-6, 19.6, -2], w: 10, h: 4.8,
+      anchor: [-5.6, 2.2, 10.5], w: 10, h: 5,
       steps: [
         { title: 'Inspect', show: [], text: 'A post as found on site, 100 m short of a crossroads with NH 7. Seven checks, one from each part of the standard: tap each, and a failed item names the clause it breaks and is corrected on the post as you watch.' },
         { title: 'Verdict', show: ['Inspect everything'],
           check: { q: 'This post stands 0.35 m from a kerb. How far must it stand?', options: ['35 cm is fine', 'at least 60 cm', '2 to 3 m'], answer: 1, why: 'With kerbs, not less than 60 cm from the kerb edge (cl. 3.3, Plate 2); 2–3 m is the rule for a road without kerbs. Inspect everything to finish the audit.' } },
       ],
     });
-    group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
     return api;
   },
 };

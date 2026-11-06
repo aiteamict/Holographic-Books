@@ -95,7 +95,8 @@ export default {
       a11y: [{ label: 'Enamelled finish', run: () => setFinish(enamelled) }, { label: 'Painted finish', run: () => setFinish(painted) }],
       press() { pressAngle = angle; },
       drag(d) { if (d.hit.object !== backdrop && !d.hit.object.userData.finish) setAngle(pressAngle + d.dx * .012, true); },
-      update(dt) {
+      update(dt) { { const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.47 : -5.6; guide.card.scale.setScalar(tall ? .8 : 1); }   // phone-fit card
+       
         anims.tick(dt);
         if (Math.abs(target - angle) > 1e-4) { angle += (target - angle) * Math.min(1, dt * 5); sg.group.rotation.y = angle; }
         tagBack.visible = Math.cos(angle) < .1;
