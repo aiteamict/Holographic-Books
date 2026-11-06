@@ -40,7 +40,7 @@ spreads through `runBook({ ctx: { ... } })`, or import them directly. When two b
 | Book | Folder | Notes |
 |---|---|---|
 | The Route Marker · IRC : 2-1968 | `books/irc-2-1968` | see its README |
-| The Design Vehicle · IRC : 3-1983 | `books/irc-3-1983` | spread 6 live; spreads 1–5 and 7 have page text, holograms next |
+| The Design Vehicle · IRC : 3-1983 | `books/irc-3-1983` | seven live spreads; vehicles.js (Table, solid models), scene.js (road, bridge, checkpost) |
 
 ## Deploying
 
