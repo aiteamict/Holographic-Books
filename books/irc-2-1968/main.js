@@ -4,7 +4,7 @@ import * as holo from '@engine/holo.js';
 import * as sign from './sign/index.js';
 import { BOOK, COVER, LESSONS, QUIZ } from './content/lessons.js';
 import { SPREADS } from './spreads/index.js';
-import { initHero, makeHero } from './hero.js';
+import { initHero, makeHero } from '@engine/hero.js';
 
 const heroReady = initHero();
 

@@ -49,12 +49,12 @@ export class UI {
   /** switch the DOM into phone mode: the panels move into the card, the toolbar takes over navigation */
   setPhone(on) {
     this.phone = on; document.body.classList.toggle('phone', on); if (!on) return;
-    const slot = this.$('mslot'); for (const id of ['gpanel', 'steps', 'actions', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); }
+    const slot = this.$('mslot'); for (const id of ['gpanel', 'actions', 'steps', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); }
     this.$('sheet').classList.add('open'); this.openCard(true);
   }
   openCard(open) { const c = this.$('mcard'); c.classList.toggle('open', open); this.$('mhead').setAttribute('aria-expanded', String(open)); if (open) this.$('mmenu').hidden = true; }
   /** keep the card's panels in reading order whatever order they were created in */
-  _order() { if (!this.phone) return; const slot = this.$('mslot'); for (const id of ['gpanel', 'steps', 'actions', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); } }
+  _order() { if (!this.phone) return; const slot = this.$('mslot'); for (const id of ['gpanel', 'actions', 'steps', 'mirror', 'sheet']   /* the live controls sit right under the question, within thumb reach */) { const el = this.$(id); if (el) slot.append(el); } }
   /**
    * The magnifier: a round lens up-right of the cursor showing the page canvas around (u, v) at about 3×.
    * lens(false) hides it. src: the page's canvas; u, v in 0..1 from the page's top-left.

@@ -167,3 +167,6 @@
   body.phone .mmenu button{color:#1d2228;font-family:Georgia,'Times New Roman',serif}
   body.phone .mmenu button.on{background:rgba(176,83,42,.12);color:#b0532a}
   body.fx .glass,body.fx .actions button{background:rgba(18,24,34,.10);backdrop-filter:none;box-shadow:none;border-color:rgba(255,255,255,.08)}
+  /* ---- phone touch targets: every control in the card is at least 44 px tall (thumb-sized), in every book ---- */
+  body.phone #actions button,body.phone #mirror button,body.phone #steps button,body.phone #gpanel .opts button,body.phone #gpanel .next,body.phone .mtabs button{min-height:44px;font-size:14px;padding:10px 14px;line-height:1.2}
+  body.phone .mbar button{width:44px;height:44px}

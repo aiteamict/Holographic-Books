@@ -7,7 +7,7 @@ const SERIF = '"Source Serif 4","Georgia","Times New Roman",serif';
 const SANS = 'Inter,"Segoe UI",Arial,sans-serif';
 // light theme: cream paper and near-black ink; the cover keeps its own dark board colours (COVER below)
 export const INK = { paper: '#f6f1e7', paper2: '#e6dece', ink: '#1f2328', dim: '#5c6168', cyan: '#1d6a94', amber: '#b0532a', rule: 'rgba(0,0,0,.16)', bold: '#0e1115', title: '#14171b' };
-const COVER = { ink: '#eef3f9', cyan: '#58d6ff', dim: '#8d9db2' };
+const COVER = { ink: '#eef3f9', cyan: '#58d6ff', dim: '#8d9db2', board: ['#1a2230', '#0a0e14'], frame: 'rgba(255,255,255,.14)' };
 
 function wrap(ctx, text, maxW) {
   const words = text.split(' '), lines = []; let line = '';
@@ -67,18 +67,19 @@ export function renderPage(spec, draw) {
   return t;
 }
 
-/** The cover: dark board. spec = { title: [lines], kicker, foot: [lines] }; drawMark paints the artwork. */
+/** The cover: dark board. spec = { title: [lines], kicker, foot: [lines], colors? }; drawMark paints the artwork. */
 export function renderCover(spec, drawMark) {
   const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(W * .5, H * .4, 40, W * .5, H * .4, H); g.addColorStop(0, '#1a2230'); g.addColorStop(1, '#0a0e14');
+  const C = { ...COVER, ...spec.colors };   // spec.colors: { board: [centre, edge], ink, cyan, dim, frame }
+  const g = ctx.createRadialGradient(W * .5, H * .4, 40, W * .5, H * .4, H); g.addColorStop(0, C.board[0]); g.addColorStop(1, C.board[1]);
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.globalAlpha = .05; for (let i = 0; i < 4000; i++) { ctx.fillStyle = Math.random() < .5 ? '#fff' : '#000'; ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2); } ctx.globalAlpha = 1;
   const k = PX / 40;
-  ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 3 * k; ctx.strokeRect(50 * k, 50 * k, W - 100 * k, H - 100 * k);
-  ctx.textAlign = 'center'; ctx.fillStyle = COVER.ink;
+  ctx.strokeStyle = C.frame; ctx.lineWidth = 3 * k; ctx.strokeRect(50 * k, 50 * k, W - 100 * k, H - 100 * k);
+  ctx.textAlign = 'center'; ctx.fillStyle = C.ink;
   ctx.font = `italic 800 ${112 * k}px ${SERIF}`; (spec.title || []).forEach((t, i) => ctx.fillText(t, W / 2, (250 + i * 120) * k));
-  ctx.font = `600 ${26 * k}px ${SANS}`; ctx.fillStyle = COVER.cyan; ctx.fillText(spec.kicker || '', W / 2, (190 + (spec.title || []).length * 120) * k);
+  ctx.font = `600 ${26 * k}px ${SANS}`; ctx.fillStyle = C.cyan; ctx.fillText(spec.kicker || '', W / 2, (190 + (spec.title || []).length * 120) * k);
   if (drawMark) drawMark(ctx, W, H);
-  ctx.font = `500 ${24 * k}px ${SANS}`; ctx.fillStyle = COVER.dim; (spec.foot || []).forEach((t, i, a) => ctx.fillText(t, W / 2, H - (112 + (a.length - 1 - i) * 38) * k));
+  ctx.font = `500 ${24 * k}px ${SANS}`; ctx.fillStyle = C.dim; (spec.foot || []).forEach((t, i, a) => ctx.fillText(t, W / 2, H - (112 + (a.length - 1 - i) * 38) * k));
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; return t;
 }

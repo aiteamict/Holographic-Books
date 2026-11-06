@@ -1,9 +1,8 @@
-// The book's recurring character: a surveyor with a levelling staff. Loads public/irc-2-1968/models/surveyor.glb when it exists
+// The book's recurring character: a surveyor with a levelling staff. Loads public/<book>/models/surveyor.glb when it exists
 // (Tripo/Meshy → Blender → glb); until then, and on any failure, a procedural stand-in from props.js.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { surveyor } from './props.js';
-import { SPEC } from './sign/spec.js';
+import { surveyor, FIGURE_H } from './figure.js';
 
 let model = null, tried = false;
 
@@ -17,7 +16,7 @@ export async function initHero(url = "models/surveyor.glb") {   // relative to t
     const root = gltf.scene;
     // normalise: feet at y = 0, centred, 1.7 m tall in metres
     const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
-    const k = SPEC.props.figure.height / size.y;
+    const k = FIGURE_H / size.y;
     root.position.set(-centre.x * k, -box.min.y * k, -centre.z * k); root.scale.setScalar(k);
     root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material && 'roughness' in o.material) o.material.roughness = Math.max(.35, o.material.roughness); } });
     const wrap = new THREE.Group(); wrap.add(root); model = wrap;

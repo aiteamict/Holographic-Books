@@ -80,7 +80,8 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   function moveCam(preset, dur = 1.5) {
     camT.from = { pos: camera.position.clone(), look: look.clone() };
     const to = new THREE.Vector3(...preset.pos), at = new THREE.Vector3(...preset.look);
-    if (camera.aspect < 1) {                                                   // portrait phones: frame the hologram page; the text is read in the sheet
+    if (camera.aspect < 1 && preset.portrait) { to.set(...preset.portrait.pos); at.set(...preset.portrait.look); }   // a spread may frame itself for upright phones
+    else if (camera.aspect < 1) {                                                   // portrait phones: frame the hologram page; the text is read in the sheet
       const cx = PAGE_W / 2 + 1.5; to.x += cx - at.x; at.x = cx; at.y -= 7;  // aim low: the hologram sits in the upper two thirds, above the card
       to.sub(at).multiplyScalar(2.05).add(at);
     }
