@@ -1,14 +1,14 @@
-// The book's recurring character: a surveyor with a levelling staff. Loads public/models/surveyor.glb when it exists
+// The book's recurring character: a surveyor with a levelling staff. Loads public/irc-2-1968/models/surveyor.glb when it exists
 // (Tripo/Meshy → Blender → glb); until then, and on any failure, a procedural stand-in from props.js.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { surveyor } from './props.js';
-import { SPEC } from '../sign/spec.js';
+import { SPEC } from './sign/spec.js';
 
 let model = null, tried = false;
 
 /** Try to load the real model once. Resolves to true when a glb is in place. */
-export async function initHero(url = `${import.meta.env.BASE_URL}models/surveyor.glb`) {   // base-aware: works at / and under /repo/ on GitHub Pages
+export async function initHero(url = "models/surveyor.glb") {   // relative to the book page: public/<book>/models/ in dev and on Pages
   if (tried) return !!model; tried = true;
   try {
     const head = await fetch(url, { method: 'HEAD' });

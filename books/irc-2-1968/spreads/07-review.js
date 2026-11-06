@@ -2,10 +2,10 @@
 // An installed sign with four planted defects. Each checklist card is one inspection item: tap it to read the verdict and
 // the clause, and watch the defect get corrected on the sign. The quiz becomes an audit.
 import * as THREE from 'three';
-import * as props from '../engine/props.js';
-import { textPlane, cardBg, wrapText } from './util.js';
-import { Anims, pulse } from '../engine/anim.js';
-import { makeGuide } from '../engine/guide.js';
+import * as props from '../props.js';
+import { textPlane, cardBg, wrapText } from '@engine/util.js';
+import { Anims, pulse } from '@engine/anim.js';
+import { makeGuide } from '@engine/guide.js';
 
 export default {
   shots: [{ pos: [4, 18, 28], look: [8, 9, 0], dur: 2, hold: 2.6, text: 'A sign as found on site. Four things are wrong with it. Tick the checklist.' }],

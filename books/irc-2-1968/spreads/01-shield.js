@@ -3,10 +3,10 @@
 // pops in afterwards. A 600 mm steel rule runs down the left; drag the cursor across the plate and it reads the height
 // from the top and names the band. "Make it" paints the plate in shop order; "Wrong plate" squashes it onto 450 × 500.
 import * as THREE from 'three';
-import { roundedRectPts, tagged } from './util.js';
-import * as props from '../engine/props.js';
-import { Anims } from '../engine/anim.js';
-import { makeGuide } from '../engine/guide.js';
+import { roundedRectPts, tagged } from '@engine/util.js';
+import * as props from '../props.js';
+import { Anims } from '@engine/anim.js';
+import { makeGuide } from '@engine/guide.js';
 
 export default {
   shots: [

@@ -3,10 +3,10 @@
 // arrow that tells the truth about that move, drawn from Plate 3's parts, and the car drives it on the plan in front.
 // "Wrong arrow" hangs a plate that lies, and the car follows the lie off the road.
 import * as THREE from 'three';
-import { arrowHead, tagged, textPlane } from './util.js';
-import * as props from '../engine/props.js';
-import { Anims, drive, smooth, pulse } from '../engine/anim.js';
-import { makeGuide } from '../engine/guide.js';
+import { arrowHead, tagged, textPlane } from '@engine/util.js';
+import * as props from '../props.js';
+import { Anims, drive, smooth, pulse } from '@engine/anim.js';
+import { makeGuide } from '@engine/guide.js';
 
 const PATHS = {
   ahead: [[0, 0, 5], [0, 0, -5]], turnLeft: [[0, 0, 5], [0, 0, 0], [-5, 0, 0]], turnRight: [[0, 0, 5], [0, 0, 0], [5, 0, 0]],

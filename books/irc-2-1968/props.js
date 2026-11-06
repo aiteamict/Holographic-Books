@@ -1,8 +1,8 @@
 // Hologram props built from primitives only. Every prop takes `s` = world cm per real metre, so the same car works on a
 // 1:12 plan and a 1:11 section. Real sizes live in SPEC.props with their source.
 import * as THREE from 'three';
-import * as holo from './holo.js';
-import { SPEC } from '../sign/spec.js';
+import * as holo from '@engine/holo.js';
+import { SPEC } from './sign/spec.js';
 
 const P = () => SPEC.props;
 

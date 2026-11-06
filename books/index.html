@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Holographic Books</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f0c020'/%3E%3Cpath d='M7 6h18v14c0 4-4 7-9 8-5-1-9-4-9-8z' fill='none' stroke='%23141414' stroke-width='2'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='Arial' font-weight='700' font-size='11' fill='%23141414'%3ENH%3C/text%3E%3C/svg%3E" />
+<meta name="description" content="Engineering standards as interactive 3D holographic books." />
+<script>
+  // the site root used to be the Route Marker book: keep its old deep links working
+  if (/^#spread-\d+/.test(location.hash)) location.replace('irc-2-1968/' + location.search + location.hash);
+</script>
+<style>
+  :root { --ink:#1f2328; --ink2:#5c6168; --cyan:#1d5f87; --amber:#b0532a; --paper:#f7f3ec; --edge:rgba(29,34,40,.14); }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, #fbf8f2 0%, #ece7de 60%, #e1dacd 100%); color: var(--ink); font-family: "Inter","Segoe UI",system-ui,Arial,sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1080px; margin: 0 auto; padding: 56px 16px 64px; }
+  header p { margin: 0 0 6px; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); }
+  header h1 { margin: 0; font: italic 800 clamp(34px, 6vw, 56px)/1.05 Georgia, "Times New Roman", serif; letter-spacing: -.02em; }
+  header span { display: block; margin-top: 12px; max-width: 36rem; color: var(--ink2); line-height: 1.5; }
+  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; margin-top: 40px; }
+  .book { display: flex; flex-direction: column; text-decoration: none; color: inherit; border-radius: 14px; overflow: hidden; background: var(--paper); border: 1px solid var(--edge); box-shadow: 0 8px 24px rgba(60,50,35,.12); transition: transform .2s, box-shadow .2s; }
+  .book:hover, .book:focus-visible { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(60,50,35,.2); }
+  .cover { aspect-ratio: 3 / 4; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, #1a2230, #0a0e14); }
+  .cover svg { width: 46%; }
+  .meta { padding: 14px 16px 18px; }
+  .meta small { display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+  .meta b { display: block; font: 600 20px Georgia, serif; }
+  .meta span { display: block; margin-top: 6px; font-size: 13px; color: var(--ink2); line-height: 1.45; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p>Holographic Books</p>
+    <h1>Standards you can turn in your hands.</h1>
+    <span>Each book takes one engineering standard and rebuilds it as live 3D diagrams: drag them, take them apart, check your reasoning.</span>
+  </header>
+  <section class="shelf" aria-label="Books">
+    <!-- one card per book: copy this <a> and point it at books/<slug>/ -->
+    <a class="book" href="irc-2-1968/">
+      <div class="cover"><svg viewBox="0 0 450 600" aria-hidden="true"><rect width="450" height="600" rx="12" fill="#f0c020"/><path d="M24 17h176l25 12 25-12h176q7 0 7 7v361c0 120-100 180-208 198-108-18-208-78-208-198V24q0-7 7-7z" fill="none" stroke="#111" stroke-width="10"/><text x="225" y="175" text-anchor="middle" font-family="Arial" font-weight="700" font-size="110" fill="#111">N H</text><text x="225" y="455" text-anchor="middle" font-family="Arial" font-weight="700" font-size="250" fill="#111">42</text></svg></div>
+      <div class="meta"><small>IRC : 2-1968</small><b>The Route Marker</b><span>Route marker signs for National Highways: draw the shield, set the numerals, paint it, plant it at the junction.</span></div>
+    </a>
+  </section>
+</main>
+</body>
+</html>

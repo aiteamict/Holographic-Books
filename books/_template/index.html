@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Book Title · a 3D holographic book</title>
+<meta name="description" content="One line about this book." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f0c020'/%3E%3Cpath d='M7 6h18v14c0 4-4 7-9 8-5-1-9-4-9-8z' fill='none' stroke='%23141414' stroke-width='2'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='Arial' font-weight='700' font-size='11' fill='%23141414'%3ENH%3C/text%3E%3C/svg%3E" />
+<script>
+  // older phone browsers lack CanvasRenderingContext2D.roundRect; the cards and chips draw with it
+  if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      r = Math.min(Array.isArray(r) ? r[0] : (r || 0), w / 2, h / 2);
+      this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath(); return this;
+    };
+  }
+  // surface uncaught errors on screen: on a phone there is no console to read
+  addEventListener('error', e => document.dispatchEvent(new CustomEvent('book:error', { detail: String(e.message || e.error || 'error') })));
+  addEventListener('unhandledrejection', e => document.dispatchEvent(new CustomEvent('book:error', { detail: String(e.reason && e.reason.message || e.reason || 'error') })));
+  document.addEventListener('book:error', e => {
+    let el = document.getElementById('booterr');
+    if (!el) { el = document.createElement('div'); el.id = 'booterr'; el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:99;padding:10px 14px;border-radius:12px;background:rgba(120,20,30,.92);color:#fff;font:13px/1.4 system-ui,sans-serif;white-space:pre-wrap'; document.body.append(el); }
+    el.textContent = 'Something went wrong: ' + e.detail;
+  });
+</script>
+</head>
+<body>
+<canvas id="c" tabindex="0" aria-label="3D book: Book Title"></canvas>
+<div id="ui"></div>
+<div id="enter"><div class="m">
+  <svg class="shield" viewBox="0 0 450 600" aria-hidden="true"><rect width="450" height="600" rx="40" fill="#1d5f87"/></svg>
+  <h2>Book Title</h2><p>Standard · a holographic chapter</p>
+  <button id="go">ENTER</button><small>Scroll, swipe or use the arrow keys to turn the pages.</small><a id="go-quiet" href="#" style="display:block;margin-top:10px;color:var(--ink2);font-size:12px">Enter without sound</a>
+</div></div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

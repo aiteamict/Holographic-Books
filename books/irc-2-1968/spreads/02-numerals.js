@@ -3,9 +3,9 @@
 // spacer slugs drop in, each cut to the millimetres Plate 5 gives for that pair. A strip below shows the same number
 // from 100 m, once with even gaps and once with Plate 5's: the even one is the one that looks wrong.
 import * as THREE from 'three';
-import { tagged, textPlane, cardBg } from './util.js';
-import { Anims, pulse } from '../engine/anim.js';
-import { makeGuide } from '../engine/guide.js';
+import { tagged, textPlane, cardBg } from '@engine/util.js';
+import { Anims, pulse } from '@engine/anim.js';
+import { makeGuide } from '@engine/guide.js';
 
 const PRESETS = ['1', '7', '42', '44', '47', '100', '744'];
 const ROWS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];

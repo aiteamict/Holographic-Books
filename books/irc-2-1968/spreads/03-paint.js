@@ -3,10 +3,10 @@
 // change behind the post with an all-white and an all-black post beside the banded one, two plate samples (enamelled,
 // painted), and the sign you can turn to see its grey back. The night check (cl. 3.3) lives on spread 4 with location.
 import * as THREE from 'three';
-import { tagged, textPlane, cardBg } from './util.js';
-import * as props from '../engine/props.js';
-import { Anims } from '../engine/anim.js';
-import { makeGuide } from '../engine/guide.js';
+import { tagged, textPlane, cardBg } from '@engine/util.js';
+import * as props from '../props.js';
+import { Anims } from '@engine/anim.js';
+import { makeGuide } from '@engine/guide.js';
 
 const BACKDROPS = [
   { key: 'sky', label: 'open sky', note: 'Against a bright sky the white bands vanish; the black ones carry the post.' },

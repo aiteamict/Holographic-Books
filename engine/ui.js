@@ -1,6 +1,6 @@
 // The DOM layer over the canvas: title, step card, dots, actions, captions.
 export class UI {
-  constructor(root, { title, subtitle, count, labels = {}, titles = [], onNav, onAgain, muted = false, onMute }) {
+  constructor(root, { title, subtitle, credit = "", count, labels = {}, titles = [], onNav, onAgain, muted = false, onMute }) {
     this.root = root; this.count = count; this.onNav = onNav; this.onMute = onMute;
     root.innerHTML = `
       <div class="brand"><h1>${title}</h1><p>${subtitle}</p></div>
@@ -11,7 +11,7 @@ export class UI {
       <nav class="dots glass" id="dots" aria-label="Spreads"></nav>
       <div class="caption glass" id="caption" aria-live="polite"><small id="capk"></small><div id="capt"></div></div>
       <div class="hint glass" id="hint"><b>Scroll</b> or <b>swipe</b> to open the book · drag the holograms · <b>←/→</b> turn pages</div>
-      <div class="credit">© ${new Date().getFullYear()} · built from IRC : 2-1968</div>
+      <div class="credit">© ${new Date().getFullYear()}${credit ? " · " + credit : ""}</div>
       <div class="sr" id="mirror" role="group" aria-label="Keyboard controls for the hologram"></div>
       <section class="sheet glass" id="sheet" aria-label="Page text"></section>
       <button class="sheet-toggle glass" id="sheet-toggle" aria-expanded="false">Read the page</button>

@@ -2,10 +2,10 @@
 // One plan at one scale, with two framed insets above it: the driver's view (what the sign looks like at this distance)
 // and the roadside section (the lateral clearance and the 2250 mm). A drive runs the whole thing.
 import * as THREE from 'three';
-import { tagged, textPlane } from './util.js';
-import * as props from '../engine/props.js';
-import { Anims, drive, pulse, linear } from '../engine/anim.js';
-import { makeGuide } from '../engine/guide.js';
+import { tagged, textPlane } from '@engine/util.js';
+import * as props from '../props.js';
+import { Anims, drive, pulse, linear } from '@engine/anim.js';
+import { makeGuide } from '@engine/guide.js';
 
 let V = 60 / 3.6;               // approach speed used for the timings, m/s; the speed picker changes it
 const SPEEDS = [50, 65, 80];

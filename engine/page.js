@@ -61,14 +61,14 @@ export function renderPage(spec, draw) {
   ctx.font = `500 ${20 * k}px ${SANS}`; ctx.fillStyle = INK.dim; ctx.textAlign = spec.side === 'left' ? 'left' : 'right';
   const fx = spec.side === 'left' ? m : W - m;
   if (spec.pageNo != null) ctx.fillText(String(spec.pageNo), fx, H - 60 * k);
-  ctx.font = `500 ${17 * k}px ${SANS}`; ctx.fillText(spec.foot || 'IRC : 2-1968 · Route Marker Signs for National Highways', fx, 64 * k);
+  ctx.font = `500 ${17 * k}px ${SANS}`; ctx.fillText(spec.foot || '', fx, 64 * k);
   ctx.textAlign = 'left';
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; t.minFilter = THREE.LinearMipmapLinearFilter;
   return t;
 }
 
-/** The cover: dark board with the title and the shield mark. */
-export function renderCover(drawMark) {
+/** The cover: dark board. spec = { title: [lines], kicker, foot: [lines] }; drawMark paints the artwork. */
+export function renderCover(spec, drawMark) {
   const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
   const g = ctx.createRadialGradient(W * .5, H * .4, 40, W * .5, H * .4, H); g.addColorStop(0, '#1a2230'); g.addColorStop(1, '#0a0e14');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -76,10 +76,9 @@ export function renderCover(drawMark) {
   const k = PX / 40;
   ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 3 * k; ctx.strokeRect(50 * k, 50 * k, W - 100 * k, H - 100 * k);
   ctx.textAlign = 'center'; ctx.fillStyle = COVER.ink;
-  ctx.font = `italic 800 ${112 * k}px ${SERIF}`; ctx.fillText('The Route', W / 2, 250 * k); ctx.fillText('Marker', W / 2, 370 * k);
-  ctx.font = `600 ${26 * k}px ${SANS}`; ctx.fillStyle = COVER.cyan; ctx.fillText('I R C : 2 - 1 9 6 8   ·   A  H O L O G R A P H I C  C H A P T E R', W / 2, 430 * k);
+  ctx.font = `italic 800 ${112 * k}px ${SERIF}`; (spec.title || []).forEach((t, i) => ctx.fillText(t, W / 2, (250 + i * 120) * k));
+  ctx.font = `600 ${26 * k}px ${SANS}`; ctx.fillStyle = COVER.cyan; ctx.fillText(spec.kicker || '', W / 2, (190 + (spec.title || []).length * 120) * k);
   if (drawMark) drawMark(ctx, W, H);
-  ctx.font = `500 ${24 * k}px ${SANS}`; ctx.fillStyle = COVER.dim; ctx.fillText('ROUTE MARKER SIGNS FOR NATIONAL HIGHWAYS', W / 2, H - 150 * k);
-  ctx.fillText('Indian Roads Congress · first published 1953 · first revision 1968', W / 2, H - 112 * k);
+  ctx.font = `500 ${24 * k}px ${SANS}`; ctx.fillStyle = COVER.dim; (spec.foot || []).forEach((t, i, a) => ctx.fillText(t, W / 2, H - (112 + (a.length - 1 - i) * 38) * k));
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; return t;
 }

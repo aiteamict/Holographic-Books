@@ -1,7 +1,7 @@
 // A guided sequence for one spread: three (or so) steps, one persistent explanation card anchored on the hologram,
 // an optional one-tap reasoning check per step, then free play. The card never times out; it changes with the step and
 // with whatever the spread tells it (`say`). Controls not named by the current step are hidden until "Explore".
-import { textPlane, cardBg, wrapText } from '../spreads/util.js';
+import { textPlane, cardBg, wrapText } from './util.js';
 
 const F = 'Inter, Segoe UI, Arial';
 

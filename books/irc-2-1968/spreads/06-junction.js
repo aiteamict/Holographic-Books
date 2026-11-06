@@ -2,10 +2,10 @@
 // A true-width plan at one scale, with the 100–150 m and 15–30 m zones drawn as bands, marker symbols you tap, and the
 // selected assembly shown large above the plan so the shields and arrows can actually be read.
 import * as THREE from 'three';
-import { tagged, textPlane, cardBg } from './util.js';
-import * as props from '../engine/props.js';
-import { Anims, drive, pulse, smooth } from '../engine/anim.js';
-import { makeGuide } from '../engine/guide.js';
+import { tagged, textPlane, cardBg } from '@engine/util.js';
+import * as props from '../props.js';
+import { Anims, drive, pulse, smooth } from '@engine/anim.js';
+import { makeGuide } from '@engine/guide.js';
 
 const M = .085;                                  // cm per metre: 150 m = 12.75 cm, fits the page
 const HW = 3.5 * M, FAR = 125 * M, NEAR = 22 * M, OFF = HW + .5;

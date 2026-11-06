@@ -2,6 +2,13 @@
 export const BOOK = {
   title: 'The Route Marker',
   subtitle: 'IRC : 2-1968 · a holographic chapter',
+  credit: 'built from IRC : 2-1968',
+  foot: 'IRC : 2-1968 · Route Marker Signs for National Highways',
+  cover: {
+    title: ['The Route', 'Marker'],
+    kicker: 'I R C : 2 - 1 9 6 8   ·   A  H O L O G R A P H I C  C H A P T E R',
+    foot: ['ROUTE MARKER SIGNS FOR NATIONAL HIGHWAYS', 'Indian Roads Congress · first published 1953 · first revision 1968'],
+  },
 };
 
 export const COVER = {
