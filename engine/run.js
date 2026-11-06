@@ -96,6 +96,12 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     if (camera.aspect < 1 && preset.fit) fitPortrait(preset.fit, to, at);
     camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur;
   }
+  // turning a phone between upright and sideways re-frames the current page (each has its own camera for each)
+  let wasTall = camera.aspect < 1, rt = 0;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => {
+    const tall = camera.aspect < 1; if (tall === wasTall || tour) return; wasTall = tall;
+    const i = built[cur]; moveCam(cur ? { ...(SPREADS[cur]?.cam || CAM.spread), fit: fitPhone && i?.group.visible && i.group } : CAM.cover, .7);
+  }, 250); });
   // upright phones: pan and pull back until everything the spread can show sits between the screen edges and above the
   // bottom bar. Measures the shown parts at full size (the group pops in from 0); hit meshes skipped.
   function fitPortrait(group, to, at) {
@@ -104,6 +110,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     group.traverseVisible(o => {                                         // hidden parts (labels, alternate insets) don't count
       if (!o.geometry || o.material?.opacity === 0 || o.material?.visible === false || o.userData.noFit) return;
       if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox; if (!b || b.isEmpty()) return;
+      for (let p = o; p && p !== group; p = p.parent) if (Math.max(p.scale.x, p.scale.y, p.scale.z) < .02) return;   // collapsed parts waiting to grow in sit at odd origins
       for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) pts.push(new THREE.Vector3(x, y, z).applyMatrix4(o.matrixWorld));
     });
     group.scale.copy(s0); group.visible = vis; group.updateMatrixWorld(true);
@@ -269,6 +276,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
       // the overview is the default view; the close-up tour only plays from the ▶ Watch chip
       if (i && !i.group.visible) {
         i.group.visible = true; i.group.userData.pop = 0; i.enter?.(); snd.play('pop'); seen.add(cur);
+        if (fitPhone && camera.aspect < 1 && !tour) i.update?.(0, time);   // let the spread place its phone layout before it is measured
         if (fitPhone && camera.aspect < 1 && !tour) moveCam({ ...(SPREADS[cur].cam || CAM.spread), fit: i.group }, Math.max(.6, (1 - camT.t) * camT.dur));   // retarget from where the camera is
       }
       if (cur === 0 && !coverHolo.visible) { coverHolo.visible = true; coverHolo.userData.pop = 0; }

@@ -20,6 +20,7 @@ export default {
     { pos: [4, 22, 16], look: [4, 14, -8], dur: 1.8, hold: 2.6, text: 'Three insets: what the driver sees, the roadside section with the clearances, and the long section with the sight line from a 1.2 m eye to the 2.25 m shield top.' },
   ],
   build(ctx) {
+    V = 60 / 3.6;   // a rebuilt spread starts at 60 km/h, matching st.speed
     const { holo, sign, ui } = ctx; const { SPEC } = sign;
     const M = .11;                                                    // cm per metre on the plan
     const group = new THREE.Group();
