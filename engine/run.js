@@ -21,7 +21,7 @@ import { tagged } from './util.js';
  * @param cfg.coverMark (ctx2d, W, H) => draws the artwork on the cover board
  * @param cfg.coverHolo ({ THREE, holo }) => Group shown beside the closed book; set userData.up on a child to make it sway
  */
-export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo }) {
+export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false }) {
   const renderPage = s => rawPage({ foot: BOOK.foot, ...s });
   const canvas = document.getElementById('c');
   const stage = createStage(canvas);
@@ -85,7 +85,34 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
       const cx = PAGE_W / 2 + 1.5; to.x += cx - at.x; at.x = cx; at.y -= 7;  // aim low: the hologram sits in the upper two thirds, above the card
       to.sub(at).multiplyScalar(2.05).add(at);
     }
+    if (camera.aspect < 1 && preset.fit) fitPortrait(preset.fit, to, at);
     camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur;
+  }
+  // upright phones: pan and pull back until everything the spread can show sits between the screen edges and above the
+  // bottom bar. Measures the shown parts at full size (the group pops in from 0); hit meshes skipped.
+  function fitPortrait(group, to, at) {
+    const pts = [], v = new THREE.Vector3(), s0 = group.scale.clone(), vis = group.visible;
+    group.scale.set(1, 1, 1); group.visible = true; group.updateMatrixWorld(true);
+    group.traverseVisible(o => {                                         // hidden parts (labels, alternate insets) don't count
+      if (!o.geometry || o.material?.opacity === 0 || o.material?.visible === false || o.userData.noFit) return;
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox; if (!b || b.isEmpty()) return;
+      for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) pts.push(new THREE.Vector3(x, y, z).applyMatrix4(o.matrixWorld));
+    });
+    group.scale.copy(s0); group.visible = vis; group.updateMatrixWorld(true);
+    if (!pts.length) return;
+    const cam = camera.clone(), X = .94, TOP = .9, BOT = -.52;   // BOT clears the step peek and the control bar
+    for (let n = 0; n < 4; n++) {
+      cam.position.copy(to); cam.lookAt(at); cam.updateMatrixWorld();
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (const p of pts) { v.copy(p).project(cam); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
+      if (n === 0 && x0 >= -X && x1 <= X && y0 >= BOT && y1 <= TOP) return;   // already fits: keep the authored framing
+      const d = to.distanceTo(at), hy = d * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)), hx = hy * cam.aspect;
+      const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
+      const pan = right.multiplyScalar((x0 + x1) / 2 * hx).add(up.multiplyScalar(((y0 + y1) / 2 - (TOP + BOT) / 2) * hy));
+      to.add(pan); at.add(pan);
+      const k = Math.max(1, (x1 - x0) / (2 * X), (y1 - y0) / (TOP - BOT));
+      to.sub(at).multiplyScalar(k).add(at);
+    }
   }
 
   // ---- camera tours: a short shot list per spread, played once on the first visit, stopped by any input ----------
@@ -104,7 +131,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     moveCam(shot, s.dur ?? 1.8); tour.until = time + (s.dur ?? 1.8) + (s.hold ?? 2.2); snd.play('ping');
     if (s.text) ui.caption(s.text, 'Watch', (s.hold ?? 2.2) * 1000 + 800);
   }
-  function endTour(interrupted) { if (!tour) return; const k = tour.k; tour = null; moveCam(SPREADS[k].cam || CAM.spread, interrupted ? .9 : 1.6); }
+  function endTour(interrupted) { if (!tour) return; const k = tour.k; tour = null; moveCam({ ...(SPREADS[k].cam || CAM.spread), fit: fitPhone && built[k]?.group }, interrupted ? .9 : 1.6); }
   const watchAction = k => ({ label: '▶ Watch', run: () => startTour(k) });
 
   // ---- navigation ----------------------------------------------------------------------------------
@@ -120,7 +147,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     ui.setActions(i ? [...i.actions, ...(SPREADS[k].shots ? [watchAction(k)] : [])] : []); ui.hideCaption();
     ui.setMirror(i ? (i.a11y || []) : []); ui.setSheet(back ? COVER.insideBack : k ? LESSONS[k].left : COVER.insideCover);
     syncGuide(i);
-    moveCam(k ? (SPREADS[k]?.cam || CAM.spread) : CAM.cover);
+    moveCam(k ? (SPREADS[k]?.cam || CAM.spread) : CAM.cover);   // upright phones refit once the hologram lands (frame loop)
     history.replaceState(null, '', k ? '#spread-' + k : location.pathname);
   }
   ui.setStep(0, BOOK.title, 'Scroll to open the book.');
@@ -231,7 +258,10 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     const i = built[cur];
     if (!book.busy) {
       // the overview is the default view; the close-up tour only plays from the ▶ Watch chip
-      if (i && !i.group.visible) { i.group.visible = true; i.group.userData.pop = 0; i.enter?.(); snd.play('pop'); seen.add(cur); }
+      if (i && !i.group.visible) {
+        i.group.visible = true; i.group.userData.pop = 0; i.enter?.(); snd.play('pop'); seen.add(cur);
+        if (fitPhone && camera.aspect < 1 && !tour) moveCam({ ...(SPREADS[cur].cam || CAM.spread), fit: i.group }, Math.max(.6, (1 - camT.t) * camT.dur));   // retarget from where the camera is
+      }
       if (cur === 0 && !coverHolo.visible) { coverHolo.visible = true; coverHolo.userData.pop = 0; }
     }
     if (tour && time >= tour.until) nextShot();

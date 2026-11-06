@@ -9,6 +9,7 @@ import { initHero, makeHero } from '@engine/hero.js';
 const heroReady = initHero();
 
 runBook({
+  fitPhone: true,   // upright phones: the camera pulls back until the whole hologram fits (engine/run.js fitPortrait)
   BOOK, COVER, LESSONS, QUIZ, SPREADS,
   ctx: { sign, hero: makeHero },
   // the NH 42 shield on the cover board
