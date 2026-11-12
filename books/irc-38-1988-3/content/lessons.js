@@ -3,6 +3,7 @@ export const BOOK = {
   title: 'Superelevation',
   subtitle: 'IRC : 38-1988 · chapter 3 of 8',
   credit: 'built from IRC : 38-1988',
+  home: { href: '../irc-38-1988/', label: 'All IRC 38 chapters' },
   foot: 'IRC : 38-1988 · Design of Horizontal Curves · 3 Superelevation',
   cover: {
     title: ['Super-', 'elevation'],

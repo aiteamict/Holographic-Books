@@ -1,9 +1,9 @@
 // The DOM layer over the canvas: title, step card, dots, actions, captions.
 export class UI {
-  constructor(root, { title, subtitle, credit = "", count, labels = {}, titles = [], onNav, onAgain, muted = false, onMute }) {
-    this.root = root; this.count = count; this.onNav = onNav; this.onMute = onMute;
+  constructor(root, { title, subtitle, credit = "", home = null, count, labels = {}, titles = [], onNav, onAgain, muted = false, onMute }) {
+    this.root = root; this.home = home; this.count = count; this.onNav = onNav; this.onMute = onMute;
     root.innerHTML = `
-      <div class="brand"><h1>${title}</h1><p>${subtitle}</p></div>
+      <div class="brand">${home ? `<a class="home" href="${home.href}">← ${home.label}</a>` : ''}<h1>${title}</h1><p>${subtitle}</p></div>
       <button class="mute glass" id="mute" aria-pressed="${muted}" aria-label="Sound on or off">${muted ? '🔇' : '🔊'}</button>
       <div class="step glass" id="step"><div class="n">00</div><div><b></b><span></span></div></div>
       <button class="again glass" id="again" aria-label="Reset this spread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>AGAIN</button>
@@ -44,7 +44,7 @@ export class UI {
     this.$('m-prev').onclick = () => onNav(-1, true); this.$('m-next').onclick = () => onNav(1, true);
     this.$('m-again').onclick = onAgain; this.$('m-mute').onclick = () => this.$('mute').click();
     this.$('m-watch').onclick = () => { const w = (this.actions || []).find(a => a.label === '▶ Watch'); w?.run(); };
-    this.$('m-menu').onclick = () => { const m = this.$('mmenu'); if (!m.hidden) { m.hidden = true; return; } m.textContent = ''; (this.titles || []).forEach((t, k) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = k ? `${k} · ${t}` : t; b.classList.toggle('on', k === this.cur); b.onclick = () => { m.hidden = true; onNav(k); }; m.append(b); }); m.hidden = false; };
+    this.$('m-menu').onclick = () => { const m = this.$('mmenu'); if (!m.hidden) { m.hidden = true; return; } m.textContent = ''; if (this.home) { const a = document.createElement('a'); a.className = 'home'; a.href = this.home.href; a.textContent = '← ' + this.home.label; m.append(a); } (this.titles || []).forEach((t, k) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = k ? `${k} · ${t}` : t; b.classList.toggle('on', k === this.cur); b.onclick = () => { m.hidden = true; onNav(k); }; m.append(b); }); m.hidden = false; };
   }
   /** switch the DOM into phone mode: the panels move into the card, the toolbar takes over navigation */
   setPhone(on) {

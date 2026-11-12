@@ -47,7 +47,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // ---- holograms -----------------------------------------------------------------------------------
   const holoRoot = new THREE.Group(); holoRoot.position.set(PAGE_W / 2, book.pageTopAt(0) + .05, 0); scene.add(holoRoot);
   const snd = new Sound();
-  const ui = new UI(document.getElementById('ui'), { title: BOOK.title, subtitle: BOOK.subtitle, count: N + 1, labels: { [N + 1]: 'Back page' }, credit: BOOK.credit, titles: ['Cover', ...LESSONS.slice(1).map(l => l.title), COVER.insideBack.title], onNav: (k, rel) => goTo(rel ? cur + k : k), onAgain: () => { built[cur]?.reset?.(); ui.refreshActions(); snd.play('tick'); }, muted: snd.muted, onMute: m => snd.setMuted(m) });
+  const ui = new UI(document.getElementById('ui'), { title: BOOK.title, subtitle: BOOK.subtitle, home: BOOK.home || null, count: N + 1, labels: { [N + 1]: 'Back page' }, credit: BOOK.credit, titles: ['Cover', ...LESSONS.slice(1).map(l => l.title), COVER.insideBack.title], onNav: (k, rel) => goTo(rel ? cur + k : k), onAgain: () => { built[cur]?.reset?.(); ui.refreshActions(); snd.play('tick'); }, muted: snd.muted, onMute: m => snd.setMuted(m) });
   ui.onSheet = open => book.setLeftQuiet(open); book.setLeftQuiet(ui.sheetOpen);
   // phones (and any short, wide screen): the phone shell — one card, one toolbar, the hologram full-screen
   // narrow, or a touch screen held sideways; never a short laptop window

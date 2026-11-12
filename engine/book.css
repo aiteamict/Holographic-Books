@@ -181,3 +181,8 @@
   #zoomcard[hidden]{display:none}
   #zoomcard canvas{width:min(94vw,640px);height:auto;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
   #zoomcard small{color:#fff;font:600 13px var(--sans)}
+
+  /* a link back to the series contents (BOOK.home) */
+  .brand .home{display:inline-block;margin-bottom:6px;font:600 12px var(--sans);letter-spacing:.04em;color:var(--cyan);text-decoration:none;pointer-events:auto}
+  .brand .home:hover{text-decoration:underline}
+  .mmenu .home{display:block;padding:10px 12px;font:700 14px var(--sans);color:var(--cyan);text-decoration:none;border-bottom:1px solid var(--edge)}
