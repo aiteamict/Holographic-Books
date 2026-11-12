@@ -39,3 +39,24 @@ export const CAMBER = [['High type bituminous or cement concrete', 1.7, 2.0], ['
 export const CAMBERS = [4, 3, 2.5, 2];
 export const NO_SUPER = { 20: [50, 60, 70, 90], 25: [70, 90, 110, 110], 30: [100, 130, 160, 200], 35: [140, 180, 220, 270], 40: [180, 240, 280, 350], 50: [280, 370, 450, 550], 65: [470, 620, 750, 950], 80: [700, 950, 1100, 1400], 100: [1100, 1500, 1800, 2200] };
 export const noSuperR = (V, camberPct) => V * V / (225 * camberPct / 100);
+
+/** eq. (8): extra width We = l²/2R (mechanical) + V/(9.5√R) (psychological); l = 11 m representative wheel base (cl. 6.2). */
+export const WHEELBASE = 11;
+export const widenMech = (R, l = WHEELBASE) => l * l / (2 * R);
+export const widenPsy = (V, R) => V / (9.5 * Math.sqrt(R));
+export const widenTotal = (V, R, lanes = 2, l = WHEELBASE) => lanes > 1 ? widenMech(R, l) + widenPsy(V, R) : widenMech(R, l);
+
+/** Table 7 · extra width (m) by radius band: [two-lane, single-lane]; beyond 300 m none listed. */
+export const WIDEN_BANDS = [[20, 1.5, .9], [40, 1.5, .6], [60, 1.2, .6], [100, .9, 0], [300, .6, 0]];
+export const widenTable = (R, lanes = 2) => { const b = WIDEN_BANDS.find(([max]) => R <= max); return b ? (lanes > 1 ? b[1] : b[2]) : 0; };
+
+/** Table 7A · widening given by edges of the same radius and transition as the centre line: W (sec Δ/2 − 1), W ≈ 6.59 m. */
+export const WIDEN_DELTA = [[.30, 33 + 55 / 60], [.60, 47 + 8 / 60], [.90, 56 + 44 / 60], [1.20, 64 + 24 / 60], [1.50, 70 + 51 / 60]];
+
+/** eq. (14), (15): set-back m = R − (R − n) cos θ, θ = S / 2(R − n) radians. */
+export const setBack = (R, S, n = 0) => { const t = S / (2 * (R - n)); return R - (R - n) * Math.cos(t); };
+
+/** Table 8 · set-back (m), single-lane hill roads (n = 0), as printed on p035; sight distance S for each column.
+ *  R 150 / S 60 is printed 2.3 (eq. 14 gives 2.99) and R 33 / S 30 printed 3.7 (eq. 14 gives 3.35): misprints. */
+export const SETBACK_S = [20, 25, 30, 45, 60];
+export const SETBACK = { 14: [3.4], 15: [3.2], 20: [2.4, 3.8], 23: [2.1, 3.3], 30: [1.7, 2.6, 3.7], 33: [1.5, 2.3, 3.7], 50: [1.0, 1.6, 2.2, 5.0], 60: [null, 1.3, 1.9, 4.2], 80: [null, 1.0, 1.4, 3.1, 5.6], 100: [null, .8, 1.1, 2.5, 4.5], 120: [null, .7, .9, 2.1, 3.7], 150: [null, .5, .8, 1.7, 2.3] };
