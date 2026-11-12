@@ -52,7 +52,9 @@ export function segments(points, color = CYAN, opacity, { width = .08, dashed = 
 export function setPoints(line, points) {
   const v = points.map(toV3);
   if (line.geometry.setPositions) { line.geometry.setPositions(flat(v)); line.computeLineDistances(); }
+  else if (line.geometry.attributes.position?.count !== v.length) { line.geometry.dispose(); line.geometry = new THREE.BufferGeometry().setFromPoints(v); }   // 1 px lines cannot grow in place
   else { line.geometry.setFromPoints(v); line.geometry.attributes.position.needsUpdate = true; }
+  line.userData.points = v.length;
 }
 /** Reveal a line progressively: t in 0..1 */
 export function reveal(line, t) {

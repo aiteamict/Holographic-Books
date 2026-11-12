@@ -24,7 +24,7 @@ function peg(name, color = '#14202b') {
 export function makePlan({ s = .05, origin = [0, .15, -11], road = 7, ext = 40, show = {} } = {}) {
   const group = new THREE.Group(), O = new THREE.Vector3(...origin);
   const P = ([x, y], h = 0) => new THREE.Vector3(O.x + x * s, O.y + h, O.z - y * s);
-  const opt = { tangents: true, centre: true, radii: true, ts: true, es: true, delta: true, spiral: true, ...show };
+  const opt = { tangents: true, centre: true, radii: true, ts: true, es: true, delta: true, spiral: true, ribbon: true, ...show };   // ribbon: false when the site kit draws the real road
 
   // asphalt ribbon with painted edges: rebuilt geometry, fixed materials
   const ribbon = new THREE.Mesh(new THREE.BufferGeometry(), SM.asphalt); ribbon.receiveShadow = true; group.add(ribbon);
@@ -58,6 +58,7 @@ export function makePlan({ s = .05, origin = [0, .15, -11], road = 7, ext = 40, 
     ribbon.geometry.dispose(); ribbon.geometry = new THREE.BufferGeometry();
     ribbon.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); ribbon.geometry.setIndex(idx); ribbon.geometry.computeVertexNormals();
     holo.setPoints(edgeL, left); holo.setPoints(edgeR, right);
+    ribbon.visible = edgeL.visible = edgeR.visible = opt.ribbon;
     // centre line coloured by part
     const nSp = c.Ls > 0 ? L.pts.findIndex(p => Math.hypot(p[0] - L.CT[0], p[1] - L.CT[1]) < 1e-6) : 0;
     const lift = q => P(q, .06);
@@ -80,7 +81,7 @@ export function makePlan({ s = .05, origin = [0, .15, -11], road = 7, ext = 40, 
     if (esDim) { group.remove(esDim); dispose(esDim); esDim = null; }
     if (opt.ts) { tsDim = holo.dimension(P(L.TP, .1), P(L.PI, .1), `Ts ${c.Ts.toFixed(1)} m`, { color: holo.AMBER, h: .9, tick: .45, offset: [-Math.sin(c.delta / 2) * 2.4, 0, -Math.cos(c.delta / 2) * 2.4] }); group.add(tsDim); }
     if (opt.es) { esDim = holo.dimension(P(L.PI, .1), P(L.mid, .1), `Es ${c.Es.toFixed(1)} m`, { color: holo.GREEN, h: .9, tick: .45 }); esDim.children.at(-1).position.x += 2.6; group.add(esDim); }   // Es label sits right of the apex, clear of Ts
-    api.L = L;
+    api.L = L; api.path = pts;
   }
   const api = { group, set, P, pegs, get curve() { return last; }, L: null, opt };
   return api;
