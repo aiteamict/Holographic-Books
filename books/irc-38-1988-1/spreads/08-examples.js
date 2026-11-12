@@ -5,6 +5,28 @@ import { deg } from '../../_irc38/curve.js';
 export default curveExamples({
   examples: [
     {
+      id: '11.2', title: 'Transition curve for a National Highway',
+      given: 'National Highway, plain country, Δ = 56°, no restrictions in the field',
+      curve: [56, 400, 140],
+      steps: [
+        { text: 'Design speed for an NH in plain country: 100 km/h (Table 2). Minimum desirable radius 360 m (Table 3): choose Rc = 400 m.', focus: 'pi' },
+        { text: 'Minimum transition 115 m (Table 9): choose Ls = 140 m.', focus: 'tp' },
+        { text: 'θs = Ls / 2Rc = 140 / 800 = 0.175 rad = 10.02673° (10° 1′ 36″).', focus: 'ct' },
+        { text: 'Table 12, interpolated: shift = 0.01455 × 140 = 2.04 m; K = 0.4995 × 140 = 69.93 m.', focus: 'tp' },
+        { text: 'Ts = (Rc + s) tan Δ/2 + K = 402.04 × 0.5317 + 69.93 = 283.695 m. Es = 402.04 sec 28° − 400 = 55.350 m.', focus: 'pi' },
+        { text: 'Table 12: L.T. = 0.66773 × 140, S.T. = 0.3343 × 140, long chord = 0.99863 × 140.', focus: 'lt' },
+      ],
+      answers: [
+        { label: 'θs', book: 10.02673, value: k => deg(k.thetaS), unit: '°', digits: 3, tol: .001 },
+        { label: 'Shift s', book: 2.04, value: k => k.S, unit: 'm', digits: 2, tol: .01 },
+        { label: 'K', book: 69.93, value: k => k.K, unit: 'm', digits: 2, tol: .01 },
+        { label: 'Tangent distance Ts', book: 283.695, value: k => k.Ts, unit: 'm', digits: 3, tol: .005 },
+        { label: 'Apex distance Es', book: 55.350, value: k => k.Es, unit: 'm', digits: 3, tol: .015 },
+        { label: 'Long tangent L.T.', book: 95.48, value: k => k.LT, unit: 'm', digits: 2, tol: .02, note: 'Book prints L.T. 95.48; its own 0.66773 × 140 is 93.48: a misprint.' },
+        { label: 'Short tangent S.T.', book: 46.802, value: k => k.ST, unit: 'm', digits: 3, tol: .005 },
+      ],
+    },
+    {
       id: '11.3', title: 'Curve where the apex distance controls the design',
       given: 'design speed 40 km/h, plain country, Δ = 56°; high rocky ground and buildings hold Es between 20 m and 23.5 m (Fig. 27)',
       curve: [56, 170, 55],
