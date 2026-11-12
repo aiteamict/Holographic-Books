@@ -134,6 +134,21 @@ export const LESSONS = [null,
     },
     right: { kicker: 'Example 11.3 · Fig. 27', title: 'Between the rock and the buildings' },
   },
+  {
+    id: 'examples', title: 'Worked examples', prompt: 'Pick an example, then press Next step to follow the book’s working.',
+    left: {
+      kicker: 'Spread 8 · Section 11', title: 'Worked examples',
+      lede: 'Section 11 works the design through with the tables. These are the examples built on the parts of the curve.',
+      paras: [
+        '**Example 11.3**: the apex distance controls the design; the largest radius that fits is chosen.',
+        '**Example 11.4**: the same site with a deviation of 55° 42′, found by interpolating Table 10 between 55° and 56°.',
+        '**Example 11.5**: the apex distance must equal 21.75 m exactly; a family of radius and transition pairs satisfies it.',
+        'Each answer the book prints is set beside the value computed from the geometry of the spiral and the circle.',
+      ],
+      notes: ['Example 11.4 prints Ts as 107.689 m; its own working, 116.358 + 1.3314, gives 117.689 m, which the geometry confirms.'],
+    },
+    right: { kicker: 'Examples 11.3–11.5', title: 'Book and geometry, side by side' },
+  },
 ];
 
 export const QUIZ = [];

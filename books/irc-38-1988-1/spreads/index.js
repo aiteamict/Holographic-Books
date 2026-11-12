@@ -4,5 +4,6 @@ import circle from './03-circle.js';
 import transition, { transitionSpread } from './04-transition.js';
 import setout from './06-setout.js';
 import example from './07-example.js';
+import examples from './08-examples.js';
 
-export const SPREADS = [null, why, coord, circle, transition, transitionSpread('throughout'), setout, example];
+export const SPREADS = [null, why, coord, circle, transition, transitionSpread('throughout'), setout, example, examples];
