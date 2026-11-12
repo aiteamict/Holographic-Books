@@ -32,7 +32,7 @@ export const COVER = {
       'First brought out in 1970 in FPS units as "Design Tables for Horizontal Curves for Highways". The metric revision was taken up by **J. B. Mathur** in August 1985, approved by the Specifications and Standards Committee and the Executive Committee on **28 August 1986** and by the Council at Srinagar on **19 September 1986** (Foreword).',
       'Example 11.2 prints the long tangent as 95.48 m; its own working, 0.66773 × 140, gives **93.48 m**, which this book uses.',
     ],
-    notes: ['The transition is drawn as the spiral (clothoid) of cl. 7.5. Terrain, buildings and vehicles in the holograms are illustrative. Built with three.js. Nothing here is a substitute for the standard itself.'],
+    notes: ['The transition is drawn as the spiral (clothoid) of cl. 7.5. Terrain, buildings and vehicles in the holograms are illustrative; cars and the survey party are drawn two to four times larger than the road so they can be seen, and the crest of spread 2 is three times higher than true. Built with three.js. Nothing here is a substitute for the standard itself.'],
   },
 };
 

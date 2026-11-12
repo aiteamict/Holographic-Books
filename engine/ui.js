@@ -57,6 +57,13 @@ export class UI {
     const slot = this.$('mslot'); for (const id of ['gpanel', 'actions', 'steps', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); }
     this.$('sheet').classList.add('open'); this.openCard(false);   // folded by default: the scene stays visible; the peek line says what to do
   }
+  /** Phones: show a readout card's canvas full width, live, until tapped. */
+  zoomCard(src) {
+    let o = document.getElementById('zoomcard');
+    if (!o) { o = document.createElement('div'); o.id = 'zoomcard'; o.innerHTML = '<canvas></canvas><small>tap anywhere to close</small>'; document.body.append(o); o.onclick = () => { o.hidden = true; }; }
+    const c = o.querySelector('canvas'); c.width = src.width; c.height = src.height; o.hidden = false;
+    const tick = () => { if (o.hidden) return; const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); g.drawImage(src, 0, 0); requestAnimationFrame(tick); }; tick();
+  }
   openCard(open) { const c = this.$('mcard'); c.classList.toggle('open', open); this.$('mhead').setAttribute('aria-expanded', String(open)); if (open) this.$('mmenu').hidden = true; }
   /** keep the card's panels in reading order whatever order they were created in */
   _order() { if (!this.phone) return; const slot = this.$('mslot'); for (const id of ['gpanel', 'actions', 'steps', 'mirror', 'sheet']   /* the live controls sit right under the question, within thumb reach */) { const el = this.$(id); if (el) slot.append(el); } }

@@ -150,6 +150,7 @@ export function transitionSpread(mode) {
       ];
       const guide = makeGuide(ctx, { anchor: [-5.4, 2.2, 10.5], w: 10, h: 5, steps });
       guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    for (const c of [meter, lens]) { c.userData.zoom = true; api.targets.push(c); }
       place();
       return api;
     },

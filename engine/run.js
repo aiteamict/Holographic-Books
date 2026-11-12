@@ -55,7 +55,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   const phoneMQ = matchMedia('(max-width: 820px), (pointer: coarse) and (max-height: 520px)');
   const applyPhone = () => { ui.setPhone(phoneMQ.matches); book.setLeftQuiet(phoneMQ.matches ? false : ui.sheetOpen); };
   applyPhone(); phoneMQ.addEventListener('change', () => { applyPhone(); syncGuide(built[cur]); });
-  const ctx = { THREE, holo, ui, QUIZ, scene, camera, snd, ...extra };
+  const ctx = { THREE, holo, ui, QUIZ, scene, camera, snd, renderer: stage.renderer, ...extra };   // renderer: for spreads that draw a second view (e.g. a driver's camera)
   const built = {};
   /** Each spread gets a ui whose captions only land while that spread is current, so a delayed caption cannot leak. */
   const scopedUI = k => Object.assign(Object.create(ui), { caption: (t, kicker, ms) => { if (cur === k) ui.caption(t, kicker, ms); } });
@@ -154,6 +154,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
 
   // ---- navigation ----------------------------------------------------------------------------------
   let cur = 0;
+  let zoomTip = false;
   function goTo(k) {
     k = THREE.MathUtils.clamp(k, 0, N + 1); if (k === cur) return;     // N + 1 is the back page: text only
     const prev = cur; cur = k; endTour(true);
@@ -167,6 +168,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     ui.setActions(i ? [...i.actions, ...(SPREADS[k].shots ? [watchAction(k)] : [])] : []); ui.hideCaption();
     ui.setMirror(i ? (i.a11y || []) : []); ui.setSheet(back ? COVER.insideBack : k ? LESSONS[k].left : COVER.insideCover);
     syncGuide(i);
+    if (ui.phone && !zoomTip && i?.targets?.some(t => t.userData.zoom)) { zoomTip = true; setTimeout(() => ui.caption('Tap a card on the page to read it large.', 'Tip', 4500), 2600); }
     moveCam(k ? (SPREADS[k]?.cam || CAM.spread) : CAM.cover);   // upright phones refit once the hologram lands (frame loop)
     history.replaceState(null, '', k ? '#spread-' + k : location.pathname);
   }
@@ -237,7 +239,15 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     else if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) goTo(cur - Math.sign(dx));
   });
   addEventListener('pointercancel', () => { swipe = null; });
-  const endDrag = () => { if (!drag) return; drag.i.release?.(); if (!drag.moved) { drag.i.tap?.(drag.hit); snd.play(tagged(drag.hit.object, 'handle') ? 'tick' : 'step'); } drag = null; };
+  const endDrag = () => {
+    if (!drag) return; drag.i.release?.();
+    if (!drag.moved) {
+      const z = ui.phone && tagged(drag.hit.object, 'zoom');   // phones: a readout card opens large instead of being tapped
+      if (z) ui.zoomCard(z.material.map.image); else drag.i.tap?.(drag.hit);
+      snd.play(tagged(drag.hit.object, 'handle') ? 'tick' : 'step');
+    }
+    drag = null;
+  };
   canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
   let wheelAcc = 0, wheelLock = 0;
   addEventListener('wheel', e => { if (e.target.closest?.('.actions,.dots,.sheet,.gpanel,.mbody,.mmenu,.steps')) return; const now = performance.now(); if (now < wheelLock) return; wheelAcc += e.deltaY; if (Math.abs(wheelAcc) > 70) { goTo(cur + Math.sign(wheelAcc)); wheelAcc = 0; wheelLock = now + 900; } }, { passive: true });   // scrolling a text panel must not turn the page

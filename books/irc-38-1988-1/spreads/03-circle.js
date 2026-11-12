@@ -155,6 +155,7 @@ export default {
       ],
     });
     guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    for (const c of [readout]) { c.userData.zoom = true; api.targets.push(c); }
     place();
     return api;
   },

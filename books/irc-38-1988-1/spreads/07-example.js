@@ -7,8 +7,10 @@ import { makeGuide } from '@engine/guide.js';
 import { textPlane, cardBg, tagged } from '@engine/util.js';
 import { horizontalCurve, deg } from '../../_irc38/curve.js';
 import { makePlan } from '../../_irc38/plan.js';
+import { diorama, trees, makeRoad, throughSlab, car, VEH } from '../../_irc38/site.js';
 
-const F = 'Inter, Segoe UI, Arial', S = .1, ORIGIN = [0, .15, -4.5];
+const F = 'Inter, Segoe UI, Arial', S = .1, GROUND = .5, ORIGIN = [0, GROUND, -4.5];
+const SLAB = { x0: -12.6, x1: 12.6, z0: -15.8, z1: 7.4 };
 const D = 56, ES_MIN = 20, ES_MAX = 23.5, RMIN = 100, RMAX = 220, NAMES = ['T.P.', 'P.I.', 'C.T.', 'T.C.'];
 
 export default {
@@ -17,12 +19,16 @@ export default {
     const { holo } = ctx, anims = new Anims();
     const group = new THREE.Group();
     const st = { R: 125, Ls: 30, ask: 0 };
-    const plan = makePlan({ s: S, origin: ORIGIN, ext: 24, show: { radii: false, centre: false } }); group.add(plan.group);
+    const slab = diorama({ ...SLAB, h: GROUND }); group.add(slab);
+    const forest = trees(slab, 34, 29); group.add(forest);
+    const plan = makePlan({ s: S, origin: ORIGIN, ext: 0, show: { radii: false, centre: false, ribbon: false } }); group.add(plan.group);
+    const road = makeRoad(plan.P, S); group.add(road.group);
+    const auto = car(S * VEH, 0x24557a); group.add(auto); let carD = 0;
     const P = plan.P;
 
     // the site (Fig. 27): rocky ground around the apex, two buildings inside the bend
     const rockMat = new THREE.MeshStandardMaterial({ color: 0x8c7f6c, roughness: .95, flatShading: true });
-    for (const [x, y, r, h] of [[0, 4, 15, 1.6], [-9, 1, 9, 1.1], [9, 2, 9, 1.2], [0, -8, 9, .8]]) {
+    for (const [x, y, r, h] of [[0, 4, 15, 1.0], [-9, 1, 9, .7], [9, 2, 9, .75], [0, -8, 9, .5]]) {
       const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), rockMat); m.scale.set(r * S, h, r * S * .8); m.position.copy(P([x, y], h * .3)); m.castShadow = true; group.add(m);
     }
     const bldMat = new THREE.MeshStandardMaterial({ color: 0xc9b9a0, roughness: .8 }), roofMat = new THREE.MeshStandardMaterial({ color: 0x8a4a3a, roughness: .7 });
@@ -52,11 +58,15 @@ export default {
 
     function place() {
       const k = curve(); plan.set(k);
+      const through = throughSlab(plan.L, plan.P, SLAB); road.set(through.pts, { stones: [through.e1, through.e1 + k.length], side: 1 });
+      const near = through.pts.filter((_, i) => i % 3 === 0).map(p => plan.P(p)), keep = plan.P([0, 0]);
+      forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.2) || Math.hypot(keep.x - x, keep.z - z) < 4.4);
       const w = 16, ok = fits(k);
       holo.setPoints(rockLine, [P([-w, -ES_MIN], .06), P([w, -ES_MIN], .06)]); holo.setPoints(bldLine, [P([-w, -ES_MAX], .06), P([w, -ES_MAX], .06)]);
       zoneLab.position.copy(P([0, -(ES_MAX + 18)], .8));
       hR.position.copy(P(plan.L.mid, .05));
       for (const l of [rockLine, bldLine]) l.material.color.setHex(ok ? holo.GREEN : holo.RED);
+      rockMat.emissive.setHex(k.Es < ES_MIN ? 0x7a1a12 : 0); bldMat.emissive.setHex(k.Es > ES_MAX ? 0x7a1a12 : 0);   // what the road runs into glows red
       readout.redraw();
     }
     const setTo = (R, Ls, dur = .8) => { const r0 = st.R, l0 = st.Ls; anims.stop('to'); anims.add({ dur, tag: 'to', update: e => { st.R = r0 + (R - r0) * e; st.Ls = l0 + (Ls - l0) * e; place(); } }); };
@@ -88,6 +98,7 @@ export default {
       a11y: [...actions.map(a => ({ label: a.label, run: a.run })), { label: 'Radius 125 m', run: () => setTo(125, st.Ls) }, { label: 'Radius 170 m', run: () => setTo(170, st.Ls) }, { label: 'Radius 210 m', run: () => setTo(210, st.Ls) }],
       update(dt) {
         anims.tick(dt);
+        const T = road.track; if (T) { carD = (carD + dt * 20) % T.length; const p = T.at(carD); auto.position.copy(plan.P([p.x - Math.sin(p.h) * 1.75, p.y + Math.cos(p.h) * 1.75], .01)); auto.rotation.y = p.h; }
         const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.4 : -5.4; guide.card.scale.setScalar(tall ? .82 : 1);
         readout.position.x = tall ? 3.6 : 5.2; readout.scale.setScalar(tall ? .82 : 1);
       },
@@ -105,6 +116,7 @@ export default {
       ],
     });
     guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
+    readout.userData.zoom = true; api.targets.push(readout);
     place();
     return api;
   },
