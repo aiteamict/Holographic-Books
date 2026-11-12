@@ -28,9 +28,9 @@ export const COVER = {
     side: 'left', kicker: 'About this chapter · Sources', title: 'Where the road turns.',
     lede: 'Chapter 1 of 8 in the IRC : 38 series: sections 1 and 2 of the standard.',
     paras: [
-      '**Source.** IRC : 38-1988, Guidelines for Design of Horizontal Curves for Highways and Design Tables (First Revision), Indian Roads Congress, New Delhi, published 1989. Section 1 Introduction, section 2 Definitions and Notations, Figs. 1–3, Example 11.3.',
-      'First brought out in 1970 in FPS units as "Design Tables for Horizontal Curves for Highways". The metric revision was taken up by **J. B. Mathur** in August 1985, approved by the Specifications and Standards Committee and the Executive Committee on **28 August 1986** and by the Council at Srinagar on **19 September 1986** (Foreword).',
-      'Example 11.2 prints the long tangent as 95.48 m; its own working, 0.66773 × 140, gives **93.48 m**, which this book uses.',
+      '**Source.** IRC : 38-1988, Guidelines for Design of Horizontal Curves for Highways and Design Tables (First Revision), Indian Roads Congress, New Delhi, published 1989. Section 1, section 2, Figs. 1–3, Examples 11.2–11.5. First published 1970 in FPS units; metric revision by **J. B. Mathur**, approved by the Council at Srinagar on **19 September 1986** (Foreword).',
+      '**Coverage.** cl. 1.1–1.2: spread 1 · cl. 1.3, Fig. 1: spread 2 · def. 1–4, 9–11: spread 3 · def. 7, 12, 14, 17, 19, 23, 39, 40, Fig. 2: spread 4 · def. 13, Fig. 3: spread 5 · def. 5, 6, 8, 18, 30–36, 38: spread 6 · Examples 11.2–11.5: spreads 7–8. Def. 15, 16, 24, 26–28, 37 (friction, speed, weight) are taught in chapter 2; def. 20, 25 in chapter 3; def. 21, 22, 29 (widening) in chapter 4.',
+      '**Misprints, checked by the book’s own arithmetic and the geometry.** Def. 30 names the X axis T.P.–P.T.; def. 31 and Fig. 2 measure it along T.P.–P.I., as this book does. Example 11.2 prints L.T. 95.48 m for **93.48 m**; Example 11.4 prints Ts 107.689 m for **117.689 m**.',
     ],
     notes: ['The transition is drawn as the spiral (clothoid) of cl. 7.5. Terrain, buildings and vehicles in the holograms are illustrative; cars and the survey party are drawn two to four times larger than the road so they can be seen, and the crest of spread 2 is three times higher than true. Built with three.js. Nothing here is a substitute for the standard itself.'],
   },
