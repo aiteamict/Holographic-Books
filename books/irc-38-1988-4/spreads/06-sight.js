@@ -11,7 +11,7 @@ import { SM } from '@engine/scene.js';
 import { horizontalCurve, layout } from '../../_irc38/curve.js';
 import { diorama, trees, track, throughSlab, car, VEH } from '../../_irc38/site.js';
 import { setBack, SETBACK, SETBACK_S } from '../../_irc38/tables.js';
-import { band, swapGeo, clipRun } from './deck.js';
+import { band, swapGeo, clipRun } from '../../_irc38/deck.js';
 
 const F = 'Inter, Segoe UI, Arial', GROUND = .5, SLAB = { x0: -12.6, x1: 12.6, z0: -15.8, z1: 7.4 }, HW = 1.875, HC = 7;
 const printed = (R, S) => { const i = SETBACK_S.indexOf(S); return SETBACK[R]?.[i] ?? null; };

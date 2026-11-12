@@ -60,3 +60,32 @@ export const setBack = (R, S, n = 0) => { const t = S / (2 * (R - n)); return R 
  *  R 150 / S 60 is printed 2.3 (eq. 14 gives 2.99) and R 33 / S 30 printed 3.7 (eq. 14 gives 3.35): misprints. */
 export const SETBACK_S = [20, 25, 30, 45, 60];
 export const SETBACK = { 14: [3.4], 15: [3.2], 20: [2.4, 3.8], 23: [2.1, 3.3], 30: [1.7, 2.6, 3.7], 33: [1.5, 2.3, 3.7], 50: [1.0, 1.6, 2.2, 5.0], 60: [null, 1.3, 1.9, 4.2], 80: [null, 1.0, 1.4, 3.1, 5.6], 100: [null, .8, 1.1, 2.5, 4.5], 120: [null, .7, .9, 2.1, 3.7], 150: [null, .5, .8, 1.7, 2.3] };
+
+/** eq. (16), (17): transition length for the rate of change of centrifugal acceleration, C = 80/(75 + V), 0.5 ≤ C ≤ 0.8. */
+export const rateC = V => Math.min(.8, Math.max(.5, 80 / (75 + V)));
+export const lsComfort = (V, R) => .0215 * V ** 3 / (rateC(V) * R);
+/** eq. (18), (19): transition length for the rate of introducing superelevation, 2.7V²/R plain and rolling, V²/R hills. */
+export const lsSuper = (V, R, hills = false) => (hills ? 1 : 2.7) * V * V / R;
+/** cl. 7.3.4: the larger of the two, as a whole multiple of 5 m. */
+export const lsMin = (V, R, hills = false) => Math.max(15, Math.ceil(Math.max(lsComfort(V, R), lsSuper(V, R, hills)) / 5 - 1e-9) * 5);   // Table 9 never goes below 15 m
+
+/** Table 9 · minimum transition lengths (m), read on p038. Columns: speed × terrain in T9_COLS; each row a string of 18
+ *  cells, '.' where nothing (or a dash) is printed, NA = radius not applicable, NR = transition not required. */
+export const T9_COLS = [100, 80, 65, 50, 40, 35, 30, 25, 20].flatMap(V => [[V, 'P'], [V, 'H']]);
+const T9_ROWS = {
+  14: '. . . . . . . . . . . . . . . . 80 30', 15: '. . . . . . . . . . . . . . . NA 75 30', 20: '. . . . . . . . . . . . . . NA 35 55 20',
+  23: '. . . . . . . . . . . . . . 75 . . .', 25: '. . . . . . . . . . . . NA NA 70 25 45 20', 30: '. . . . . . . . . . . NA 80 30 60 25 40 15',
+  33: '. . . . . . . . . . . . 75 . . . . .', 40: '. . . . . . . . . . NA 35 60 25 45 20 30 15', 45: '. . . . . . . . . NA 75 30 55 20 40 15 25 15',
+  50: '. . . . . . . . . 40 70 25 50 20 35 15 25 15', 55: '. . . . . . . . NA 40 60 25 45 20 30 15 20 15', 60: '. . . . . . . . 75 35 55 25 40 15 30 15 20 15',
+  70: '. . . . . . . NA 65 30 50 20 35 15 30 15 15 15', 80: '. . . . . . NA 55 55 25 45 20 30 15 25 15 15 15', 90: '. . . . . . 75 45 50 25 40 15 30 15 20 15 15 NR',
+  100: '. . . . . . 70 45 45 20 35 15 25 15 20 15 NR .', 125: '. . . . NA . 55 35 35 15 30 15 20 15 15 NR . .', 150: '. . . . 80 . 45 30 30 15 25 15 20 15 15 . . .',
+  155: '. . . . 80 . . . . . . . . . . . . .', 170: '. . . . 70 . 40 25 25 15 20 15 15 NR NR . . .', 200: '. . NA . 60 . 35 20 25 15 20 15 15 . . . . .',
+  230: '. . 90 . . . . . . . . . . . . . . .', 250: '. . 90 . 50 . 30 15 20 15 NR NR NR . . . . .', 300: 'NA . 75 . 40 . 25 15 NR NR . . . . . . . .',
+  350: '130 . 60 . 35 . 20 . . . . . . . . . . .', 360: '130 . . . . . . . . . . . . . . . . .', 400: '115 . 55 . 30 . 20 15 . . . . . . . . . .',
+  500: '95 . 45 . 25 . NR NR . . . . . . . . . .', 600: '80 . 35 . 20 . . . . . . . . . . . . .', 700: '70 . 35 . 20 . . . . . . . . . . . . .',
+  800: '60 . 30 . NR . . . . . . . . . . . . .', 900: '55 . 30 . . . . . . . . . . . . . . .', 1000: '50 . 30 . . . . . . . . . . . . . . .',
+  1200: '40 . NR . . . . . . . . . . . . . . .', 1500: '35 . . . . . . . . . . . . . . . . .', 1800: '30 . . . . . . . . . . . . . . . . .', 2000: 'NR . . . . . . . . . . . . . . . . .',
+};
+export const T9_R = Object.keys(T9_ROWS).map(Number);
+export const T9 = Object.fromEntries(T9_R.map(R => [R, T9_ROWS[R].split(' ').map(t => t === '.' ? null : /^\d/.test(t) ? +t : t)]));
+export const t9 = (V, terrain, R) => { const j = T9_COLS.findIndex(([v, t]) => v === V && t === terrain); return j < 0 ? null : T9[R]?.[j] ?? null; };

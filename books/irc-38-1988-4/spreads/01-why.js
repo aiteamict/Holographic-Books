@@ -8,7 +8,7 @@ import { textPlane, cardBg } from '@engine/util.js';
 import { SM } from '@engine/scene.js';
 import { horizontalCurve, layout } from '../../_irc38/curve.js';
 import { diorama, trees, track, throughSlab } from '../../_irc38/site.js';
-import { offsetPts, band, swapGeo } from './deck.js';
+import { offsetPts, band, swapGeo } from '../../_irc38/deck.js';
 
 const F = 'Inter, Segoe UI, Arial', S = .3, GROUND = .5, O = new THREE.Vector3(1.5, GROUND, -11), R = 30, DELTA = 100, LANE = 3.5;
 const SLAB = { x0: -12.6, x1: 12.6, z0: -15.8, z1: 7.4 };

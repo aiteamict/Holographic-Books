@@ -1,4 +1,4 @@
-// Chapter 4 helpers: a road deck whose two edges are free functions of the distance along a plan track, so widening can
+// IRC 38 road helpers: a road deck whose two edges are free functions of the distance along a plan track, so widening can
 // grow and shrink along the curve. Offsets in metres, left of travel positive (the curves turn right, so left = outer).
 import * as THREE from 'three';
 

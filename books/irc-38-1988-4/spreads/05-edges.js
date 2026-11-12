@@ -10,7 +10,7 @@ import { SM } from '@engine/scene.js';
 import { horizontalCurve, layout } from '../../_irc38/curve.js';
 import { diorama, trees, track, throughSlab, car, VEH } from '../../_irc38/site.js';
 import { WIDEN_DELTA, widenTable } from '../../_irc38/tables.js';
-import { offsetPts, band, swapGeo, clipRun } from './deck.js';
+import { offsetPts, band, swapGeo, clipRun } from '../../_irc38/deck.js';
 
 const F = 'Inter, Segoe UI, Arial', GROUND = .5, SLAB = { x0: -12.6, x1: 12.6, z0: -15.8, z1: 7.4 }, R = 155, LS = 80, EX = 5, HW = 3.5, CON = 1.2;
 const dms = d => `${Math.floor(d)}° ${String(Math.round((d % 1) * 60)).padStart(2, '0')}′`;
