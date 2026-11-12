@@ -48,7 +48,12 @@ export class UI {
   }
   /** switch the DOM into phone mode: the panels move into the card, the toolbar takes over navigation */
   setPhone(on) {
-    this.phone = on; document.body.classList.toggle('phone', on); if (!on) return;
+    if (on === this.phone) return;
+    this.phone = on; document.body.classList.toggle('phone', on);
+    if (!on) {   // back to desktop: the panels leave the card for their own places; the text sheet closes (the page shows it)
+      for (const id of ['gpanel', 'actions', 'steps', 'mirror', 'sheet']) { const el = this.$(id); if (el) this.root.append(el); }
+      this.$('sheet')?.classList.remove('open'); this.openCard(false); this.$('mmenu').hidden = true; this.$('mpeek').textContent = ''; return;
+    }
     const slot = this.$('mslot'); for (const id of ['gpanel', 'actions', 'steps', 'mirror', 'sheet']) { const el = this.$(id); if (el) slot.append(el); }
     this.$('sheet').classList.add('open'); this.openCard(false);   // folded by default: the scene stays visible; the peek line says what to do
   }

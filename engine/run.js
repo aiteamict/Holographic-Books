@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import './book.css';
 import { createStage } from './stage.js';
 import { Book } from './book.js';
-import { renderPage as rawPage, renderCover, PAGE_W, PAGE_H, PHONE } from './page.js';
+import { renderPage as rawPage, renderCover, PAGE_W, PAGE_H, PHONE as TOUCH } from './page.js';
 import { UI } from './ui.js';
 import * as holo from './holo.js';
 import { TIERS, measureFrameMs, pickTier } from './quality.js';
@@ -51,7 +51,10 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   ui.onSheet = open => book.setLeftQuiet(open); book.setLeftQuiet(ui.sheetOpen);
   // phones (and any short, wide screen): the phone shell — one card, one toolbar, the hologram full-screen
   // narrow, or a touch screen held sideways; never a short laptop window
-  const PHONE = matchMedia('(max-width: 820px), (pointer: coarse) and (max-height: 520px)').matches; ui.setPhone(PHONE); if (PHONE) book.setLeftQuiet(false);
+  // phone shell vs desktop panels follows the layout live: a tablet turned sideways, or a window resized, switches over
+  const phoneMQ = matchMedia('(max-width: 820px), (pointer: coarse) and (max-height: 520px)');
+  const applyPhone = () => { ui.setPhone(phoneMQ.matches); book.setLeftQuiet(phoneMQ.matches ? false : ui.sheetOpen); };
+  applyPhone(); phoneMQ.addEventListener('change', () => { applyPhone(); syncGuide(built[cur]); });
   const ctx = { THREE, holo, ui, QUIZ, scene, camera, snd, ...extra };
   const built = {};
   /** Each spread gets a ui whose captions only land while that spread is current, so a delayed caption cannot leak. */
@@ -154,8 +157,9 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   function goTo(k) {
     k = THREE.MathUtils.clamp(k, 0, N + 1); if (k === cur) return;     // N + 1 is the back page: text only
     const prev = cur; cur = k; endTour(true);
+    if (drag) { drag.i.release?.(); drag = null; }   // a key or wheel turn mid-drag must not leave the old page grabbed
     if (built[prev]) { built[prev].leave?.(); built[prev].group.visible = false; }
-    if (PHONE) for (const j in built) if (Math.abs(j - k) > 1) drop(j);   // phones: keep only the neighbours; a revisit rebuilds
+    if (TOUCH) for (const j in built) if (Math.abs(j - k) > 1) drop(j);   // phones: keep only the neighbours; a revisit rebuilds
     coverHolo.visible = false;
     book.goTo(k); snd.play(Math.abs(k - prev) > 1 ? 'riffle' : 'page');
     const i = inst(k), back = k > N;
@@ -181,7 +185,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   const pick = (e, targets) => { if (!targets?.length) return null; toNdc(e); ray.setFromCamera(ndc, camera); return ray.intersectObjects(targets, true)[0] || null; };
   let drag = null, hoverObj = null;
   canvas.addEventListener('pointerdown', e => {
-    endTour(true); snd.unlock(); if (PHONE) ui.openCard(false);   // a touch on the scene folds the card away
+    endTour(true); snd.unlock(); if (ui.phone) ui.openCard(false);   // a touch on the scene folds the card away
     const i = built[cur];
     if (!i || book.busy) { swipe = book.busy ? null : { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // the cover and the back page: a swipe is the only touch gesture
     const hit = pick(e, i.targets);
@@ -236,9 +240,10 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   const endDrag = () => { if (!drag) return; drag.i.release?.(); if (!drag.moved) { drag.i.tap?.(drag.hit); snd.play(tagged(drag.hit.object, 'handle') ? 'tick' : 'step'); } drag = null; };
   canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
   let wheelAcc = 0, wheelLock = 0;
-  addEventListener('wheel', e => { if (e.target.closest?.('.actions,.dots')) return; const now = performance.now(); if (now < wheelLock) return; wheelAcc += e.deltaY; if (Math.abs(wheelAcc) > 70) { goTo(cur + Math.sign(wheelAcc)); wheelAcc = 0; wheelLock = now + 900; } }, { passive: true });
+  addEventListener('wheel', e => { if (e.target.closest?.('.actions,.dots,.sheet,.gpanel,.mbody,.mmenu,.steps')) return; const now = performance.now(); if (now < wheelLock) return; wheelAcc += e.deltaY; if (Math.abs(wheelAcc) > 70) { goTo(cur + Math.sign(wheelAcc)); wheelAcc = 0; wheelLock = now + 900; } }, { passive: true });   // scrolling a text panel must not turn the page
   addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT') return;
+    if ((e.key === ' ' || e.key === 'Enter') && onControl(e.target)) return;   // Space/Enter on a focused button presses it, not the page
     if (e.key === 'Escape') { endTour(true); return; }
     if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { goTo(cur + 1); e.preventDefault(); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { goTo(cur - 1); e.preventDefault(); }

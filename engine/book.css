@@ -1,5 +1,5 @@
   :root { --ink:#1f2328; --ink2:#5c6168; --cyan:#1d5f87; --amber:#b0532a; --glass:rgba(250,247,240,.9); --edge:rgba(29,34,40,.14); --sans:"Inter","Segoe UI",system-ui,Arial,sans-serif; }
-  html,body{margin:0;height:100%;overflow:hidden;background:#ece7de;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#ece7de;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
   canvas#c{display:block;width:100%;height:100%;touch-action:none;outline:none}
   #ui{position:fixed;inset:0;pointer-events:none}
   #ui>*{pointer-events:auto}
