@@ -25,3 +25,17 @@ export const TRUCK_MIN_R = 26;
 
 /** eq. (6): absolute minimum radius for a centrifugal ratio of 0.22 (e 0.07) or 0.25 (e 0.10). */
 export const absMinR = (V, ratio = .22) => V * V / (ratio * 127);
+
+/** eq. (7) and Table 4: superelevation to counteract the centrifugal force at ¾ of the design speed, capped at
+ *  0.07 (plain, rolling, snow-bound hills) or 0.10 (hills not bound by snow). Table 4 note (i): "calculated by e = V²/225Rc". */
+export const eRequired = (V, R) => V * V / (225 * R);
+export const eDesign = (V, R, cap = .07) => Math.min(cap, eRequired(V, R));
+
+/** Table 5 · camber / crossfall by surface, per cent [low, high]. */
+export const CAMBER = [['High type bituminous or cement concrete', 1.7, 2.0], ['Thin bituminous surfacing', 2.0, 2.5], ['Water bound macadam, gravel', 2.5, 3.0], ['Earth', 3.0, 4.0]];
+
+/** Table 6 · radii (m) beyond which superelevation is not required, for camber 4, 3, 2.5, 2 per cent (read on p025).
+ *  25 km/h at 2 per cent is printed 110; R = V²/225e gives 139 (a misprint). */
+export const CAMBERS = [4, 3, 2.5, 2];
+export const NO_SUPER = { 20: [50, 60, 70, 90], 25: [70, 90, 110, 110], 30: [100, 130, 160, 200], 35: [140, 180, 220, 270], 40: [180, 240, 280, 350], 50: [280, 370, 450, 550], 65: [470, 620, 750, 950], 80: [700, 950, 1100, 1400], 100: [1100, 1500, 1800, 2200] };
+export const noSuperR = (V, camberPct) => V * V / (225 * camberPct / 100);
