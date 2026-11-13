@@ -5,7 +5,7 @@ import { SPREADS } from './spreads/index.js';
 import { car } from '../_irc38/site.js';
 
 runBook({
-  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true,
+  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true, phoneLayout: 2,
   // the cover mark: a ruled table, one cell in red, with a transition curve drawn over it
   coverMark(ctx, W) {
     const k = W / 1040, x0 = 250 * k, y0 = 640 * k, cw = 108 * k, rh = 62 * k, n = 5, m = 7;

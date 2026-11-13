@@ -9,7 +9,7 @@ import { makePlan } from '../_irc38/plan.js';
 const heroReady = initHero();
 
 runBook({
-  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true,
+  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true, phoneLayout: 2,
   ctx: { hero: makeHero },
   // the cover mark: two straights, the curve between them, the apex distance
   coverMark(ctx, W) {

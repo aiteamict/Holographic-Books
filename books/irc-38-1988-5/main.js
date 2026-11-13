@@ -5,7 +5,7 @@ import { SPREADS } from './spreads/index.js';
 import { car } from '../_irc38/site.js';
 
 runBook({
-  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true,
+  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true, phoneLayout: 2,
   // the cover mark: a straight easing into a spiral (amber) and on round the circle (blue)
   coverMark(ctx, W) {
     const k = W / 1040, x0 = 220 * k, y0 = 1090 * k, A = 300 * k;

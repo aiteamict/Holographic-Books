@@ -19,6 +19,7 @@ export class UI {
       <div class="mshell" id="mshell">
         <section class="mcard glass" id="mcard">
           <button class="mhead" id="mhead" aria-expanded="false"><span class="mt"><span id="mtitle"></span><small id="mpeek"></small></span><span class="chev">▲</span></button>
+          <div class="mrow" id="mrow"><div id="mdots" role="group" aria-label="Guided steps"></div><button id="m-read" type="button">Read page</button></div>
           <div class="mbody" id="mbody" data-tab="guide"><div class="mtabs"><button data-tab="guide" class="on">Steps</button><button data-tab="page">Page</button></div><div id="mslot"></div></div>
         </section>
         <nav class="mbar glass" id="mbar" aria-label="Book controls">
@@ -41,11 +42,25 @@ export class UI {
     this.titles = titles; this.phone = false;
     this.$('mhead').onclick = () => this.openCard(!this.$('mcard').classList.contains('open'));
     this.$('mbody').querySelectorAll('.mtabs button').forEach(b => { b.onclick = () => { this.$('mbody').dataset.tab = b.dataset.tab; this.$('mbody').querySelectorAll('.mtabs button').forEach(x => x.classList.toggle('on', x === b)); }; });
+    this.$('m-read').onclick = () => this.reader(true);
     this.$('m-prev').onclick = () => onNav(-1, true); this.$('m-next').onclick = () => onNav(1, true);
     this.$('m-again').onclick = onAgain; this.$('m-mute').onclick = () => this.$('mute').click();
     this.$('m-watch').onclick = () => { const w = (this.actions || []).find(a => a.label === '▶ Watch'); w?.run(); };
     this.$('m-menu').onclick = () => { const m = this.$('mmenu'); if (!m.hidden) { m.hidden = true; return; } m.textContent = ''; if (this.home) { const a = document.createElement('a'); a.className = 'home'; a.href = this.home.href; a.textContent = '← ' + this.home.label; m.append(a); } (this.titles || []).forEach((t, k) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = k ? `${k} · ${t}` : t; b.classList.toggle('on', k === this.cur); b.onclick = () => { m.hidden = true; onNav(k); }; m.append(b); }); m.hidden = false; };
   }
+  /** Phone layout 2 (opt-in per book): a fixed panel under the canvas instead of a card over it. */
+  setLayout(v) { this.p2 = v === 2; document.body.classList.toggle('p2', this.p2); }
+  /** Layout 2: the left page's text as a full-screen reader. `covered` tells the frame loop it can rest. */
+  reader(open) {
+    let r = document.getElementById('reader');
+    if (!r) { r = document.createElement('div'); r.id = 'reader'; r.hidden = true; r.setAttribute('role', 'dialog'); r.setAttribute('aria-label', 'Page text'); document.body.append(r); }
+    this.covered = open; r.hidden = !open; if (!open) return;
+    r.textContent = ''; const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = 'Close ✕'; x.onclick = () => this.reader(false); r.append(x);
+    for (const n of this.$('sheet').childNodes) r.append(n.cloneNode(true));
+    r.scrollTop = 0;
+  }
+  /** Layout 2: with no guide and no controls (cover, back page) the panel shrinks to the toolbar. */
+  _bare() { this.$('mshell').classList.toggle('bare', !!this.p2 && !this._hasGuide && !(this.actions || []).length); }
   /** switch the DOM into phone mode: the panels move into the card, the toolbar takes over navigation */
   setPhone(on) {
     if (on === this.phone) return;
@@ -112,7 +127,7 @@ export class UI {
       b.onclick = () => { a.run(); this.refreshActions(); };
       box.append(b); a.el = b;
     }
-    this.refreshActions();
+    this.refreshActions(); this._bare();
   }
   refreshActions() { for (const a of this.actions || []) if (a.el) { if (a.toggle) a.el.classList.toggle('on', !!a.toggle()); if (a.hidden) a.el.classList.toggle('hid', !!a.hidden()); } }
   /**
@@ -120,6 +135,7 @@ export class UI {
    * Hidden by CSS on wide screens, where the 3-D card is readable. info: guide.current or null; on: { pick(k), next() }.
    */
   setGuidePanel(info, on = {}) {
+    this._hasGuide = !!info; this._bare();
     if (this.phone) this.$('mpeek').textContent = info ? (info.free ? 'Explore · everything is live' : info.title) + ' · tap to open' : '';
     let p = this.$('gpanel');
     if (!p) { p = document.createElement('section'); p.id = 'gpanel'; p.className = 'gpanel glass'; p.setAttribute('aria-live', 'polite'); (this.phone ? this.$('mslot') : this.root).prepend(p); this._order(); this._glassEls = null; }
@@ -137,6 +153,12 @@ export class UI {
     [...items, 'Explore'].forEach((t, k) => {
       const b = document.createElement('button'); b.type = 'button'; b.textContent = k < items.length ? `${k + 1} · ${t}` : t;
       b.classList.toggle('on', k === Math.min(active, items.length)); b.classList.toggle('done', k < active); b.onclick = () => onPick?.(k); s.append(b);
+    });
+    // layout 2: the same steps as numbered dots in the panel's top row
+    const d = this.$('mdots'); d.textContent = '';
+    if (items.length) [...items, 'Explore'].forEach((t, k) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = k < items.length ? String(k + 1) : '∞'; b.setAttribute('aria-label', k < items.length ? `Step ${k + 1}: ${t}` : 'Explore freely');
+      b.classList.toggle('on', k === Math.min(active, items.length)); b.classList.toggle('done', k < active); b.onclick = () => onPick?.(k); d.append(b);
     });
   }
   caption(text, kicker = '', ms = 6000) {

@@ -21,7 +21,7 @@ import { tagged } from './util.js';
  * @param cfg.coverMark (ctx2d, W, H) => draws the artwork on the cover board
  * @param cfg.coverHolo ({ THREE, holo }) => Group shown beside the closed book; set userData.up on a child to make it sway
  */
-export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false }) {
+export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false, phoneLayout = 1 }) {
   const renderPage = s => rawPage({ foot: BOOK.foot, ...s });
   const canvas = document.getElementById('c');
   const stage = createStage(canvas);
@@ -53,7 +53,18 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // narrow, or a touch screen held sideways; never a short laptop window
   // phone shell vs desktop panels follows the layout live: a tablet turned sideways, or a window resized, switches over
   const phoneMQ = matchMedia('(max-width: 820px), (pointer: coarse) and (max-height: 520px)');
-  const applyPhone = () => { ui.setPhone(phoneMQ.matches); book.setLeftQuiet(phoneMQ.matches ? false : ui.sheetOpen); };
+  const applyPhone = () => { ui.setPhone(phoneMQ.matches); book.setLeftQuiet(phoneMQ.matches ? false : ui.sheetOpen); layoutCanvas(); };
+  // phone layout 2 (opt-in per book): the canvas ends where the panel begins, so the scene renders only what can be seen
+  ui.setLayout(phoneLayout);
+  const p2 = () => phoneLayout === 2 && ui.phone;
+  function layoutCanvas() {
+    const s = canvas.style; let w = '', h = '';
+    if (p2()) { const r = ui.$('mshell').getBoundingClientRect(), wide = innerWidth > innerHeight && innerHeight <= 520; w = wide ? Math.round(r.left) + 'px' : '100%'; h = wide ? '100%' : Math.round(r.top) + 'px'; }
+    if (s.width !== w || s.height !== h) { s.width = w; s.height = h; dispatchEvent(new Event('resize')); }
+    document.body.style.setProperty('--cw', (canvas.clientWidth || innerWidth) + 'px');   // captions centre on the canvas, not the window
+  }
+  if (typeof ResizeObserver === 'function') new ResizeObserver(layoutCanvas).observe(ui.$('mshell'));
+  addEventListener('resize', layoutCanvas);
   applyPhone(); phoneMQ.addEventListener('change', () => { applyPhone(); syncGuide(built[cur]); });
   const ctx = { THREE, holo, ui, QUIZ, scene, camera, snd, renderer: stage.renderer, ...extra };   // renderer: for spreads that draw a second view (e.g. a driver's camera)
   const built = {};
@@ -61,7 +72,13 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   const scopedUI = k => Object.assign(Object.create(ui), { caption: (t, kicker, ms) => { if (cur === k) ui.caption(t, kicker, ms); } });
   function inst(k) {
     if (!k || !SPREADS[k]) return null;
-    if (!built[k]) { const i = SPREADS[k].build({ ...ctx, ui: scopedUI(k) }); i.group.visible = false; i.group.userData.pop = 0; holoRoot.add(i.group); built[k] = i; }
+    if (!built[k]) {
+      const i = SPREADS[k].build({ ...ctx, ui: scopedUI(k) }); i.group.visible = false; i.group.userData.pop = 0; holoRoot.add(i.group); built[k] = i;
+      if (p2()) {   // the panel carries the step text, so the card in the scene goes; readout cards say they open large
+        const gc = i.guide?.card; if (gc) { gc.visible = false; i.targets = i.targets.filter(t => t !== gc); }
+        for (const t of i.targets) if (t.userData.zoom && t.geometry?.parameters) { const m = holo.label('⤢ tap to enlarge', { h: .62, color: '#ffffff', bg: 'rgba(29,34,40,.86)', weight: 700 }); m.position.set(0, t.geometry.parameters.height / 2 + .5, .05); t.add(m); }
+      }
+    }
     return built[k];
   }
   /** Free a built spread's GPU memory. Shared materials and textures are safe to dispose: three re-uploads them on next use. */
@@ -91,6 +108,12 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   function moveCam(preset, dur = 1.5) {
     camT.from = { pos: camera.position.clone(), look: look.clone() };
     const to = new THREE.Vector3(...preset.pos), at = new THREE.Vector3(...preset.look);
+    if (p2() && preset !== CAM.cover && !tour) {   // layout 2: look down steeply enough that the page's depth fills a tall canvas, then fit the hologram
+      const e = Math.asin(THREE.MathUtils.clamp(25.2 / (camera.aspect * 29), .62, .9));
+      at.set(PAGE_W / 2 + .2, 0, -1); to.set(at.x, Math.sin(e) * 70, at.z + Math.cos(e) * 70);
+      if (preset.fit) fitPortrait(preset.fit, to, at, true);
+      camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur; return;
+    }
     if (camera.aspect < 1 && preset.portrait) { to.set(...preset.portrait.pos); at.set(...preset.portrait.look); }   // a spread may frame itself for upright phones
     else if (camera.aspect < 1) {                                                   // portrait phones: frame the hologram page; the text is read in the sheet
       const cx = PAGE_W / 2 + 1.5; to.x += cx - at.x; at.x = cx; at.y -= 7;  // aim low: the hologram sits in the upper two thirds, above the card
@@ -119,12 +142,12 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // turning a phone between upright and sideways re-frames the current page (each has its own camera for each)
   let wasTall = camera.aspect < 1, rt = 0;
   addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => {
-    const tall = camera.aspect < 1; if ((tall === wasTall && tall) || tour) return; wasTall = tall;   // landscape refits on any resize (fitLandscape)
+    const tall = camera.aspect < 1; if ((tall === wasTall && tall && !p2()) || tour) return; wasTall = tall;   // landscape refits on any resize (fitLandscape)
     const i = built[cur]; moveCam(cur ? { ...(SPREADS[cur]?.cam || CAM.spread), fit: fitPhone && i?.group.visible && i.group } : CAM.cover, .7);
   }, 250); });
   // upright phones: pan and pull back until everything the spread can show sits between the screen edges and above the
   // bottom bar. Measures the shown parts at full size (the group pops in from 0); hit meshes skipped.
-  function fitPortrait(group, to, at) {
+  function fitPortrait(group, to, at, whole = false) {   // whole: the canvas is all the hologram's (layout 2), no bar to clear
     const pts = [], v = new THREE.Vector3(), s0 = group.scale.clone(), vis = group.visible;
     group.scale.set(1, 1, 1); group.visible = true; group.updateMatrixWorld(true);
     group.traverseVisible(o => {                                         // hidden parts (labels, alternate insets) don't count
@@ -135,17 +158,17 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     });
     group.scale.copy(s0); group.visible = vis; group.updateMatrixWorld(true);
     if (!pts.length) return;
-    const cam = camera.clone(), X = .94, TOP = .9, BOT = -.52;   // BOT clears the step peek and the control bar
-    for (let n = 0; n < 4; n++) {
+    const cam = camera.clone(), X = whole ? .96 : .94, TOP = whole ? .93 : .9, BOT = whole ? -.95 : -.52;   // BOT clears the step peek and the control bar
+    for (let n = 0; n < (whole ? 7 : 4); n++) {
       cam.position.copy(to); cam.lookAt(at); cam.updateMatrixWorld();
       let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
       for (const p of pts) { v.copy(p).project(cam); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
-      if (n === 0 && x0 >= -X && x1 <= X && y0 >= BOT && y1 <= TOP) return;   // already fits: keep the authored framing
+      if (n === 0 && !whole && x0 >= -X && x1 <= X && y0 >= BOT && y1 <= TOP) return;   // already fits: keep the authored framing
       const d = to.distanceTo(at), hy = d * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)), hx = hy * cam.aspect;
       const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
       const pan = right.multiplyScalar((x0 + x1) / 2 * hx).add(up.multiplyScalar(((y0 + y1) / 2 - (TOP + BOT) / 2) * hy));
       to.add(pan); at.add(pan);
-      const k = Math.max(1, (x1 - x0) / (2 * X), (y1 - y0) / (TOP - BOT));
+      const k = Math.max(whole ? .2 : 1, (x1 - x0) / (2 * X), (y1 - y0) / (TOP - BOT));   // layout 2 also moves in until the hologram fills the canvas
       to.sub(at).multiplyScalar(k).add(at);
     }
   }
@@ -185,7 +208,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     ui.setActions(i ? [...i.actions, ...(SPREADS[k].shots ? [watchAction(k)] : [])] : []); ui.hideCaption();
     ui.setMirror(i ? (i.a11y || []) : []); ui.setSheet(back ? COVER.insideBack : k ? LESSONS[k].left : COVER.insideCover);
     syncGuide(i);
-    if (ui.phone && !zoomTip && i?.targets?.some(t => t.userData.zoom)) { zoomTip = true; setTimeout(() => ui.caption('Tap a card on the page to read it large.', 'Tip', 4500), 2600); }
+    if (ui.phone && !zoomTip && i?.targets?.some(t => t.userData.zoom)) { zoomTip = true; setTimeout(() => ui.caption('Tap a card on the page to read it large.', 'Tip', p2() ? 3000 : 4500), 2600); }
     moveCam(k ? (SPREADS[k]?.cam || CAM.spread) : CAM.cover);   // upright phones refit once the hologram lands (frame loop)
     history.replaceState(null, '', k ? '#spread-' + k : location.pathname);
   }
@@ -297,9 +320,21 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
 
   // ---- loop ----------------------------------------------------------------------------------------
   const clock = new THREE.Clock(); let time = 0;
+  // ?fps: a frame meter for testing on a real phone: frames per second, the worst frame of the last second, the worst of the last page turn
+  const meter = /[?&]fps\b/.test(location.search) ? (() => {
+    const el = document.createElement('div'); el.style.cssText = 'position:fixed;left:6px;top:6px;z-index:80;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;font:600 12px/1.3 monospace;pointer-events:none'; document.body.append(el);
+    let last = performance.now(), n = 0, acc = 0, worst = 0, turn = 0, wasBusy = false;
+    return busy => {
+      const now = performance.now(), d = now - last; last = now; n++; acc += d; worst = Math.max(worst, d);
+      if (busy && !wasBusy) turn = 0; if (busy) turn = Math.max(turn, d); wasBusy = busy;
+      if (acc >= 1000) { el.textContent = `${Math.round(n * 1000 / acc)} fps · worst ${worst.toFixed(0)} ms · turn ${turn.toFixed(0)} ms`; n = acc = worst = 0; }
+    };
+  })() : null;
   function frame() {
     requestAnimationFrame(frame);
     const dt = Math.min(clock.getDelta(), .05); time += dt;
+    if (ui.covered) return;   // the full-screen reader is open: nothing of the scene can be seen
+    if (meter) meter(book.busy);
     book.update(dt);
     if (camT.t < 1) { camT.t = Math.min(1, camT.t + dt / camT.dur); const k = ease(camT.t); camera.position.lerpVectors(camT.from.pos, camT.to.pos, k); look.lerpVectors(camT.from.look, camT.to.look, k); camera.lookAt(look); }
     // show the spread's hologram once the page has landed, with a pop
@@ -308,8 +343,9 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
       // the overview is the default view; the close-up tour only plays from the ▶ Watch chip
       if (i && !i.group.visible) {
         i.group.visible = true; i.group.userData.pop = 0; i.enter?.(); snd.play('pop'); seen.add(cur);
-        if (fitPhone && camera.aspect < 1 && !tour) i.update?.(0, time);   // let the spread place its phone layout before it is measured
-        if (fitPhone && camera.aspect < 1 && !tour) moveCam({ ...(SPREADS[cur].cam || CAM.spread), fit: i.group }, Math.max(.6, (1 - camT.t) * camT.dur));   // retarget from where the camera is
+        if ((p2() || fitPhone && camera.aspect < 1) && !tour) i.update?.(0, time);   // let the spread place its phone layout before it is measured
+        if ((p2() || fitPhone && camera.aspect < 1) && !tour) moveCam({ ...(SPREADS[cur].cam || CAM.spread), fit: i.group }, Math.max(.6, (1 - camT.t) * camT.dur));
+        if (p2() && cur < N) (window.requestIdleCallback || setTimeout)(() => inst(cur + 1), { timeout: 1500 });   // build the next spread while idle, not during the page turn   // retarget from where the camera is
       }
       if (cur === 0 && !coverHolo.visible) { coverHolo.visible = true; coverHolo.userData.pop = 0; }
     }

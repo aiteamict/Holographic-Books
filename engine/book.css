@@ -176,6 +176,51 @@
   body.phone #mpeek:empty{display:none}
   body.phone .mcard.open #mpeek{display:none}
 
+  /* ---- phone layout 2 (body.p2, opt-in per book): the canvas ends where a fixed panel begins, so nothing covers the
+     hologram. Panel = step dots + Read · the step's text and answers (the one scroll area) · one row of controls · toolbar ---- */
+  .mrow{display:none}
+  body.phone.p2 .mshell{height:max(42dvh,290px);padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:6px;background:#e9e5db;pointer-events:auto}
+  body.phone.p2 .mshell.bare{height:auto}
+  body.phone.p2 .mshell.bare .mcard{display:none}
+  body.phone.p2 .mcard{flex:1;min-height:0;display:flex;flex-direction:column;border-radius:14px;box-shadow:none}
+  body.phone.p2 .mhead,body.phone.p2 .mtabs{display:none}
+  body.phone.p2 .mrow{display:flex;align-items:center;gap:8px;padding:8px 10px 4px}
+  body.phone.p2 #mdots{display:flex;gap:8px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+  body.phone.p2 #mdots button{position:relative;flex:0 0 auto;min-width:34px;height:34px;padding:0 8px;border-radius:17px;border:1px solid rgba(29,34,40,.28);background:transparent;font:600 14px var(--sans);color:#59616b}
+  body.phone.p2 #mdots button::after{content:"";position:absolute;inset:-5px}
+  body.phone.p2 #mdots button.done{background:#ddd7c9}
+  body.phone.p2 #mdots button.on{background:#b0532a;color:#fff;border-color:transparent}
+  body.phone.p2 #m-read{position:relative;flex:0 0 auto;height:34px;padding:0 14px;border-radius:17px;border:1px solid rgba(29,34,40,.28);background:#fff;font:600 13px var(--sans);color:#1d2228}
+  body.phone.p2 #m-read::after{content:"";position:absolute;inset:-5px}
+  body.phone.p2 .mbody{display:flex;flex-direction:column;flex:1;min-height:0;max-height:none;overflow:hidden;padding:0 10px 8px}
+  body.phone.p2 #mslot{display:flex;flex-direction:column;flex:1;min-height:0}
+  body.phone.p2 #gpanel{flex:1;min-height:0;overflow-y:auto;margin:0 0 6px;font-size:14px;line-height:1.4;overscroll-behavior:contain}
+  body.phone.p2 #gpanel small{font-size:12px}
+  body.phone.p2 #gpanel p{margin:0 0 6px}
+  body.phone.p2 #actions{flex:0 0 auto;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin:0;padding:1px 18px 1px 0;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}
+  body.phone.p2 #actions:empty{display:none}
+  body.phone.p2 #actions button{flex:0 0 auto;white-space:nowrap}
+  body.phone.p2 #steps,body.phone.p2 #sheet{display:none!important}
+  body.phone.p2 #mirror{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);margin:0}
+  body.phone.p2 .mbar{box-shadow:none;padding:4px 8px}
+  body.phone.p2 #gpanel{overflow-x:hidden}
+  body.phone.p2 #gpanel .opts::-webkit-scrollbar,body.phone.p2 #actions::-webkit-scrollbar,body.phone.p2 #mdots::-webkit-scrollbar{display:none}
+  body.phone.p2 .caption{left:calc(var(--cw,100vw) / 2);max-width:calc(var(--cw,100vw) - 16px)}
+  /* short screens: the answers run in one sideways row, so the question, the answers and the controls are all on screen */
+  @media (max-height:720px){ body.phone.p2 #gpanel .opts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 0 6px;padding-right:18px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)} body.phone.p2 #gpanel .opts button{flex:0 0 auto;white-space:nowrap} }
+  @media (max-width:340px){ body.phone.p2 #actions button,body.phone.p2 #gpanel .opts button,body.phone.p2 #gpanel .next{font-size:13px;padding:10px 11px} }
+  @media (orientation:landscape) and (max-height:520px){
+    body.phone.p2 .mshell{left:auto;right:0;top:0;bottom:0;width:42vw;height:auto;padding:6px calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) 8px}
+    body.phone.p2 .mshell.bare{top:auto;height:auto}
+    body.phone.p2 .mmenu{left:auto;right:10px;width:40vw}
+  }
+  #reader{position:fixed;inset:0;z-index:70;overflow:auto;background:#f4f1ea;color:#1d2228;padding:14px 20px calc(28px + env(safe-area-inset-bottom));font:17px/1.55 Georgia,'Times New Roman',serif}
+  #reader[hidden]{display:none}
+  #reader .x{position:sticky;top:0;float:right;min-height:44px;padding:0 16px;margin:0 -6px 6px 12px;border-radius:22px;border:0;background:#1d2228;color:#f4f1ea;font:600 14px var(--sans)}
+  #reader small{display:block;color:#b0532a;font:700 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;margin-top:12px}
+  #reader h3{font:italic 700 26px Georgia,serif;margin:6px 0 12px}
+  #reader p{margin:0 0 12px}
+
   /* phones: a readout card opened large */
   #zoomcard{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(20,24,28,.5);-webkit-tap-highlight-color:transparent}
   #zoomcard[hidden]{display:none}

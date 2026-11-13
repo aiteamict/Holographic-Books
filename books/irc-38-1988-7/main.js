@@ -5,7 +5,7 @@ import { SPREADS } from './spreads/index.js';
 import { car } from '../_irc38/site.js';
 
 runBook({
-  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true,
+  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true, phoneLayout: 2,
   // the cover mark: a hair-pin bend — two straights nearly parallel, joined by spiral, circle and spiral
   coverMark(ctx, W) {
     const k = W / 1040, R = 105 * k, L = 190 * k, ds = 2 * k, turn = 165 * Math.PI / 180, arc = R * (turn - L / R);   // the two spirals take L/R of the turn

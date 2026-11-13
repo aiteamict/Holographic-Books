@@ -5,7 +5,7 @@ import { SPREADS } from './spreads/index.js';
 import { car } from '../_irc38/site.js';
 
 runBook({
-  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true,
+  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true, phoneLayout: 2,
   // the cover mark: a car on a curve with the outward push and the weight, the balance of section 4
   coverMark(ctx, W) {
     const k = W / 1040, cx = W / 2, cy = 860 * k, r = 300 * k;

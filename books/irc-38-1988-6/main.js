@@ -5,7 +5,7 @@ import { SPREADS } from './spreads/index.js';
 import { car } from '../_irc38/site.js';
 
 runBook({
-  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true,
+  BOOK, COVER, LESSONS, QUIZ, SPREADS, fitPhone: true, phoneLayout: 2,
   // the cover mark: a spiral pegged in ten chords, each peg on a sight line from the tangent point
   coverMark(ctx, W) {
     const k = W / 1040, x0 = 170 * k, y0 = 1090 * k, A = 330 * k, end = A * 1.3, n = 260, ds = end / n;
