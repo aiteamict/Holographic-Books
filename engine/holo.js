@@ -98,6 +98,9 @@ export const wireCyl = (r, h, color, seg = 16, o) => wire(new THREE.CylinderGeom
 
 // ---- labels, rings, dimensions ----------------------------------------------------------------------
 /** A text label that always faces the camera. h = height in world units (cm). */
+let LABEL_K = 1;
+/** Scale every label made from now on (phone layout 2 draws them larger: the scene is smaller on screen). */
+export function setLabelScale(k) { LABEL_K = k; }
 export function label(text, { h = 1.3, color = '#1f2328', bg = null, weight = 600, align = 'center' } = {}) {
   // drawn at 160 px and shown at ~30 px: always more texels than screen pixels, no mipmaps, tone-mapped so it never blooms
   const px = 160, pad = 36, c = document.createElement('canvas'), ctx = c.getContext('2d');
@@ -114,7 +117,7 @@ export function label(text, { h = 1.3, color = '#1f2328', bg = null, weight = 60
   lines.forEach((l, i) => ctx.fillText(l, x, pad / 2 + i * lh));
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 16;   // mipmapped: labels are drawn large and minified, so trilinear + anisotropic sampling is the clean path
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false }));
-  const H = h * lines.length; sp.scale.set(H * c.width / c.height, H, 1); sp.renderOrder = 5;
+  const H = h * lines.length * LABEL_K; sp.scale.set(H * c.width / c.height, H, 1); sp.renderOrder = 5;
   sp.userData.setText = t => { const n = label(t, { h, color, bg, weight, align }); sp.material.map.dispose(); sp.material.map = n.material.map; sp.scale.copy(n.scale); };
   return sp;
 }

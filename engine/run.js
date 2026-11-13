@@ -65,7 +65,8 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   }
   if (typeof ResizeObserver === 'function') new ResizeObserver(layoutCanvas).observe(ui.$('mshell'));
   addEventListener('resize', layoutCanvas);
-  applyPhone(); phoneMQ.addEventListener('change', () => { applyPhone(); syncGuide(built[cur]); });
+  applyPhone(); if (p2()) holo.setLabelScale(1.25);
+  phoneMQ.addEventListener('change', () => { applyPhone(); syncGuide(built[cur]); });
   const ctx = { THREE, holo, ui, QUIZ, scene, camera, snd, renderer: stage.renderer, ...extra };   // renderer: for spreads that draw a second view (e.g. a driver's camera)
   const built = {};
   /** Each spread gets a ui whose captions only land while that spread is current, so a delayed caption cannot leak. */
@@ -320,6 +321,15 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
 
   // ---- loop ----------------------------------------------------------------------------------------
   const clock = new THREE.Clock(); let time = 0;
+  // phone layout 2: if the phone cannot hold about 45 frames a second, give up pixels first, then shadow detail (three steps)
+  let aLast = performance.now(), aN = 0, aSum = 0, aLevel = 0;
+  function adapt() {
+    const now = performance.now(), d = now - aLast; aLast = now;
+    if (!p2() || !tierReady || book.busy || d > 250 || aLevel >= 3) return;   // page turns and a backgrounded tab do not count
+    aN++; aSum += d; if (aN < 90) return;
+    const avg = aSum / aN; aN = aSum = 0;
+    if (avg > 22) { aLevel++; stage.setTier({ ...tier, dpr: [1, .8, .65][aLevel - 1], shadow: aLevel >= 2 ? 512 : tier.shadow }); console.info('[quality] ' + avg.toFixed(1) + ' ms a frame: phone step ' + aLevel); }
+  }
   // ?fps: a frame meter for testing on a real phone: frames per second, the worst frame of the last second, the worst of the last page turn
   const meter = /[?&]fps\b/.test(location.search) ? (() => {
     const el = document.createElement('div'); el.style.cssText = 'position:fixed;left:6px;top:6px;z-index:80;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;font:600 12px/1.3 monospace;pointer-events:none'; document.body.append(el);
@@ -335,6 +345,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     const dt = Math.min(clock.getDelta(), .05); time += dt;
     if (ui.covered) return;   // the full-screen reader is open: nothing of the scene can be seen
     if (meter) meter(book.busy);
+    adapt();
     book.update(dt);
     if (camT.t < 1) { camT.t = Math.min(1, camT.t + dt / camT.dur); const k = ease(camT.t); camera.position.lerpVectors(camT.from.pos, camT.to.pos, k); look.lerpVectors(camT.from.look, camT.to.look, k); camera.lookAt(look); }
     // show the spread's hologram once the page has landed, with a pop
