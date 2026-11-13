@@ -97,12 +97,29 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
       to.sub(at).multiplyScalar(2.05).add(at);
     }
     if (camera.aspect < 1 && preset.fit) fitPortrait(preset.fit, to, at);
+    else if (camera.aspect >= 1 && preset !== CAM.cover && !tour) fitLandscape(to, at);
     camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur;
+  }
+  // landscape: spreads aim at the right page so the hologram is large; on screens nearer 3:2 that pushed the start of
+  // every line on the left page off the edge. Pan and pull back just enough to keep the left text margin and the right
+  // page's edge on screen; wide screens that already show both keep the authored framing.
+  function fitLandscape(to, at) {
+    const pts = [[-PAGE_W + 1.8, 0, -PAGE_H / 2 + 2], [-PAGE_W + 1.8, 0, 8], [PAGE_W - .2, 0, -PAGE_H / 2 + 1], [PAGE_W - .2, 0, PAGE_H / 2 - 4]].map(p => new THREE.Vector3(...p));
+    const cam = camera.clone(), v = new THREE.Vector3(), X = .97;
+    for (let n = 0; n < 4; n++) {
+      cam.position.copy(to); cam.lookAt(at); cam.updateMatrixWorld();
+      let x0 = 1e9, x1 = -1e9; for (const p of pts) { v.copy(p).project(cam); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); }
+      if (x0 >= -X && x1 <= X) return;
+      const hx = to.distanceTo(at) * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * cam.aspect;
+      const pan = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0).multiplyScalar((x0 + x1) / 2 * hx);
+      to.add(pan); at.add(pan);
+      to.sub(at).multiplyScalar(Math.max(1, (x1 - x0) / (2 * X))).add(at);
+    }
   }
   // turning a phone between upright and sideways re-frames the current page (each has its own camera for each)
   let wasTall = camera.aspect < 1, rt = 0;
   addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => {
-    const tall = camera.aspect < 1; if (tall === wasTall || tour) return; wasTall = tall;
+    const tall = camera.aspect < 1; if ((tall === wasTall && tall) || tour) return; wasTall = tall;   // landscape refits on any resize (fitLandscape)
     const i = built[cur]; moveCam(cur ? { ...(SPREADS[cur]?.cam || CAM.spread), fit: fitPhone && i?.group.visible && i.group } : CAM.cover, .7);
   }, 250); });
   // upright phones: pan and pull back until everything the spread can show sits between the screen edges and above the

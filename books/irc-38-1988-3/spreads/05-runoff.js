@@ -94,6 +94,29 @@ export function runoffSpread(mode) {
       } });
       card.position.set(5.1, 2.8, 10.4); card.rotation.x = -.6; group.add(card);
 
+      // the cross-section at the car, large: on the road itself the tilt is a few millimetres of page and cannot be seen.
+      // A panel behind the road redraws the section the car is on, 1.4 cm per metre across and heights ×5.
+      const GW = 14, GH = 6, HS = 1.4, GX = 5, GP = new THREE.Vector3(0, GROUND + 2.4, -11.6);
+      const gauge = holo.frame(GW, GH, 'Cross-section at the car · heights ×5'); gauge.position.copy(GP); gauge.rotation.x = -.8; group.add(gauge);   // tilted back to face the camera
+      const gDeck = holo.polyline([[0, 0, 0], [1, 0, 0], [2, 0, 0]], holo.WHITE, { width: .18 }); gauge.add(gDeck);
+      const gLevel = holo.polyline([[-GW / 2 + .4, 0, 0], [GW / 2 - .4, 0, 0]], holo.DIM, { width: .05, dashed: true }); gauge.add(gLevel);
+      const gPivot = new THREE.Mesh(new THREE.SphereGeometry(.2, 12, 8), new THREE.MeshBasicMaterial({ color: holo.RED, toneMapped: false })); gauge.add(gPivot);
+      const gIn = holo.label('inner edge', { h: .8, color: '#1d5f87' }), gOut = holo.label('outer edge', { h: .8, color: '#b0532a' }), gE = holo.label(' ', { h: .9, color: '#14202b', weight: 700 });
+      gE.position.set(-GW / 2 + 4.6, GH / 2 - .7, .05); gauge.add(gIn, gOut, gE);
+      const gY0 = -1.2;   // the level line through the centre-line datum
+      gLevel.position.y = gY0;
+      function drawGauge(force) {
+        const [hi, hc, ho] = section(st.carD), w = width(st.carD), X = f => (f - .5) * w * HS, Y = v => gY0 + v * HS * GX;
+        holo.setPoints(gDeck, [[X(0), Y(hi), .03], [X(.5), Y(hc), .03], [X(1), Y(ho), .03]]);
+        gIn.position.set(X(0) + .6, Y(hi) - .75, .05); gOut.position.set(X(1) - .6, Y(ho) + .7, .05);
+        const ax = st.axis === 'inner' && mode === 'build' ? [X(0), Y(hi)] : st.axis === 'outer' && mode === 'build' ? [X(1), Y(ho)] : [X(.5), Y(hc)];
+        gPivot.position.set(ax[0], ax[1], .06);
+        if (force) {
+          const x = (ho - hi) / w, t = st.carD - e1;
+          gE.userData.setText(Math.abs(hi - ho) < 1e-6 ? `Camber ${(c * 100).toFixed(0)} % both ways` : `${t < 0 ? 'Stage 1' : t < st.Ls ? 'Stage 2' : 'Full'} · crossfall ${(x * 100).toFixed(1)} %${t >= st.Ls ? ' = e' : ''}`);
+        }
+      }
+
       function rebuild() {
         const k = horizontalCurve(D(), R(), st.Ls), L = layout(k, 1.5), u1 = L.u1, u2 = [u1[0], -u1[1]];
         const lead = L1 + 22, tail = 26;
@@ -116,7 +139,7 @@ export function runoffSpread(mode) {
         const mk = (mesh, p, ix) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); g.setIndex(ix); g.computeVertexNormals(); mesh.geometry.dispose(); mesh.geometry = g; };
         mk(deck, pos, idx); mk(bank, bp, bi); deck.material.side = THREE.DoubleSide;
         for (const n of ['inner', 'centre', 'outer']) holo.setPoints(lines[n], ln[n]);
-        const near = pts.filter((_, i) => i % 3 === 0).map(p => P(p)); forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.4));
+        const near = pts.filter((_, i) => i % 3 === 0).map(p => P(p)); forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.4) || (Math.abs(x - GP.x) < GW / 2 + .6 && Math.abs(z - GP.z) < 3));
         if (ex) { const a0 = e1 - L1; [a0, a0 + 15, e1, e1 + 45, e1 + 90, e1 + 120, e1 + 150].forEach((s, i) => { const p = T.at(Math.min(s, T.length)); marks[i].position.copy(P([p.x - Math.sin(p.h) * 8, p.y + Math.cos(p.h) * 8], 1.6)); }); }
         card.redraw();
       }
@@ -142,7 +165,8 @@ export function runoffSpread(mode) {
             const off = w / 4, yy = hc + (ho - hc) * .5;   // the outer lane, left of travel
             auto.position.copy(P([p.x - Math.sin(p.h) * off, p.y + Math.cos(p.h) * off], LIFT + yy * S * VX + .02)); auto.rotation.set(0, p.h, 0);
             auto.rotateX(-Math.atan((ho - hc) * 2 / w * VX));
-            if ((st.tick += dt) > .15) { st.tick = 0; card.redraw(); }
+            const slow = (st.tick += dt) > .15; if (slow) { st.tick = 0; card.redraw(); }
+            drawGauge(slow);
           }
           const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.4 : -5.4; guide.card.scale.setScalar(tall ? .82 : 1);
           card.position.x = tall ? 3.6 : 5.1; card.scale.setScalar(tall ? .82 : 1);
