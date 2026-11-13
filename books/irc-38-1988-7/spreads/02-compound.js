@@ -47,15 +47,15 @@ export function compoundSpread(mode) {
       const line = (col, w, dashed) => { const l = holo.polyline([[0, 0, 0], [1, 0, 0]], col, { width: w, dashed }); group.add(l); return l; };
       const c1 = line(holo.CYAN, .06, true), c2 = line(holo.AMBER, .06, true), sp = line(holo.RED, .1, false), tg = line(holo.DIM, .05, true);
       const segs = holo.segments([[0, 0, 0], [0, 0, 0]], holo.GREEN, .9, { width: .06 }); group.add(segs);
-      const sights = holo.segments([[0, 0, 0], [0, 0, 0]], holo.CYAN, .7, { width: .04, dashed: true }); group.add(sights);
-      const chords = holo.segments([[0, 0, 0], [0, 0, 0]], holo.AMBER, .9, { width: .05 }); group.add(chords);
+      const sights = holo.segments([[0, 0, 0], [0, 0, 0]], holo.CYAN, .95, { width: .07, dashed: true }); group.add(sights);
+      const chords = holo.segments([[0, 0, 0], [0, 0, 0]], holo.AMBER, .95, { width: .08 }); group.add(chords);
       const lab = (t, col = '#14202b', h = .58) => { const l = holo.label(t, { h, color: col, bg: 'rgba(255,253,248,.92)', weight: 700 }); group.add(l); return l; };
       const tags = { cs1: lab('C.S.1'), cs2: lab('C.S.2'), r1: lab('600 m circle', '#24557a', .52), r2: lab('240 m circle', '#8a3f1c', .52), pa: lab('Pa', '#2f8f55', .55), I: lab('I', '#14202b', .55) };
       const pegMat = new THREE.MeshStandardMaterial({ color: 0xd8d2c4, roughness: .7 }), capMat = new THREE.MeshStandardMaterial({ color: 0xc23b2f, roughness: .5 });
       const pegGeo = new THREE.CylinderGeometry(.06, .08, .5, 8), capGeo = new THREE.CylinderGeometry(.1, .1, .1, 8);
       const pegs = [...Array(14)].map(() => { const g = new THREE.Group(), p = new THREE.Mesh(pegGeo, pegMat), c = new THREE.Mesh(capGeo, capMat); p.position.y = .25; c.position.y = .53; g.add(p, c); g.visible = false; group.add(g); return g; });
-      const crew = worker(.75); group.add(crew); crew.visible = mode !== 'geometry';
-      const theo = theodolite(.8); theo.visible = mode === 'deflect' || mode === 'station'; group.add(theo);
+      const crew = worker(1.15); group.add(crew); crew.visible = mode !== 'geometry';
+      const theo = theodolite(1.3); theo.visible = mode === 'deflect' || mode === 'station'; group.add(theo);
 
       // the pegs in order, each with what the book prints and the exact value
       function plan() {

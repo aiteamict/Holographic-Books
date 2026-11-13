@@ -1,7 +1,7 @@
 // Spreads 3–5 · Minimum length of transition (cl. 7.3, 7.4, eq. 16–19, Table 9). The site model closes in on the entry
 // to a curve: straight, spiral (amber), circle. A car drives it.
 //   'comfort' eq. (16)–(17): Ls = 0.0215 V³ / CR on the minimum radius for the speed (Table 3), or twice it
-//   'super'   eq. (18)–(19): the outer edge (raised ×15, amber) climbs 7.9/2 × 0.07 m over the transition
+//   'super'   eq. (18)–(19): the outer edge (raised ×40, amber) climbs 7.9/2 × 0.07 m over the transition
 //   'table9'  Table 9 for a speed and terrain, row by row, beside the two equations
 import * as THREE from 'three';
 import { Anims } from '@engine/anim.js';
@@ -13,7 +13,7 @@ import { diorama, trees, track, throughSlab, car, VEH } from '../../_irc38/site.
 import { offsetPts, band, swapGeo, clipRun } from '../../_irc38/deck.js';
 import { MIN_RADIUS, lsComfort, lsSuper, lsMin, rateC, t9, T9_R } from '../../_irc38/tables.js';
 
-const F = 'Inter, Segoe UI, Arial', GROUND = .5, SLAB = { x0: -12.6, x1: 12.6, z0: -15.8, z1: 7.4 }, DELTA = 70, LANE = 3.5, S = .14, LIFT = 15;
+const F = 'Inter, Segoe UI, Arial', GROUND = .5, SLAB = { x0: -12.6, x1: 12.6, z0: -15.8, z1: 7.4 }, DELTA = 70, LANE = 3.5, S = .14, LIFT = 40;
 const RISE = 7.9 / 2 * .07;   // outer edge above the centre line at full superelevation (cl. 7.3.3)
 const up5 = x => Math.ceil(x / 5 - 1e-9) * 5;
 
@@ -33,9 +33,12 @@ export function lengthSpread(mode) {
       const deck = mk(SM.asphalt), shL = mk(SM.shoulder), shR = mk(SM.shoulder), edL = mk(SM.paint), edR = mk(SM.paint);
       const centre = holo.polyline([[0, 0, 0], [1, 0, 0]], holo.WHITE, { width: .05, dashed: true }); group.add(centre);
       const spiralLine = holo.polyline([[0, 0, 0], [1, 0, 0]], holo.AMBER, { width: .09 }); group.add(spiralLine);
-      const edge = holo.polyline([[0, 0, 0], [1, 0, 0]], holo.AMBER, { width: .08 }); edge.visible = mode === 'super'; group.add(edge);
+      const edge = holo.polyline([[0, 0, 0], [1, 0, 0]], holo.AMBER, { width: .08 }); group.add(edge);
+      // a translucent curtain under the outer edge, so the length of the build-up can be seen at a glance
+      const curtain = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xb0532a, transparent: true, opacity: .26, side: THREE.DoubleSide, depthWrite: false })); group.add(curtain);
+      const wall = (base, top) => { const pos = [], idx = []; base.forEach((b, i) => { const t = top[i]; pos.push(b.x, b.y, b.z, t.x, t.y, t.z); if (i) { const v = 2 * i; idx.push(v - 2, v - 1, v, v - 1, v + 1, v); } }); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g; };
       const tags = ['T.P.', 'C.T.'].map(n => { const t = holo.label(n, { h: .62, color: '#14202b', bg: 'rgba(255,253,248,.92)', weight: 700 }); group.add(t); return t; });
-      const edgeTag = holo.label('outer edge, heights ×15', { h: .55, color: '#8a3f1c', bg: 'rgba(255,253,248,.92)' }); edgeTag.visible = mode === 'super'; group.add(edgeTag);
+      const edgeTag = holo.label(mode === 'comfort' ? 'sideways acceleration builds up over the spiral' : 'outer edge, heights ×40', { h: .55, color: '#8a3f1c', bg: 'rgba(255,253,248,.92)' }); group.add(edgeTag);
       const auto = car(S * VEH, 0x24557a); group.add(auto);
 
       const rows9 = () => T9_R.filter(R => t9(st.V, st.hills ? 'H' : 'P', R) != null);
@@ -111,9 +114,10 @@ export function lengthSpread(mode) {
         const sp = Ls ? L.pts.slice(0, Math.ceil(Ls) + 1).filter(onSlab) : [];
         spiralLine.visible = sp.length > 1; if (sp.length > 1) holo.setPoints(spiralLine, sp.map(p => P(p, .04)));
         tags[0].position.copy(P(L.TP, 1.3)); tags[1].position.copy(P(L.CT, 1.3)); tags[1].visible = Ls > 0 && onSlab(L.CT);
-        if (mode === 'super') {   // the outer edge, raised as it climbs from T.P. to C.T., heights ×15
-          const pts = offsetPts(road, LANE, 1), out = pts.map((q, i) => { const d = i * road.length / (pts.length - 1) + off - e1, z = Math.max(0, Math.min(1, d / Ls)) * RISE; return P(q, .03 + z * LIFT * S); });
-          holo.setPoints(edge, out); edgeTag.position.copy(P(L.CT, 2.2));
+        {   // the outer edge raised as it climbs from T.P. to C.T. (heights ×40) or, for eq. (16), the sideways acceleration
+          const pts = offsetPts(road, LANE, 1), base = [], top = [];
+          pts.forEach((q, i) => { const d = i * road.length / (pts.length - 1) + off - e1, f = Ls ? Math.max(0, Math.min(1, d / Ls)) : d > 0 ? 1 : 0; base.push(P(q, .03)); top.push(P(q, .03 + (mode === 'comfort' ? f * 1.6 : f * RISE * LIFT * S))); });
+          holo.setPoints(edge, top); swapGeo(curtain, wall(base, top)); edgeTag.position.copy(P(L.CT, mode === 'comfort' ? 2.7 : 2.2));
         }
         const near = rc.pts.filter((_, i) => i % 3 === 0).map(p => P(p)); forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.9));
         st.carD = 0; card.redraw();
@@ -159,7 +163,7 @@ export function lengthSpread(mode) {
             check: { q: 'Doubling R changes eq. (16)’s Ls by…', options: ['half', 'twice', 'nothing'], answer: 0, why: 'Ls = 0.0215 V³ / (C R): Ls varies inversely with R.' } },
         ],
         super: [
-          { title: 'The edge', show: L, text: 'The amber line is the outer edge, heights ×15. It climbs 0.277 m from T.P. to C.T.',
+          { title: 'The edge', show: L, text: 'The amber curtain rises to the outer edge, heights ×40. It climbs 0.277 m from T.P. to C.T.',
             check: { q: 'The edge may rise against the centre line in plain terrain no faster than…', options: ['1 in 150', '1 in 60', '1 in 20'], answer: 0, why: '0.66 per cent, 1 in 150, in plain and rolling terrain; 1.66 per cent, 1 in 60, in mountainous and steep terrain (cl. 7.3.3).' } },
           { title: 'Hills', show: L, text: 'Hill roads allow 1 in 60, so eq. (19) drops the 2.7: Ls = V²/R.',
             check: { q: 'Which governs the transition length?', options: ['the greater of eq. (16) and eq. (18) or (19)', 'always eq. (16)', 'always eq. (18)'], answer: 0, why: 'The transition length is the greater of the values from the rate of change of centrifugal acceleration and of superelevation (cl. 7.3.1).' } },
