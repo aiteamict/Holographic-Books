@@ -1,10 +1,13 @@
-// Spread 8 · Worked examples 11.29, 11.30, 11.32: widening built into a curve and the edges of a widened pavement.
+// Spread 8 · Worked examples 11.29–11.32: widening built into a curve and the edges of a widened pavement.
 // Values the book prints, beside the series geometry (curve.js) and Tables 4 and 7.
 import { curveExamples } from '../../_irc38/examples.js';
 import { horizontalCurve, deg } from '../../_irc38/curve.js';
 import { widenTable, eRequired } from '../../_irc38/tables.js';
 
 const RAD = Math.PI / 180;
+const bis = (f, a, b) => { for (let i = 0; i < 80; i++) { const m = (a + b) / 2; if (f(a) * f(m) <= 0) b = m; else a = m; } return (a + b) / 2; };
+// Example 11.31: the outer edge keeps R 155 m but its apex sits EH − GH from the inner edge’s apex; its Ls follows
+const K31 = horizontalCurve(56, 155, 80), ES31 = K31.Es + 7 / Math.cos(28 * RAD) - 8.2, LS31 = bis(l => horizontalCurve(56, 155, l).Es - ES31, 20, 150);
 const inner = () => horizontalCurve(56, 150.3, 102.8325), outer = () => horizontalCurve(56, 158.5, 80.776);
 
 export default curveExamples({
@@ -40,6 +43,23 @@ export default curveExamples({
         { label: 'Apex distance Es', book: 22.492, value: k => k.Es, unit: 'm', digits: 3 },
         { label: 'Width at the middle', book: 7.928, value: () => 7 / Math.cos(28 * RAD), unit: 'm', digits: 3 },
         { label: 'Spiral angle θs', book: 14.787, value: k => deg(k.thetaS), unit: '°', digits: 3 },
+      ],
+    },
+    {
+      id: '11.31', title: 'Edges not concentric, the widening specified',
+      given: 'Centre line R 155 m, Ls 80 m, Δ 56°, 7 m wide; 1.2 m widening; outer edge also on R 155 m',
+      curve: [56, 155, LS31],
+      steps: [
+        { text: 'Inner edge as the centre line: Es 22.492 m, Ts 123.239 m (Table 10).', focus: 'pi' },
+        { text: 'EH = 22.492 + 7 sec 28° = 30.42 m; GH = 7 + 1.2 = 8.2 m, so the outer edge’s Es = 30.42 − 8.2 = 22.22 m.' },
+        { text: '22.22 = 155 exsec 28° + s sec 28°: s = 1.476 m; Table 12 gives θs 13.7°, Ls = 74.124 m, K = 36.995 m.', focus: 'tp' },
+        { text: 'Ts = 156.476 tan 28° + 36.995 = 120.193 m: its T.P. is 6.765 m ahead of the inner one. Fully transitional instead: Ls 122.511 m.', focus: 'lt' },
+      ],
+      answers: [
+        { label: 'Outer edge Es', book: 22.22, value: () => ES31, unit: 'm', digits: 2 },
+        { label: 'Its transition Ls', book: 74.124, value: k => k.Ls, unit: 'm', digits: 3, tol: .1 },
+        { label: 'Its Ts', book: 120.193, value: k => k.Ts, unit: 'm', digits: 3, tol: .04 },
+        { label: 'T.P. ahead of the inner T.P.', book: 6.765, value: k => K31.Ts + 7 * Math.tan(28 * RAD) - k.Ts, unit: 'm', digits: 3, tol: .04 },
       ],
     },
     {
