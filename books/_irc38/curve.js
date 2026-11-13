@@ -65,3 +65,28 @@ export function layout(c, step = 1) {
 }
 
 // ponytail: Simpson with 64 panels is exact to < 1 mm for Ls ≤ 300 m; raise n if longer spirals ever appear.
+
+/**
+ * An alignment built from pieces of linearly varying curvature: parts = [{ len, k0, k1 }] (k = 1/R, positive turning
+ * right as elsewhere in this file, i.e. clockwise in the plan). Starts at `start` heading `h0` (radians, plan frame).
+ * Returns dense points [x, y, heading, s] and the end state. Used for unequal transitions, compound curves and curves
+ * added inside existing ones, which horizontalCurve (symmetric) cannot describe.
+ */
+export function alignment(parts, { start = [0, 0], h0 = 0, ds = .25 } = {}) {
+  let [x, y] = start, h = h0, s = 0; const pts = [[x, y, h, 0]];
+  for (const { len, k0, k1 = k0 } of parts) {
+    const n = Math.max(1, Math.ceil(len / ds)), d = len / n;
+    for (let i = 0; i < n; i++) {
+      const km = k0 + (k1 - k0) * (i + .5) / n, hm = h - km * d / 2;   // midpoint heading: second-order accurate
+      x += Math.cos(hm) * d; y += Math.sin(hm) * d; h -= km * d; s += d; pts.push([x, y, h, s]);
+    }
+  }
+  return { pts, end: { x, y, h, s } };
+}
+
+/** Where two lines meet: point p heading a, point q heading b. */
+export function meet(p, a, q, b) {
+  const d = Math.sin(b - a); if (Math.abs(d) < 1e-12) return null;
+  const t = ((q[0] - p[0]) * Math.sin(b) - (q[1] - p[1]) * Math.cos(b)) / d;
+  return [p[0] + Math.cos(a) * t, p[1] + Math.sin(a) * t];
+}
