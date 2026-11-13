@@ -57,7 +57,7 @@ export default {
         });
       });
       const [r, m] = SPEEDS[st.cls][st.ter]; c.textAlign = 'left'; c.fillStyle = '#14202b'; c.font = `600 15px ${F}`;
-      c.fillText(st.gradual ? `Stepping down ${plan().join(' → ')} km/h, warning sign before the bend (cl. 3.6)` : `Ruling ${r} km/h; minimum ${m} km/h where the site does not permit the ruling (cl. 3.5)`, 18, H - 16);
+      c.fillText(st.gradual ? `Stepping down ${plan().join(' → ')} km/h, a sign ahead (cl. 3.6)` : `Ruling ${r} km/h; minimum ${m} km/h where the site forbids (cl. 3.5)`, 18, H - 16);
     } });
     card.position.set(5.1, 2.7, 10.5); card.rotation.x = -.6; group.add(card);
     function setSigns() { plan().forEach((v, i) => { const f = signs[i].userData.face; f.material.map.dispose(); f.material.map = speedFace(v); f.material.needsUpdate = true; }); warn.visible = st.gradual; card.redraw(); }

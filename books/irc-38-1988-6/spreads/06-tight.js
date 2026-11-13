@@ -56,7 +56,7 @@ export default {
         ? ['Book: ME = (s2 − s1) / sin Δ + 83.876 = 85.270 m;', 'DR − NM = 93.7435 − 0.7797 m. Its own subtraction', 'gives 92.9638; it prints 92.969 (Fig. 39).']
         : st.k === 'e80' ? ['Table 10, R 100 m, Ls 80 m: Ts = 94.368 m.', 'Equal transitions cannot fit the 90 m side.'] : ['Table 10, R 100 m, Ls 60 m: Ts = 83.876 m.', 'It fits, but the other side could take a longer,', 'gentler spiral: the unequal design uses the room.'];
       lines.forEach((l, i) => c.fillText(l, 18, 180 + i * 20));
-      c.font = `500 12px ${F}`; c.fillText('R 100 m: hills, NH, 50 km/h (Table 3 desirable minimum 90 m). Table 9: Ls over 45 m.', 18, H - 12);
+      c.font = `500 12px ${F}`; c.fillText('Hills, NH, 50 km/h: R at least 90 m (Table 3); Ls over 45 m (Table 9).', 18, H - 12);
     } });
     card.position.set(5.1, 2.8, 10.4); card.rotation.x = -.6; group.add(card);
 

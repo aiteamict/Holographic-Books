@@ -87,7 +87,7 @@ export function renderCover(spec, drawMark) {
   ctx.textAlign = 'center'; ctx.fillStyle = C.ink;
   ctx.font = `italic 800 ${112 * k}px ${SERIF}`; (spec.title || []).forEach((t, i) => ctx.fillText(t, W / 2, (250 + i * 120) * k));
   ctx.font = `600 ${26 * k}px ${SANS}`; ctx.fillStyle = C.cyan; ctx.fillText(spec.kicker || '', W / 2, (190 + (spec.title || []).length * 120) * k);
-  if (drawMark) drawMark(ctx, W, H);
+  if (drawMark) { ctx.save(); drawMark(ctx, W, H); ctx.restore(); }   // a mark must not leave textAlign, fonts or dashes behind for the foot
   ctx.font = `500 ${24 * k}px ${SANS}`; ctx.fillStyle = C.dim; (spec.foot || []).forEach((t, i, a) => ctx.fillText(t, W / 2, H - (112 + (a.length - 1 - i) * 38) * k));
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; return t;
 }

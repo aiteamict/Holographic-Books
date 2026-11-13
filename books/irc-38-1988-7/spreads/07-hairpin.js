@@ -55,8 +55,8 @@ export default {
         const rows = [['Minimum design speed', '20 km/h'], ['Roadway at the apex: NH / SH double · single lane', '11.5 m · 9.0 m'], ['MDR and ODR · Village Roads', '7.5 m · 6.5 m'], ['Minimum radius of the inner curve', '14.0 m'], ['Minimum transition length', '15.0 m'], ['Gradient: maximum · minimum', '1 in 40 · 1 in 200'], ['Superelevation', '1 in 10'], ['Between successive hair-pins (cl. 10.4)', 'at least 60 m']];
         rows.forEach(([a, b], i) => { const y = 54 + i * 26; c.fillStyle = '#5c6168'; c.font = `500 14px ${F}`; c.fillText(a, 18, y); c.fillStyle = '#14202b'; c.font = `700 14px ${F}`; c.textAlign = 'right'; c.fillText(b, W - 18, y); c.textAlign = 'left'; });
         c.fillStyle = '#5c6168'; c.font = `500 12px ${F}`;
-        c.fillText('Edges concentric with the centre line (cl. 10.3). Widening later is difficult: plan for', 18, H - 30);
-        c.fillText('it (cl. 10.5). Preferably surface the full width at the bend (cl. 10.6).', 18, H - 14);
+        c.fillText('Edges concentric with the centre line (cl. 10.3). Plan for widening:', 18, H - 30);
+        c.fillText('it is hard later (10.5); surface the full width at the bend (10.6).', 18, H - 14);
         return;
       }
       c.fillText('EXAMPLE 11.40 · Δ 165°, 25 km/h, steep terrain', 18, 24);

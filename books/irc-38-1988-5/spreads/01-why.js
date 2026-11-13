@@ -36,7 +36,7 @@ export default {
 
     const card = textPlane({ w: 9.8, h: 7, px: 46, draw: (c, W, H) => {
       cardBg(c, W, H); c.textAlign = 'left'; c.fillStyle = '#24557a'; c.font = `700 16px ${F}`;
-      c.fillText(`LATERAL ACCELERATION · ${st.V} km/h · R ${R()} m · ${st.spiral ? `spiral Ls ${Ls} m` : 'circular only'}`, 18, 26);
+      c.fillText(`LATERAL PUSH · ${st.V} km/h · R ${R()} m · ${st.spiral ? `spiral ${Ls} m` : 'no spiral'}`, 18, 26);
       if (!path) return;
       const s0 = pe1 - 60, s1 = pe1 + Math.max(Ls, v() * STEER) + 60, X = s => 18 + (s - s0) / (s1 - s0) * (W - 36), y0 = 42, h = 100, aMax = v() * v() / Rp * 1.25, Y = a => y0 + h - a / aMax * h;
       c.strokeStyle = 'rgba(0,0,0,.18)'; c.lineWidth = 1; c.strokeRect(18, y0, W - 36, h);
@@ -107,9 +107,9 @@ export default {
         { title: 'Circular only', show: L, text: 'The road goes straight into the circle. The push jumps; the driver eases in anyway, and the car (red) cuts inside its lane.',
           check: { q: 'Entering a circular curve straight from a tangent…', options: ['applies the centrifugal force suddenly', 'needs no steering', 'removes the need for superelevation'], answer: 0, why: 'The centrifugal force is applied suddenly, causing a shock and sway; drivers steer gradually and cut into the adjacent lane (cl. 7.1.1).' } },
         { title: 'With transition', show: L, text: 'Now a spiral: the radius falls gradually from infinity to R, the push grows steadily, and the car keeps its lane.',
-          check: { q: 'Which way lets vehicles keep the same speed on the curve as on the straight?', options: ['a radius changing gradually from infinity to the design radius', 'slowing down before the curve', 'a path of larger radius across the lanes'], answer: 0, why: 'Reducing speed needs foreknowledge and hurts free flow; a larger path encroaches the inner lane. Only a gradual change of radius keeps the speed (cl. 7.1.2).' } },
+          check: { q: 'Which way lets vehicles keep the same speed on the curve as on the straight?', options: ['a radius falling gradually from infinity', 'slowing down before the curve', 'a path of larger radius across the lanes'], answer: 0, why: 'Reducing speed needs foreknowledge and hurts free flow; a larger path encroaches the inner lane. Only a gradual change of radius keeps the speed (cl. 7.1.2).' } },
         { title: 'And also', show: L, text: 'The spiral is also where superelevation is built up, and it takes away the kink a circle makes against a straight.',
-          check: { q: 'Besides comfort, transitions…', options: ['let superelevation be applied gradually and remove the optical bulge', 'make the curve shorter', 'remove the need for widening'], answer: 0, why: 'They permit gradual application of superelevation and improve appearance: a circular curve joining a straight gives an illusion of a bulge (cl. 7.1.3).' } },
+          check: { q: 'Besides comfort, transitions…', options: ['gradual superelevation, no optical bulge', 'make the curve shorter', 'remove the need for widening'], answer: 0, why: 'They permit gradual application of superelevation and improve appearance: a circular curve joining a straight gives an illusion of a bulge (cl. 7.1.3).' } },
       ],
     });
     guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);

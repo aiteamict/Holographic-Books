@@ -37,7 +37,7 @@ export default {
 
     const card = textPlane({ w: 9.8, h: 7, px: 46, draw: (c, W, H) => {
       cardBg(c, W, H); c.textAlign = 'left'; c.fillStyle = '#24557a'; c.font = `700 16px ${F}`;
-      c.fillText(`CURVATURE ALONG THE CURVE · out to a polar deflection of ${st.deg}°`, 18, 26);
+      c.fillText(`CURVATURE · out to a polar deflection of ${st.deg}°`, 18, 26);
       const smax = Math.max(...curves.map(cv => cv.at(-1).s)) / A, kmax = Math.max(...curves.map(cv => Math.max(...cv.map(p => p.k)))) * A * 1.1;
       const y0 = 42, h = 110, X = s => 18 + s / A / smax * (W - 36), Y = k => y0 + h - k * A / kmax * h;
       c.strokeStyle = 'rgba(0,0,0,.18)'; c.lineWidth = 1; c.strokeRect(18, y0, W - 36, h);

@@ -6,7 +6,7 @@ export const BOOK = {
   home: { href: '../irc-38-1988/', label: 'All IRC 38 chapters' },
   foot: 'IRC : 38-1988 · Design of Horizontal Curves · 7 Compound, Reverse and Hair-pin',
   cover: {
-    title: ['Compound, Reverse', 'and Hair-pin'],
+    title: ['Compound,', 'Reverse and', 'Hair-pin'],
     kicker: 'I R C : 3 8 - 1 9 8 8   ·   C H A P T E R  7  O F  8',
     foot: ['GUIDELINES FOR DESIGN OF HORIZONTAL CURVES FOR HIGHWAYS AND DESIGN TABLES', 'Indian Roads Congress · sections 8–10'],
     colors: { board: ['#c3cfdb', '#97a9ba'], ink: '#14202b', cyan: '#24557a', dim: '#3b4d5e', frame: 'rgba(20,32,43,.25)' },
@@ -27,12 +27,11 @@ export const COVER = {
     side: 'left', kicker: 'About this chapter · Sources', title: 'Curves that meet curves.',
     lede: 'Chapter 7 of 8 in the IRC : 38 series: sections 8 to 10 of the standard.',
     paras: [
-      '**Source.** IRC : 38-1988, Guidelines for Design of Horizontal Curves for Highways and Design Tables (First Revision), Indian Roads Congress, 1989. Sections 8–10, Figs. 25, 50–54, Examples 11.33–11.40.',
-      '**Coverage.** cl. 8.1–8.2: spread 1 · cl. 8.3–8.4, Fig. 50, Ex. 11.33: spread 2 · cl. 8.6 method 1, Ex. 11.34: spread 3 · cl. 8.6 methods 2–3, Ex. 11.35–11.36: spread 4 · Ex. 11.37: spread 5 · cl. 9.1, Figs. 51–53, Ex. 11.38–11.39: spread 6 · cl. 10.1–10.7, Fig. 54, Ex. 11.40: spread 7.',
-      '**Misprints, section 8 (checked on the page).** cl. 8.2 prints “C = 250 m = 80/(75 + 80)”. Ex. 11.33: Pa = 0.00574 × 55 printed 0.03156 (0.3157); it carries into AB 0.9218 (0.638), AI, BI, T1 33.252 (31.49) and T2, which is also printed negative (−21.855 for +21.86; 23.63 with the right Pa). Ex. 11.34: offsets built on the wrong Pa, and a 60 m column beyond the 55 m spiral. Ex. 11.35 point 2: 22² = 489, 0.0210056, 1.071487 (484, 0.210056, 1.260536). Ex. 11.37: “3.3/55” for 33/55; last row 1.8514599 (1.8514559).',
-      '**Misprints, sections 9–10.** Ex. 11.38: FC Es 9.874 (9.094, as Fig. 52); Fig. 52 dimensions 62.820 and 73.219 (62.825, 73.319). Ex. 11.39: tan⁻¹ 0.27227 (0.272727); cos Δ2 0.9667612 (0.970267: a metre dropped from the sum); 0°26′18″ (0°26′28″ by its own subtraction); the straight measured with O1O2 tan Δ2 = 75.386, giving 25.448 m, where the common tangent is O1O2 sin Δ2: exact 19.05 m. Ex. 11.40: Table 11.19 coefficient 0.9287 (46.002 m is right, for 0.9207); 0.486 × 49.964 printed 24.312 (24.28); Fig. 54 centre-line circular curve 11.32 m (13.47).',
+      '**Source.** IRC : 38-1988, Indian Roads Congress, 1989. Sections 8–10, Figs. 25, 50–54, Examples 11.33–11.40.',
+      '**Coverage.** Spread 1: cl. 8.1–8.2 · 2–5: cl. 8.3–8.6, Ex. 11.33–11.37 · 6: cl. 9.1, Ex. 11.38–11.39 · 7: cl. 10.1–10.7, Ex. 11.40.',
+      '**Misprints, checked on the page** (printed → right). cl. 8.2 “C = 250 m =”. 11.33 Pa 0.03156 → 0.3157, carried into AB, AI, BI, T1 33.252 → 31.49 and T2 −21.855 → 23.63. 11.34 offsets on the wrong Pa; a 60 m column. 11.35 point 2: 489, 0.0210056, 1.071487 → 484, 0.210056, 1.260536. 11.37 “3.3/55” → 33/55. 11.38 FC Es 9.874 → 9.094; Fig. 52 62.820, 73.219 → 62.825, 73.319. 11.39 0.27227 → 0.272727; cos Δ2 0.9667612 → 0.970267; 0°26′18″ → 0°26′28″; O1O2 tan Δ2 for the common tangent (sin): straight 25.448 → 19.05 m. 11.40 coefficient 0.9287 → 0.9207; 24.312 → 24.28; Fig. 54 arc 11.32 → 13.47 m.',
     ],
-    notes: ['Not misprints but method: Ex. 11.37 takes the radius as varying with length (384 m at point 6); on a spiral the curvature does (316 m). Ex. 11.38 subtracts only K from the 75 m straight; each shift also lengthens its tangent by s tan Δ/2 (24.545 m left). Nothing here is a substitute for the standard itself.'],
+    notes: ['Method, not misprint: 11.37 lets the radius vary with length (384 m at point 6; the spiral gives 316 m); 11.38 takes only K off the straight (24.545 m left, not 25.062). Not a substitute for the standard.'],
   },
 };
 

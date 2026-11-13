@@ -68,7 +68,7 @@ export default {
     const card = textPlane({ w: 9.8, h: 7.2, px: 46, draw: (c, W, H) => {
       cardBg(c, W, H); c.textAlign = 'left'; c.fillStyle = '#24557a'; c.font = `700 15px ${F}`;
       const head = { E: 'FIG. 51 · THE EXISTING REVERSE CURVE', I: 'EXAMPLE 11.38 · CASE I: THE CURVES MOVE', II: 'EXAMPLE 11.39 · CASE II: THE CURVES STAY' }[st.m];
-      c.fillText(head, 18, 24); c.fillStyle = '#5c6168'; c.font = `500 12px ${F}`; c.fillText('150 m, 30°; 75 m straight; 125 m back, 40°. 50 km/h, plain: Ls 45 and 55 m (Table 9).', 18, 42);
+      c.fillText(head, 18, 24); c.fillStyle = '#5c6168'; c.font = `500 12px ${F}`; c.fillText('150 m 30°, 75 m straight, 125 m back 40°; Ls 45 and 55 m (Table 9).', 18, 42);
       c.font = `600 11px ${F}`; c.textAlign = 'right'; c.fillText('BOOK', W - 150, 62); c.fillText('COMPUTED', W - 30, 62); c.textAlign = 'left';
       const rows = st.m === 'E' ? [
         ['150 tan 15°; 150 (sec 15° − 1)', '40.192; 5.292', `${(R1 * Math.tan(D1 / 2)).toFixed(3)}; ${(R1 * (1 / Math.cos(D1 / 2) - 1)).toFixed(3)}`],

@@ -64,8 +64,8 @@ export function widenSpread(mode) {
           c.font = `600 12px ${F}`; c.fillStyle = '#14202b'; c.fillText('T.P.', X(e1) - 12, y0 + h + 14); if (st.trans) c.fillText('C.T.', X(e1 + 30) - 12, y0 + h + 14);
           c.fillStyle = '#b0532a'; c.fillText('outer edge, beyond 3.5 m', 22, y0 + 13); c.fillStyle = '#1d5f87'; c.fillText('inner edge, beyond 3.5 m', 22, y0 + h - 5);
           // Table 11.10: distance from T.P., extra width, half-widths for each case
-          const top = 150, cols = [18, 96, 150, 212, 380]; c.font = `600 12px ${F}`; c.fillStyle = '#5c6168';
-          ['From T.P.', 'Extra', 'Width', 'Both sides: each half', 'Inside: outer · inner'].forEach((t, i) => c.fillText(t, cols[i], top));
+          const top = 150, cols = [18, 90, 140, 196, 352]; c.font = `600 12px ${F}`; c.fillStyle = '#5c6168';
+          ['From T.P.', 'Extra', 'Width', 'Both sides: each half', 'Inside: out · in'].forEach((t, i) => c.fillText(t, cols[i], top));
           const here = Math.round((st.carD + off - e1) / 5);
           for (let i = 0; i <= 6; i++) {
             const y = top + 18 + i * 17, w = i * .1, on = st.trans && here === i;

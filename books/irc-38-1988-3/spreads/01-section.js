@@ -87,7 +87,7 @@ export function sectionSpread(mode) {
             const y = 70 + i * 60, ok = f <= FMAX; c.fillStyle = '#14202b'; c.font = `600 17px ${F}`; c.fillText(a, 18, y);
             c.fillStyle = ok ? '#1f7a45' : '#b3362b'; c.font = `700 17px ${F}`; c.fillText(`friction needed ${f.toFixed(3)} ${ok ? '✓ within 0.15' : '✗ over 0.15: skids'}`, 18, y + 26);
           });
-          c.fillStyle = '#5c6168'; c.font = `500 14px ${F}`; c.fillText('Less sideways force on the tyres also means fewer pot-holes (cl. 5.1).', 18, H - 18);
+          c.fillStyle = '#5c6168'; c.font = `500 14px ${F}`; c.fillText('Less sideways force on the tyres, fewer pot-holes (cl. 5.1).', 18, H - 18);
         } else if (mode === 'amount') {
           const V = st.V, maxR = 600;
           chart(`e against R at ${V} km/h · capped at 0.07`, [[r => Math.min(.07, V * V / (127 * r)), '#c23b2f', [6, 4]], [r => Math.min(.07, .32 * V * V / (127 * r)), '#8b959e', [3, 4]], [r => eDesign(V, r), '#24557a']], 18, 46, Wc - 36, 120, maxR, .08);
@@ -108,7 +108,7 @@ export function sectionSpread(mode) {
           rows.forEach(([a, b], i) => { const y = 62 + i * 34; c.fillStyle = '#5c6168'; c.font = `500 16px ${F}`; c.fillText(a, 18, y); c.fillStyle = '#14202b'; c.font = `700 17px ${F}`; c.textAlign = 'right'; c.fillText(b, Wc - 18, y); c.textAlign = 'left'; });
           const f = B() + camber();   // the outer half slopes outward by the camber
           c.fillStyle = keep ? '#1f7a45' : '#24557a'; c.font = `700 16px ${F}`; c.fillText(keep ? `Camber kept: outer half −${cp} %, friction needed ${f.toFixed(3)}` : `Superelevate: e = ${eOf().toFixed(3)}`, 18, H - 44);
-          c.fillStyle = '#5c6168'; c.font = `500 13px ${F}`; c.fillText('cl. 5.3.3: R 1500 m, camber 0.03, 100 km/h → 0.052 + 0.03 = 0.082, well within 0.15', 18, H - 18);
+          c.fillStyle = '#5c6168'; c.font = `500 13px ${F}`; c.fillText('cl. 5.3.3: R 1500 m, camber 0.03, 100 km/h → f = 0.082, within 0.15', 18, H - 18);
         }
       } });
       card.position.set(5.1, 2.7, 10.6); card.rotation.x = -.6; group.add(card);

@@ -96,7 +96,7 @@ export function compoundSpread(mode) {
           geometry: '0.00574 × 55 = 0.3157, not 0.03156: AB, AI, BI, T1, T2 all follow it, and T2 is printed negative. Exact: I is where the tangents at C.S.1 and C.S.2 meet.',
           offsets: 'Pa/2 at the middle, Pa/2 × (x / ½La)³ elsewhere, in from the 600 m curve and out from the 240 m one. The book’s values use the wrong Pa (and a 60 m column beyond the spiral).',
           deflect: st.five ? 'Circular deflection for 600 m plus L² × θa / 3La². Point 2 prints 22² = 489 and 0.0210056 for 484 and 0.210056.' : 'Circular deflection for 600 m plus Table 14’s i²/300 × θa: the book’s method agrees with the exact spiral to 0.001°.',
-          station: `At point 6 the book takes the radius as varying with length: 600 − (33/55)(600 − 240) = 384 m (printed 3.3/55). On a spiral the curvature varies: R = ${R6.toFixed(0)} m, so the forward deflections are about a fifth larger; and the backsight angle at point 6 is not the one at C.S.1, as it would be on a circle.`,
+          station: `The book takes the radius as varying with length: 384 m at point 6 (printed 3.3/55). On a spiral the curvature varies: ${R6.toFixed(0)} m. Forward angles grow a fifth; the backsight differs too.`,
         }[mode];
         c.fillStyle = '#5c6168'; c.font = `500 12px ${F}`; let y = H - 44, ln = '';
         for (const w of note.split(' ')) { const t = ln ? ln + ' ' + w : w; if (c.measureText(t).width > W - 36) { c.fillText(ln, 18, y); y += 15; ln = w; } else ln = t; }

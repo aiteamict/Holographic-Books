@@ -28,8 +28,16 @@ export function makeGuide(ctx, { steps, anchor = [0, 14, 0], w = 11, h = 4.8, ro
         c.fillStyle = hit ? (ok ? 'rgba(47,143,85,.28)' : 'rgba(194,59,47,.28)') : 'rgba(29,95,135,.12)';
         c.strokeStyle = hit ? (ok ? '#1f7a45' : '#b3362b') : 'rgba(29,95,135,.55)'; c.lineWidth = 1.5;
         c.beginPath(); c.roundRect(bx, by, bw, bh, 9); c.fill(); c.stroke();
-        let fs = 18; c.font = `600 ${fs}px ${F}`; while (c.measureText(o).width > bw - 14 && fs > 11) { fs--; c.font = `600 ${fs}px ${F}`; }   // long options shrink to fit
-        c.fillStyle = '#1f2328'; c.textAlign = 'center'; c.fillText(o, bx + bw / 2, by + 25); c.textAlign = 'left';
+        c.fillStyle = '#1f2328'; c.textAlign = 'center';
+        let fs = 18; c.font = `600 ${fs}px ${F}`; while (c.measureText(o).width > bw - 14 && fs > 13) { fs--; c.font = `600 ${fs}px ${F}`; }   // long options shrink to fit
+        if (c.measureText(o).width <= bw - 14) c.fillText(o, bx + bw / 2, by + 25);
+        else {   // still too long: two balanced lines, shrinking until both fit
+          const words = o.split(' '); let best = [o, ''], bestW = Infinity;
+          for (let j = 1; j < words.length; j++) { const a = words.slice(0, j).join(' '), b = words.slice(j).join(' '), wmax = Math.max(c.measureText(a).width, c.measureText(b).width); if (wmax < bestW) { bestW = wmax; best = [a, b]; } }
+          fs = 14; c.font = `600 ${fs}px ${F}`; while (Math.max(...best.map(t => c.measureText(t).width)) > bw - 12 && fs > 10) { fs--; c.font = `600 ${fs}px ${F}`; }
+          c.fillText(best[0], bx + bw / 2, by + 16); c.fillText(best[1], bx + bw / 2, by + 17 + fs);
+        }
+        c.textAlign = 'left';
         boxes.push({ x0: bx / Wc, x1: (bx + bw) / Wc, y0: 1 - (by + bh) / Hc, y1: 1 - by / Hc, k });   // uv space (v up)
       });
     }

@@ -87,7 +87,7 @@ export default {
         { title: 'Approximately', show: L, text: 'Compare the columns: s ≈ Ls²/24Rc, K ≈ Ls/2, and the spiral passes through the middle of the shift.',
           check: { q: 'For small deviations the shift is…', options: ['bisected by the transition', 'equal to the transition length', 'zero'], answer: 0, why: 'Below about 10° the shift is bisected by the transition, and K is about half the curve length (cl. 7.5.6).' } },
         { title: 'In the field', show: L, text: 'Because the spiral leaves its own circle as it left the tangent, the surveyor can move the instrument along it.',
-          check: { q: 'Why can the instrument be shifted along a spiral?', options: ['it departs from its osculating circle at the same rate as from the tangent at its start', 'the spiral is a circle', 'its chords are all equal'], answer: 0, why: 'The spiral departs from the osculating circle at any point at the same rate as from the tangent at the start, so the instrument can be shifted (cl. 7.5.5).' } },
+          check: { q: 'Why can the instrument be shifted along a spiral?', options: ['it leaves its circle as it left the tangent', 'the spiral is a circle', 'its chords are all equal'], answer: 0, why: 'The spiral departs from the osculating circle at any point at the same rate as from the tangent at the start, so the instrument can be shifted (cl. 7.5.5).' } },
       ],
     });
     guide.card.rotation.x = -.6; group.add(guide.card); api.targets.push(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);

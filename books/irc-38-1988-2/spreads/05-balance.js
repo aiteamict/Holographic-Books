@@ -44,8 +44,8 @@ export default {
       c.fillStyle = '#24557a'; c.font = `700 16px ${F}`; c.fillText(`B = V²/127R = e + f · ${st.V} km/h on R ${st.R} m`, 18, 26);
       const rows = [['Centrifugal ratio B = V²/127R', B().toFixed(3)], ['Superelevation e (tilt)', st.e.toFixed(2)], ['Friction needed f = B − e', fNeed().toFixed(3)], ['Friction allowed: 0.2 ÷ 1⅓ (cl. 4.2)', FMAX.toFixed(2)]];
       rows.forEach(([a, b], i) => { const y = 62 + i * 36; c.fillStyle = '#5c6168'; c.font = `500 16px ${F}`; c.fillText(a, 18, y); c.fillStyle = i === 2 ? (ok ? '#1f7a45' : '#b3362b') : '#14202b'; c.font = `700 19px ${F}`; c.textAlign = 'right'; c.fillText(b, W - 18, y); c.textAlign = 'left'; });
-      c.fillStyle = ok ? '#1f7a45' : '#b3362b'; c.font = `700 17px ${F}`; c.fillText(ok ? (fNeed() < 0 ? '✓ holds: the tilt alone is more than enough' : '✓ holds: friction and tilt share the push') : '✗ needs more friction than the road can give: slides off', 18, H - 44);
-      c.fillStyle = '#5c6168'; c.font = `500 13px ${F}`; c.fillText('e at most 0.07; 0.10 in hills without snow (cl. 4.3). Tilt drawn 3× steeper.', 18, H - 18);
+      c.fillStyle = ok ? '#1f7a45' : '#b3362b'; c.font = `700 17px ${F}`; c.fillText(ok ? (fNeed() < 0 ? '✓ holds: the tilt alone is more than enough' : '✓ holds: friction and tilt share the push') : '✗ more friction than the road gives: slides', 18, H - 44);
+      c.fillStyle = '#5c6168'; c.font = `500 13px ${F}`; c.fillText('e at most 0.07; 0.10 in hills without snow (cl. 4.3). Tilt drawn 3×.', 18, H - 18);
     } });
     card.position.set(5.1, 2.6, 10.6); card.rotation.x = -.6; group.add(card);
 

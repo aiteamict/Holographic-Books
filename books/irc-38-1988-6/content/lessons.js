@@ -27,12 +27,11 @@ export const COVER = {
     side: 'left', kicker: 'About this chapter · Sources', title: 'Pegs in the ground.',
     lede: 'Chapter 6 of 8 in the IRC : 38 series: sections 7.8 to 7.10 of the standard.',
     paras: [
-      '**Source.** IRC : 38-1988, Guidelines for Design of Horizontal Curves for Highways and Design Tables (First Revision), Indian Roads Congress, 1989. Sections 7.8–7.10, Tables 11, 12 and 14, Figs. 21–24 and 30–42, Examples 11.17–11.28.',
-      '**Coverage.** cl. 7.8.1–7.8.2, 7.9.1 (a): spread 1 · cl. 7.8.4, 7.9.1 (b): spread 2 · cl. 7.8.3, 7.9.2–7.9.3: spread 3 · cl. 7.8.5–7.8.7, 7.9.4–7.9.6: spread 4 · cl. 7.5.5, 7.9.4: spread 5 · cl. 7.10.1: spread 6 · cl. 7.10.2–7.10.3, Figs. 21–24: spread 7 · Examples 11.17–11.28: spreads 1–8.',
-      '**Misprints in the set-out examples, checked on the page** (printed, then right). 11.18 chord P.C.–C.T. 27.59 m (27.47). 11.19 Table 11.5 point 8 coefficient 0.0469 and Y 2.1963 m (0.0499, 2.330); point 9 Y 3.236 m (3.326, as in the text). 11.20 Table 11.6 ¼-point X 19.536 m (14.536). 11.22 Fig. 35 BA8 3°51′29.6″ (2°51′29.6″). 11.23 Table 11.8 points 5, 3, 2: 4°5′31″, 6°14′49″, 6°9′3″ (4°50′31″, 6°14′11″, 6°49′3″); T.P. 7°44′1″ uses θs 11.6° where the rest uses 11.62° (7°44′49″). 11.24 point 7 coefficient 0.0663 (0.0633, giving 0°44′8″, not 0°46′13″); Table 14 column (9) prints 0.0533 for point 7 and 0.0367 for point 5 (0.0633, 0.0567).',
-      '**Misprints in sections 7.10 and the old-curve examples.** cl. 7.10.2 “shifted inward by 7.367 m” (1.567, the shift in the same sentence). 11.25 Ts for R 90 m, Ls 60 m 18.626 m (78.626); 83.870 m (83.876); “Ls = 100 m along BA” where the working uses 80 m; 93.7435 − 0.7797 = 92.9692 (92.9638). 11.27 Fig. 41 remaining angle 27.746° (24.746°). 11.28 the “+ 3.93” term and 23.395 (23.348; the result 0.93392 is right).',
+      '**Source.** IRC : 38-1988, Indian Roads Congress, 1989. Sections 7.8–7.10, Tables 11, 12, 14, Figs. 21–24, 30–42, Examples 11.17–11.28.',
+      '**Coverage.** Spreads 1–5: cl. 7.8–7.9, Ex. 11.17–11.24 · 6: cl. 7.10.1, Ex. 11.25 · 7: cl. 7.10.2–7.10.3, Figs. 21–24, Ex. 11.26–11.28 · 8: worked examples.',
+      '**Misprints, checked on the page** (printed → right). 11.18 chord 27.59 → 27.47 m. 11.19 Table 11.5 point 8: 0.0469, 2.1963 → 0.0499, 2.330; point 9: 3.236 → 3.326. 11.20 ¼-point X 19.536 → 14.536. 11.22 Fig. 35 BA8 3°51′ → 2°51′. 11.23 points 5, 3, 2 (4°5′, 6°14′49″, 6°9′ → 4°50′, 6°14′11″, 6°49′); T.P. uses θs 11.6° for 11.62°. 11.24 point 7: 0.0663 → 0.0633; Table 14 col. 9: 0.0533, 0.0367 → 0.0633, 0.0567. cl. 7.10.2: 7.367 → 1.567 m. 11.25: 18.626 → 78.626; 83.870 → 83.876; Ls 100 → 80 m; 92.9692 → 92.9638. 11.27 Fig. 41: 27.746° → 24.746°. 11.28: “+ 3.93”, 23.395 → 23.348.',
     ],
-    notes: ['The computed values on each card come from the exact spiral; the book reads rounded table values, so the last digit can differ. Nothing here is a substitute for the standard itself.'],
+    notes: ['Computed values come from the exact spiral. Nothing here is a substitute for the standard itself.'],
   },
 };
 

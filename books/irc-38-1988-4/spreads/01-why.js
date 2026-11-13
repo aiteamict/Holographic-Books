@@ -43,7 +43,7 @@ export default {
       const rows = [['Vehicle width', `${v.w.toFixed(2)} m`], ['Width swept on the curve', done ? `${(sim.rOut - sim.rIn).toFixed(2)} m` : '…'], ['Extra width needed', done ? `${(sim.rOut - sim.rIn - v.w).toFixed(2)} m` : '…'], ['Fig. 14: Σ l² / 2R', `${sum(v).toFixed(2)} m`], ['Rear wheels over the centre line', done ? (over > .02 ? `${over.toFixed(2)} m` : 'no') : '…']];
       rows.forEach(([a, b], i) => { const y = 60 + i * 32; c.fillStyle = '#5c6168'; c.font = `500 16px ${F}`; c.fillText(a, 18, y); c.fillStyle = i === 2 ? '#8a3f1c' : i === 4 && over > .02 ? '#b3362b' : '#14202b'; c.font = `700 18px ${F}`; c.textAlign = 'right'; c.fillText(b, W - 18, y); c.textAlign = 'left'; });
       c.fillStyle = '#5c6168'; c.font = `500 13px ${F}`;
-      c.fillText('The rear wheels do not follow the front ones (cl. 6.1.1). Red: outer front', 18, H - 38);
+      c.fillText('Rear wheels do not follow the front ones (cl. 6.1.1). Red: outer front', 18, H - 38);
       c.fillText('corner. Blue: inner rear wheel. Pursuit model; true scale.', 18, H - 18);
     } });
     card.position.set(5.2, 2.6, 10.6); card.rotation.x = -.6; group.add(card);
@@ -105,7 +105,7 @@ export default {
         { title: 'Truck', show: labels, text: 'A truck takes a 30 m hill bend in the left lane. Red traces its outer front corner, blue its inner rear wheel.',
           check: { q: 'On a curve without superelevation the rear wheels track…', options: ['inside the front wheels', 'outside the front wheels', 'exactly in the front wheel tracks'], answer: 0, why: 'On curves without superelevation the rear wheels track inside the front wheels; on superelevated curves it depends on the speed (cl. 6.1.1).' } },
         { title: 'Truck-trailer', show: labels, text: 'Now the truck-trailer. The trailer cuts in much harder: its rear wheels cross the centre line into the other lane.',
-          check: { q: 'Besides off-tracking, why else are curves widened (cl. 6.1.2)?', options: ['drivers keep greater clearances when passing on curves', 'to drain the pavement', 'to slow the traffic'], answer: 0, why: 'Drivers find it hard to keep to the centre of the lane and keep greater clearances when passing on curves; the front overhang reduces the clearance (cl. 6.1.2).' } },
+          check: { q: 'Besides off-tracking, why else are curves widened (cl. 6.1.2)?', options: ['drivers keep wider clearances on curves', 'to drain the pavement', 'to slow the traffic'], answer: 0, why: 'Drivers find it hard to keep to the centre of the lane and keep greater clearances when passing on curves; the front overhang reduces the clearance (cl. 6.1.2).' } },
         { title: 'The rule', show: labels, text: 'The extra width swept is close to l²/2R for each wheel base l: the mechanical widening of Fig. 14, on the next spread.',
           check: { q: 'At speeds above the balanced speed the trailer of a truck-trailer…', options: ['may track farther out', 'always tracks inside', 'follows the tractor exactly'], answer: 0, why: 'The trailer tracks inside at balanced speeds and farther out at higher speeds; rough pavements and jerks whip it out of the lane (cl. 6.1.3).' } },
       ],

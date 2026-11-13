@@ -105,11 +105,11 @@ export function setoutSpread(mode) {
         });
         const yb = y0 + 16 + rows.length * rh + 6; c.font = `500 12px ${F}`; c.fillStyle = '#5c6168';
         const note = {
-          tangent: `Check: L.C. ${Math.hypot(...pt(1)).toFixed(3)} m (book 54.936), L.T. ${LT().toFixed(3)} m (36.717), S.T. ${ST().toFixed(3)} m (18.379).`,
+          tangent: `Check: L.C. ${Math.hypot(...pt(1)).toFixed(3)}, L.T. ${LT().toFixed(3)}, S.T. ${ST().toFixed(3)} m: as the book.`,
           parallel: `K ${K().toFixed(3)} m, s ${sh().toFixed(3)} m. Chord P.C.–C.T. ${(2 * C.R * Math.sin(ths() / 2)).toFixed(2)} m; the book prints 27.59.`,
           quarter: 'Yc/64, Yc/8, 27Yc/64 at Xc/4, Xc/2, 3Xc/4. ¼-point X printed 19.536 for 14.536.',
-          polar: st.odd ? 'θs × i²/300 (Table 14). Exact differs by seconds at the far end: below 20°, no correction.' : 'From Table 11. Check: from L.T. on the tangent, θs must sight C.T. at S.T.',
-          station: st.at6 ? 'Sight T.P. at 0.24 θs, zero, transit, go on. Point 7: 0.0633, not 0.0663.' : 'Turn 0.6667 θs to sight T.P.: the short tangent. Points 5, 3, 2 are misprinted; T.P. uses 11.6° for 11.62°.',
+          polar: st.odd ? 'θs × i²/300 (Table 14); below 20° no correction (cl. 7.8.7).' : 'From Table 11. Check: from L.T. on the tangent, θs must sight C.T. at S.T.',
+          station: st.at6 ? 'Sight T.P. at 0.24 θs, zero, transit, go on. Point 7: 0.0633, not 0.0663.' : 'Sight T.P. at 0.6667 θs. Rows 5, 3, 2 misprinted; T.P. uses 11.6°.',
         }[mode];
         c.fillText(note, 18, Math.min(yb, H - 26));
         c.fillText('Red: misprint confirmed on the page. Offsets drawn 5× true on the model.', 18, H - 9);
@@ -195,7 +195,7 @@ export function setoutSpread(mode) {
           { title: 'Three pegs', show: L, text: 'Only the quarter points and C.T. are pegged, with offsets Yc/64, Yc/8 and 27Yc/64. Blue is the true spiral.',
             check: { q: 'At the half point the offset is…', options: ['Yc / 8', 'Yc / 2', 'Yc / 4'], answer: 0, why: 'Offsets vary nearly as the cube of the distance: (½)³ = 1/8 (cl. 7.9.3).' } },
           { title: 'When to use it', show: L, text: 'The pegs sit a little off the true spiral: good enough for earthwork, not for the pavement.',
-            check: { q: 'Quarter-point offsets suit…', options: ['work where accuracy is not essential, such as embankments', 'setting the pavement edges', 'every case'], answer: 0, why: 'Offsets to quarter points give fewer points, for work where accuracy is not essential, such as embankments (cl. 7.8.3).' } },
+            check: { q: 'Quarter-point offsets suit…', options: ['rough work such as embankments', 'setting the pavement edges', 'every case'], answer: 0, why: 'Offsets to quarter points give fewer points, for work where accuracy is not essential, such as embankments (cl. 7.8.3).' } },
         ],
         polar: [
           { title: 'Angles', show: L, text: 'At T.P. the theodolite sights the apex at zero and turns α1; the chain swings one chord onto that line. And so on to C.T.',
@@ -205,7 +205,7 @@ export function setoutSpread(mode) {
         ],
         station: [
           { title: 'From C.T.', show: L, text: 'Set at C.T., the theodolite turns 0.6667 θs to sight T.P.: that is the short tangent. Then it ranges the points back to T.P.',
-            check: { q: 'Why can the instrument be set on the spiral itself?', options: ['the spiral leaves its osculating circle as it leaves the tangent at its start', 'the spiral is a circle', 'all chords subtend equal angles'], answer: 0, why: 'cl. 7.5.5: the departure from the osculating circle at any point equals that from the tangent at the start.' } },
+            check: { q: 'Why can the instrument be set on the spiral itself?', options: ['it leaves its circle as it left the tangent', 'the spiral is a circle', 'all chords subtend equal angles'], answer: 0, why: 'cl. 7.5.5: the departure from the osculating circle at any point equals that from the tangent at the start.' } },
           { title: 'From point 6', show: L, text: 'Point 7 is hidden from T.P. The instrument moves to point 6, sights T.P. at 0.24 θs, zeroes, transits and carries on.',
             check: { q: 'From point 6, back to T.P., the coefficient is…', options: ['0.24', '0.12', '0.36'], answer: 0, why: '(b − a)(2b + a)/3 with b = 0.6, a = 0: 0.6 × 1.2 / 3 = 0.24 (Table 14, Example 11.24).' } },
         ],

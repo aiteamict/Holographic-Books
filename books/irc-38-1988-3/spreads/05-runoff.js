@@ -71,7 +71,7 @@ export function runoffSpread(mode) {
           cx.fillStyle = '#24557a'; cx.fillText('superelevation e', 18, y0 + h + 34); cx.fillStyle = '#c23b2f'; cx.fillText('friction needed at the design speed (limit 0.15)', 150, y0 + h + 34);
           cx.fillStyle = '#14202b'; cx.font = `600 15px ${F}`;
           cx.fillText(st.kase === 'i' ? 'Case (i): e reaches 0.07 at B, where R = 0.06349 V²' : 'Case (ii): e reaches 0.07 at the end of the transition (adopted)', 18, H - 40);
-          cx.fillStyle = '#5c6168'; cx.font = `500 13px ${F}`; cx.fillText('Both need f = 0.15 at C; case (i) gives no definite advantage and is harder to set out (cl. 5.4.2).', 18, H - 16);
+          cx.fillStyle = '#5c6168'; cx.font = `500 13px ${F}`; cx.fillText('Both need f = 0.15 at C; case (i) is no better, and harder to set out.', 18, H - 16);
           return;
         }
         cx.fillText(ex ? 'EXAMPLE 11.1 · FIG. 26 · rotation about the centre line' : `FIG. 13 · EDGE PROFILES · rotation about the ${st.axis === 'centre' ? 'centre line' : st.axis + ' edge'}`, 18, 26);
@@ -89,8 +89,8 @@ export function runoffSpread(mode) {
         }
         const rate = st.Ls / ((e - c) * W0 / 2), need = st.hills ? 60 : 150, ok = rate >= need;   // edge against centre line over the transition
         cx.fillStyle = ok ? '#1f7a45' : '#b3362b'; cx.font = `700 16px ${F}`;
-        cx.fillText(`Edge rises against the centre line at 1 in ${rate.toFixed(0)} · limit 1 in ${need}: ${ok ? '✓' : '✗ too steep: lengthen Ls'}`, 18, H - 40);
-        cx.fillStyle = '#5c6168'; cx.font = `500 13px ${F}`; cx.fillText(st.axis === 'inner' ? 'About the inner edge: the centre and outer edge rise, raising the embankment.' : st.axis === 'outer' ? 'About the outer edge: the centre and inner edge drop.' : 'About the centre line: its level is unchanged; the inner edge drops, the outer rises.', 18, H - 16);
+        cx.fillText(`Edge rise 1 in ${rate.toFixed(0)} · limit 1 in ${need}: ${ok ? '✓' : '✗ too steep: longer Ls'}`, 18, H - 40);
+        cx.fillStyle = '#5c6168'; cx.font = `500 13px ${F}`; cx.fillText(st.axis === 'inner' ? 'About the inner edge: centre and outer edge rise; more embankment.' : st.axis === 'outer' ? 'About the outer edge: the centre and inner edge drop.' : 'About the centre line: level kept; inner edge drops, outer rises.', 18, H - 16);
       } });
       card.position.set(5.1, 2.8, 10.4); card.rotation.x = -.6; group.add(card);
 

@@ -95,7 +95,7 @@ export function lengthSpread(mode) {
           c.fillStyle = '#8a3f1c'; c.font = `600 15px ${F}`; c.fillText(p === 'NR' ? 'NR: no transition required at this radius.' : 'NA: this radius is below the minimum for the speed.', 18, yb);
           if (p === 'NR') { c.fillStyle = '#5c6168'; c.font = `500 13px ${F}`; c.fillText(`Centrifugal ratio V²/127R = ${(V * V / (127 * r)).toFixed(3)}: drivers make their own transition (cl. 7.4).`, 18, yb + 22); }
         }
-        c.fillStyle = '#5c6168'; c.font = `500 11px ${F}`; c.fillText('Table 9 gives at least 15 m; a few cells differ from the equations by 5 m, rounded by judgement.', 18, H - 12);
+        c.fillStyle = '#5c6168'; c.font = `500 11px ${F}`; c.fillText('Table 9 never goes below 15 m; some cells differ by 5 m (judgement).', 18, H - 12);
       } });
       card.position.set(5.1, 2.8, 10.4); card.rotation.x = -.6; group.add(card);
 

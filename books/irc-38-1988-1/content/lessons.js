@@ -33,7 +33,7 @@ export const COVER = {
       '**Coverage.** cl. 1.1–1.2: spread 1 · cl. 1.3, Fig. 1: spread 2 · def. 1–4, 9–11: spread 3 · def. 7, 12, 14, 17, 19, 23, 39, 40, Fig. 2: spread 4 · def. 13, Fig. 3: spread 5 · def. 5, 6, 8, 18, 30–36, 38: spread 6 · Examples 11.2–11.5: spreads 7–8. Def. 15, 16, 24, 26–28, 37 (friction, speed, weight) are taught in chapter 2; def. 20, 25 in chapter 3; def. 21, 22, 29 (widening) in chapter 4.',
       '**Misprints, checked by the book’s own arithmetic and the geometry.** Def. 30 names the X axis T.P.–P.T.; def. 31 and Fig. 2 measure it along T.P.–P.I., as this book does. Example 11.2 prints L.T. 95.48 m for **93.48 m**; Example 11.4 prints Ts 107.689 m for **117.689 m**.',
     ],
-    notes: ['The transition is drawn as the spiral (clothoid) of cl. 7.5. Terrain, buildings and vehicles in the holograms are illustrative; cars and the survey party are drawn two to four times larger than the road so they can be seen, and the crest of spread 2 is three times higher than true. Built with three.js. Nothing here is a substitute for the standard itself.'],
+    notes: ['The transition is drawn as the spiral (clothoid) of cl. 7.5. Terrain and buildings are illustrative; cars and the survey party are drawn larger than the road, the crest of spread 2 three times higher. Nothing here is a substitute for the standard itself.'],
   },
 };
 
