@@ -21,7 +21,7 @@ import { tagged } from './util.js';
  * @param cfg.coverMark (ctx2d, W, H) => draws the artwork on the cover board
  * @param cfg.coverHolo ({ THREE, holo }) => Group shown beside the closed book; set userData.up on a child to make it sway
  */
-export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false, phoneLayout = 1 }) {
+export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false, phoneLayout = 1, phoneZoom = false }) {
   const renderPage = s => rawPage({ foot: BOOK.foot, ...s });
   const canvas = document.getElementById('c');
   const stage = createStage(canvas);
@@ -57,6 +57,9 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // phone layout 2 (opt-in per book): the canvas ends where the panel begins, so the scene renders only what can be seen
   ui.setLayout(phoneLayout);
   const p2 = () => phoneLayout === 2 && ui.phone;
+  // the reader's view (pinch, two-finger drag, double-tap, both pages) comes with layout 2, or alone with phoneZoom
+  const zoomOn = () => ui.phone && (phoneLayout === 2 || phoneZoom);
+  ui.setZoom(phoneLayout !== 2 && phoneZoom);
   function layoutCanvas() {
     const s = canvas.style; let w = '', h = '';
     if (p2()) { const r = ui.$('mshell').getBoundingClientRect(), wide = innerWidth > innerHeight && innerHeight <= 520; w = wide ? Math.round(r.left) + 'px' : '100%'; h = wide ? '100%' : Math.round(r.top) + 'px'; }
@@ -113,13 +116,15 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   function moveCam(preset, dur = 1.5) {
     camT.from = { pos: bpos.clone(), look: look.clone() };
     const to = new THREE.Vector3(...preset.pos), at = new THREE.Vector3(...preset.look);
-    if (p2() && preset !== CAM.cover && !tour && vmode !== "model") {   // layout 2: one page, or both, square to the reader
+    if (zoomOn() && preset !== CAM.cover && !tour && vmode !== "model") {   // layout 2: one page, or both, square to the reader
       const both = vmode === "book", half = both ? PAGE_W + 1.2 : PAGE_W / 2 + .9, e = both ? 1.08 : 1.3, t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
       const dist = Math.max(half / (t * camera.aspect), (PAGE_H / 2 + 1) * Math.sin(e) / t) * 1.04;
       at.set(both ? 0 : -PAGE_W / 2, 0, 0); to.set(at.x, Math.sin(e) * dist, Math.cos(e) * dist);
       // then exactly: the page corners, and with both pages whatever of the hologram stands beyond them
       const y0 = holoRoot.position.y, xa = both ? -PAGE_W - .6 : -PAGE_W - .3, xb = both ? PAGE_W + .6 : .3, zh = PAGE_H / 2 + .6;
-      fitPortrait(both && preset.fit ? preset.fit : null, to, at, true, [[xa, zh], [xb, zh], [xa, -zh], [xb, -zh]].map(([x, z]) => new THREE.Vector3(x, y0, z)));
+      // without layout 2 the card and toolbar lie over the canvas: fit into what they leave free (sideways, the right-hand part)
+      const free = p2() ? null : innerWidth > innerHeight && innerHeight <= 520 ? [.02, .96, -.9, .9] : [-.94, .94, -.5, .88];
+      fitPortrait(both && preset.fit ? preset.fit : null, to, at, true, [[xa, zh], [xb, zh], [xa, -zh], [xb, -zh]].map(([x, z]) => new THREE.Vector3(x, y0, z)), free);
       camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur; return;
     }
     if (p2() && preset !== CAM.cover && !tour) {   // layout 2: look down steeply enough that the page's depth fills a tall canvas, then fit the hologram
@@ -161,7 +166,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   }, 250); });
   // upright phones: pan and pull back until everything the spread can show sits between the screen edges and above the
   // bottom bar. Measures the shown parts at full size (the group pops in from 0); hit meshes skipped.
-  function fitPortrait(group, to, at, whole = false, extra = []) {   // whole: the canvas is all the hologram's (layout 2), no bar to clear
+  function fitPortrait(group, to, at, whole = false, extra = [], area = null) {   // area: [x0, x1, y0, y1] of the screen (−1..1) left free by the panels   // whole: the canvas is all the hologram's (layout 2), no bar to clear
     const pts = [...extra], v = new THREE.Vector3(), s0 = group?.scale.clone(), vis = group?.visible;   // extra: world points that must also be in view (page corners)
     if (group) { group.scale.set(1, 1, 1); group.visible = true; group.updateMatrixWorld(true); }
     group?.traverseVisible(o => {                                         // hidden parts (labels, alternate insets) don't count
@@ -172,17 +177,17 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     });
     if (group) { group.scale.copy(s0); group.visible = vis; group.updateMatrixWorld(true); }
     if (!pts.length) return;
-    const cam = camera.clone(), X = whole ? .96 : .94, TOP = whole ? .93 : .9, BOT = whole ? -.95 : -.52;   // BOT clears the step peek and the control bar
+    const cam = camera.clone(), A = area || (whole ? [-.96, .96, -.95, .93] : [-.94, .94, -.52, .9]);   // by default the bottom clears the step peek and the control bar
     for (let n = 0; n < (whole ? 7 : 4); n++) {
       cam.position.copy(to); cam.lookAt(at); cam.updateMatrixWorld();
       let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
       for (const p of pts) { v.copy(p).project(cam); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
-      if (n === 0 && !whole && x0 >= -X && x1 <= X && y0 >= BOT && y1 <= TOP) return;   // already fits: keep the authored framing
+      if (n === 0 && !whole && x0 >= A[0] && x1 <= A[1] && y0 >= A[2] && y1 <= A[3]) return;   // already fits: keep the authored framing
       const d = to.distanceTo(at), hy = d * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)), hx = hy * cam.aspect;
       const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
-      const pan = right.multiplyScalar((x0 + x1) / 2 * hx).add(up.multiplyScalar(((y0 + y1) / 2 - (TOP + BOT) / 2) * hy));
+      const pan = right.multiplyScalar(((x0 + x1) / 2 - (A[0] + A[1]) / 2) * hx).add(up.multiplyScalar(((y0 + y1) / 2 - (A[2] + A[3]) / 2) * hy));
       to.add(pan); at.add(pan);
-      const k = Math.max(whole ? .2 : 1, (x1 - x0) / (2 * X), (y1 - y0) / (TOP - BOT));   // layout 2 also moves in until the hologram fills the canvas
+      const k = Math.max(whole ? .2 : 1, (x1 - x0) / (A[1] - A[0]), (y1 - y0) / (A[3] - A[2]));   // layout 2 also moves in until the hologram fills the canvas
       to.sub(at).multiplyScalar(k).add(at);
     }
   }
@@ -213,7 +218,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   function goTo(k) {
     k = THREE.MathUtils.clamp(k, 0, N + 1); if (k === cur) return;     // N + 1 is the back page: text only
     unsharpen(); view.s = 1; view.d.set(0, 0, 0);
-    vmode = k > N ? "left" : innerWidth > innerHeight ? "book" : "model";   // the back page is text; a phone held sideways has room for both pages
+    vmode = !p2() ? "model" : k > N ? "left" : innerWidth > innerHeight ? "book" : "model";   // the back page is text; a phone held sideways has room for both pages
     ui.setViewLabel(vmode === "model" ? "Both pages" : "Model");
     const prev = cur; cur = k; endTour(true);
     if (drag) { drag.i.release?.(); drag = null; }   // a key or wheel turn mid-drag must not leave the old page grabbed
@@ -301,7 +306,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // double-tap a page = that page alone (again: both pages); one finger keeps turning pages and working the handles.
   let sharp = null;   // the left page being read, redrawn at full size: { k, old, tex }
   function sharpen() {
-    if (!p2() || sharp || cur < 1 || cur > N) return;
+    if (!zoomOn() || sharp || cur < 1 || cur > N) return;
     const p = book.leftPages[cur - 1], tex = rawPage({ foot: BOOK.foot, ...LESSONS[cur].left, side: "left", pageNo: cur * 2 - 1 }, undefined, 56);
     sharp = { k: cur, old: p.full, tex }; p.full = tex; p.mesh.material.map = tex; p.mesh.material.needsUpdate = true;
   }
@@ -310,16 +315,16 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     p.full = sharp.old; p.mesh.material.map = sharp.old; p.mesh.material.needsUpdate = true; sharp.tex.dispose(); sharp = null;
   }
   function setView(mode) {
-    if (!p2() || !cur) return;
+    if (!zoomOn() || !cur) return;
     vmode = mode; view.s = 1; view.d.set(0, 0, 0); ui.setViewLabel(mode === "model" ? "Both pages" : "Model");
     if (mode !== "model") sharpen();
-    const i = built[cur]; moveCam({ ...(SPREADS[cur]?.cam || CAM.spread), fit: i?.group.visible && i.group }, .7);
+    const i = built[cur]; moveCam({ ...(SPREADS[cur]?.cam || CAM.spread), fit: (p2() || fitPhone || mode !== "model") && i?.group.visible && i.group }, .7);   // "model" returns to the book's own framing
   }
   ui.onView = () => setView(vmode === "model" ? "book" : "model");
   const touches = new Map(); let pinch = null, lastTap = null;
   const two = () => { const [a, b] = [...touches.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
   canvas.addEventListener("pointerdown", e => {
-    if (!p2() || !cur) return;
+    if (!zoomOn() || !cur) return;
     touches.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: performance.now() });
     if (touches.size === 2) {   // a second finger: whatever the first one began (a drag, a swipe) is off
       if (drag) { drag.i.release?.(); drag = null; } swipe = null; sharpen();
@@ -339,7 +344,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   const liftTouch = e => {
     const t = touches.get(e.pointerId); touches.delete(e.pointerId);
     if (pinch) { if (touches.size < 2) pinch = null; lastTap = null; return; }
-    if (!t || !p2() || !cur || e.type === "pointercancel") return;
+    if (!t || !zoomOn() || !cur || e.type === "pointercancel") return;
     const now = performance.now(), still = Math.hypot(e.clientX - t.x0, e.clientY - t.y0) < 12 && now - t.t < 320;
     if (!still) { lastTap = null; return; }
     if (lastTap && now - lastTap.t < 340 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40) {   // double-tap: which page is under the finger?

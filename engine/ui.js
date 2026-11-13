@@ -16,6 +16,7 @@ export class UI {
       <section class="sheet glass" id="sheet" aria-label="Page text"></section>
       <button class="sheet-toggle glass" id="sheet-toggle" aria-expanded="false">Read the page</button>
       <div class="lens" id="lens" aria-hidden="true"><canvas width="416" height="416"></canvas></div>
+      <button class="viewbtn" id="m-view2" type="button">Both pages</button>
       <div class="mshell" id="mshell">
         <section class="mcard glass" id="mcard">
           <button class="mhead" id="mhead" aria-expanded="false"><span class="mt"><span id="mtitle"></span><small id="mpeek"></small></span><span class="chev">▲</span></button>
@@ -43,7 +44,7 @@ export class UI {
     this.$('mhead').onclick = () => this.openCard(!this.$('mcard').classList.contains('open'));
     this.$('mbody').querySelectorAll('.mtabs button').forEach(b => { b.onclick = () => { this.$('mbody').dataset.tab = b.dataset.tab; this.$('mbody').querySelectorAll('.mtabs button').forEach(x => x.classList.toggle('on', x === b)); }; });
     this.$('m-read').onclick = () => this.reader(true);
-    this.$('m-view').onclick = () => this.onView?.();
+    this.$('m-view').onclick = () => this.onView?.(); this.$('m-view2').onclick = () => this.onView?.();
     this.$('m-prev').onclick = () => onNav(-1, true); this.$('m-next').onclick = () => onNav(1, true);
     this.$('m-again').onclick = onAgain; this.$('m-mute').onclick = () => this.$('mute').click();
     this.$('m-watch').onclick = () => { const w = (this.actions || []).find(a => a.label === '▶ Watch'); w?.run(); };
@@ -61,7 +62,9 @@ export class UI {
     r.scrollTop = 0;
   }
   /** Layout 2: the view button names the view it switches to. */
-  setViewLabel(t) { this.$('m-view').textContent = t; }
+  setViewLabel(t) { this.$('m-view').textContent = t; this.$('m-view2').textContent = t; }
+  /** The view button for books that take the zoom gestures without layout 2: it floats at the top right on phones. */
+  setZoom(on) { document.body.classList.toggle('zoom', !!on); }
   /** Layout 2: with no guide and no controls (cover, back page) the panel shrinks to the toolbar. */
   _bare() { this.$('mshell').classList.toggle('bare', !!this.p2 && !this._hasGuide && !(this.actions || []).length); }
   /** switch the DOM into phone mode: the panels move into the card, the toolbar takes over navigation */

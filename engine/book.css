@@ -179,6 +179,8 @@
   /* ---- phone layout 2 (body.p2, opt-in per book): the canvas ends where a fixed panel begins, so nothing covers the
      hologram. Panel = step dots + Read · the step's text and answers (the one scroll area) · one row of controls · toolbar ---- */
   .mrow{display:none}
+  .viewbtn{display:none}
+  body.phone.zoom .viewbtn{display:block;position:absolute;right:10px;top:calc(64px + env(safe-area-inset-top));z-index:5;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid rgba(255,255,255,.7);background:rgba(244,241,234,.95);color:#1d2228;font:600 13px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.25)}
   body.phone.p2 .mshell{height:max(38dvh,290px);padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:6px;background:#e9e5db;pointer-events:auto}
   body.phone.p2 .mshell.bare{height:auto}
   body.phone.p2 .mshell.bare .mcard{display:none}

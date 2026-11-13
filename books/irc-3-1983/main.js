@@ -8,7 +8,7 @@ import { TYPES, makeRig, drawSilhouette } from './vehicles.js';
 const heroReady = initHero();
 const COVER_TYPE = TYPES.find(t => t.id === '3-S2');
 
-runBook({
+runBook({ phoneZoom: true,
   BOOK, COVER, LESSONS, QUIZ, SPREADS,
   ctx: { hero: makeHero },
   // the 3-S2 silhouette from the standard's Figure, on the sage board
