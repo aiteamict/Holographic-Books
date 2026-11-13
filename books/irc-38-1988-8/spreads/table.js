@@ -3,7 +3,8 @@
 // the exact formula and flags the cells confirmed as misprints on the page.
 //
 // cfg = { state, actions(st, refresh) → [{ label, run, toggle? }], curve(st) → [Δ°, Rc, Ls],
-//         pegs?(st, L, k) → { pts: [[x, y]], at: index|null }, card(c, W, H, st), steps, debug(st), size? }
+//         pegs?(st, L, k) → { pts: [[x, y]], at: index|null }, card(c, W, H, st), steps, debug(st), size?,
+//         init?({ group, holo }) → deco (site objects of this table only), decorate?(deco, st, plan, k) on every refresh }
 import * as THREE from 'three';
 import { Anims } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
@@ -64,6 +65,7 @@ export function tableSpread(cfg) {
       const theo = theodolite(.9); group.add(theo);
       const rays = holo.segments([[0, 0, 0], [1, 0, 0]], holo.AMBER, .85, { width: .05 }); group.add(rays);
 
+      const deco = cfg.init?.({ group, holo, GROUND });
       const size = cfg.size || { w: 10, h: 7.6, px: 46 };
       const card = textPlane({ ...size, draw: (c, W, H) => { cardBg(c, W, H); cfg.card(c, W, H, st); } });
       card.position.set(5.1, 2.9 + Math.max(0, size.h - 7.6) * .42, 10.3); card.rotation.x = -.6; group.add(card);   // taller cards rise so their foot stays above the page
@@ -77,6 +79,7 @@ export function tableSpread(cfg) {
         plan.set(k); const through = throughSlab(plan.L, plan.P, SLAB); road.set(through.pts, { stones: [through.e1, through.e1 + k.length], side: 1 });
         const near = through.pts.filter((_, i) => i % 3 === 0).map(p => plan.P(p));
         forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.1));
+        cfg.decorate?.(deco, st, plan, k);
         const pg = cfg.pegs?.(st, plan.L, k);
         pool.forEach((m, i) => { const q = pg?.pts[i]; m.visible = !!q; if (q) m.position.copy(plan.P(q, .45)); });
         theo.visible = rays.visible = pg?.at != null;

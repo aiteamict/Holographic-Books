@@ -5,6 +5,7 @@ import { horizontalCurve as hc, spiralXY } from '../../_irc38/curve.js';
 import { T9_R, t9, MIN_RADIUS } from '../../_irc38/tables.js';
 import { T13, T15, T16, T17 } from '../data.js';
 import { tableSpread, head, table, foot, stepper, dms, DEG, F } from './table.js';
+import { level, osc, shiftFig, unit } from './sites.js';
 
 const RAD = Math.PI / 180, f3 = v => v.toFixed(3);
 const RADII = [...T9_R, 2500];                                   // Table 10's standard radii, 14 to 2500 m
@@ -32,6 +33,7 @@ function speedFor(R, Ls) {
   return [null, null];
 }
 export const table10 = tableSpread({
+  ...level,
   state: { d: 56, r: at(RADII, 500), l: at(LENGTHS, 110) },
   curve: s => [s.d, RADII[s.r], LENGTHS[s.l]],
   actions: (s, go) => [
@@ -100,6 +102,7 @@ const t13x = d => hc(d, 100 / (d * RAD), 100);                       // θs = Δ
 const bad13 = T13.filter(([d, T, E]) => Math.abs(T - t13x(d).Ts) > .0035 || Math.abs(E - t13x(d).Es) > .0035).map(r => r[0]);
 const nextOf = (list, i, bad) => { const n = list.findIndex((r, j) => j > i && bad.includes(r[0])); return n < 0 ? list.findIndex(r => r[0] === bad[0]) : n; };
 export const table13 = tableSpread({
+  ...osc,
   state: { i: T13.findIndex(r => r[0] === 56), ls: 100 },
   curve: s => { const d = T13[s.i][0]; return [d, s.ls / (d * RAD), s.ls]; },
   actions: (s, go) => [
@@ -195,6 +198,7 @@ const off15 = ([, R, Ls, s]) => { const e = shift(R, Ls); return Math.abs(s - e)
 const bad15 = T15.filter(off15);
 const terrain = col => `${parseInt(col)} km/h, ${col.endsWith('P') ? 'plain' : 'hilly'}`;
 export const table15 = tableSpread({
+  ...shiftFig,
   state: { c: COLS.indexOf('40H'), i: 0 },
   curve: s => { const [, R, Ls] = ROWS15[s.c][s.i]; return [Math.min(170, Ls / R * DEG + 30), R, Ls]; },
   actions: (s, go) => [
@@ -227,6 +231,7 @@ const off16 = (v, e) => v != null && Math.abs(v - e) > 3e-5;            // beyon
 const bad16 = T16.filter(([d, ...v]) => v.some((x, j) => off16(x, t16x(d)[j]))).map(r => r[0]);
 const f5 = v => v.toFixed(5);
 export const table16 = tableSpread({
+  ...unit,
   state: { i: 15, r: 100 },
   curve: s => [T16[s.i][0], s.r, 0],
   actions: (s, go) => [
