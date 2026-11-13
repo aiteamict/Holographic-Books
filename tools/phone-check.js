@@ -20,7 +20,9 @@ async (page) => {
       await page.evaluate(() => document.getElementById('go-quiet').click());   // a synthetic click: mouse clicks stall under touch emulation
       await page.waitForFunction(() => window.__book?.built, null, { timeout: 30000 });
       for (let k = 1; k <= 12; k++) {
-        await page.evaluate(k => window.__book.goTo(k), k); await page.waitForTimeout(2000);   // page turn, hologram pop, camera fit
+        await page.evaluate(k => window.__book.goTo(k), k);
+        if (!await page.evaluate(k => !!window.__book.built[k], k)) break;
+        await page.waitForFunction(k => window.__book.built[k].group.visible, k, { timeout: 15000 }); await page.waitForTimeout(1500);   // page turn, hologram pop, camera fit
         const r = await page.evaluate(k => {
           const b = window.__book, i = b.built[k]; if (!i) return null;
           const out = [], vw = innerWidth, vh = innerHeight, R = el => el.getBoundingClientRect();
@@ -31,7 +33,9 @@ async (page) => {
             const el = document.getElementById(id); if (!el) continue; const q = R(el); if (q.width < 2) continue;
             if (q.left < -1 || q.right > vw + 1 || q.top < -1 || q.bottom > vh + 1) out.push(id + ' off-screen');
           }
-          const row = [...document.querySelectorAll('#mbar button, #mrow button')].filter(e => R(e).width > 2).map(R);
+          const dots = R(document.getElementById('mdots'));   // step dots scroll sideways in their own strip: the ones scrolled out of it are not on screen
+          const row = [...document.querySelectorAll('#mbar button, #mrow button')].filter(e => R(e).width > 2 && !(e.closest('#mdots') && (R(e).right > dots.right + 1 || R(e).left < dots.left - 1))).map(R);
+          if (dots.width > 2 && dots.width < 66) out.push('room for under two step dots');
           search: for (let a = 0; a < row.length; a++) for (let c = a + 1; c < row.length; c++) {
             const A = row[a], B = row[c];
             if (A.left < B.right - 1 && B.left < A.right - 1 && A.top < B.bottom - 1 && B.top < A.bottom - 1) { out.push('buttons overlap'); break search; }
@@ -50,7 +54,7 @@ async (page) => {
           });
           if (x0 < -1.02 || x1 > 1.02 || y0 < -1.02 || y1 > 1.02) out.push(`hologram cut off (${x0.toFixed(2)}, ${x1.toFixed(2)}, ${y0.toFixed(2)}, ${y1.toFixed(2)})`);
           const fill = Math.min(2, x1 - x0) * Math.min(2, y1 - y0) / 4;
-          if (fill < .5) out.push('hologram fills only ' + Math.round(fill * 100) + '% of the canvas');
+          if (fill < (wide ? .12 : .5)) out.push('hologram fills only ' + Math.round(fill * 100) + '% of the canvas');   // sideways phones open on both pages, so the hologram has half the width
           return { out, share: fill * cv.width * cv.height / (vw * vh) };
         }, k);
         if (!r) break;

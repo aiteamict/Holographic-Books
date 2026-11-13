@@ -37,7 +37,7 @@ function paragraph(ctx, text, x, y, maxW, { size = 30, lh = 1.42, color = INK.in
   return cy + size * lh;
 }
 
-function paper(ctx, side) {
+function paper(ctx, side, W, H) {
   const g = ctx.createLinearGradient(side === 'left' ? W : 0, 0, side === 'left' ? 0 : W, 0);
   g.addColorStop(0, INK.paper2); g.addColorStop(.12, INK.paper); g.addColorStop(1, INK.paper);
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -48,11 +48,12 @@ function paper(ctx, side) {
  * spec: { kicker, title, lede, paras: [], notes: [], pageNo, side: 'left'|'right', foot }
  * Returns a CanvasTexture; `draw(ctx, box)` may add graphics under the text.
  */
-export function renderPage(spec, draw) {
+export function renderPage(spec, draw, px = PX) {   // px: pixels per cm; phones draw pages small and redraw the one being read at full size
+  const W = PAGE_W * px, H = PAGE_H * px;
   const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
-  paper(ctx, spec.side);
+  paper(ctx, spec.side, W, H);
   // right-hand pages carry only a short caption, set at the bottom so the hologram standing on the page never covers it
-  const k = PX / 40;   // type sizes were tuned at 40 px/cm
+  const k = px / 40;   // type sizes were tuned at 40 px/cm
   const m = 84 * k, x = spec.side === 'left' ? m : m + 24 * k, maxW = W - m * 2 - 24 * k;
   // quiet pages carry only their kicker, down by the page number, so a hologram standing on the page covers no words
   let y = spec.quiet ? H - 112 * k : spec.side === 'right' && !spec.top ? H - 400 * k : 120 * k;
@@ -65,7 +66,7 @@ export function renderPage(spec, draw) {
     y += 10 * k; ctx.fillStyle = INK.rule; ctx.fillRect(x, y, maxW * .35, 2 * k); y += 40 * k;
     for (const n of spec.notes) y = paragraph(ctx, n, x, y, maxW, { size: 25 * k, color: INK.dim, italic: true, lh: 1.36 }) + 6 * k;
   }
-  if (draw) draw(ctx, { x, y, maxW, W, H, PX });
+  if (draw) draw(ctx, { x, y, maxW, W, H, PX: px });
   ctx.font = `500 ${20 * k}px ${SANS}`; ctx.fillStyle = INK.dim; ctx.textAlign = spec.side === 'left' ? 'left' : 'right';
   const fx = spec.side === 'left' ? m : W - m;
   if (spec.pageNo != null) ctx.fillText(String(spec.pageNo), fx, H - 60 * k);

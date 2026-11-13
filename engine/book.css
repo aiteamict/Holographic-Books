@@ -192,6 +192,8 @@
   body.phone.p2 #mdots button.on{background:#b0532a;color:#fff;border-color:transparent}
   body.phone.p2 #m-read{position:relative;flex:0 0 auto;height:34px;padding:0 14px;border-radius:17px;border:1px solid rgba(29,34,40,.28);background:#fff;font:600 13px var(--sans);color:#1d2228}
   body.phone.p2 #m-read::after{content:"";position:absolute;inset:-5px}
+  body.phone.p2 #m-view{position:relative;flex:0 0 auto;height:34px;padding:0 12px;border-radius:17px;border:1px solid rgba(29,34,40,.28);background:#fff;font:600 13px var(--sans);color:#1d2228}
+  body.phone.p2 #m-view::after{content:"";position:absolute;inset:-5px}
   body.phone.p2 .mbody{display:flex;flex-direction:column;flex:1;min-height:0;max-height:none;overflow:hidden;padding:0 10px 8px}
   body.phone.p2 #mslot{display:flex;flex-direction:column;flex:1;min-height:0}
   body.phone.p2 #gpanel{flex:1;min-height:0;overflow-y:auto;margin:0 0 6px;font-size:14px;line-height:1.4;overscroll-behavior:contain}
@@ -208,6 +210,7 @@
   body.phone.p2 .caption{left:calc(var(--cw,100vw) / 2);max-width:calc(var(--cw,100vw) - 16px)}
   /* short screens: the answers run in one sideways row, so the question, the answers and the controls are all on screen */
   @media (max-height:720px){ body.phone.p2 #gpanel .opts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 0 6px;padding-right:18px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)} body.phone.p2 #gpanel .opts button{flex:0 0 auto;white-space:nowrap} }
+  @media (max-width:350px){ body.phone.p2 .mrow{gap:6px;padding:8px 8px 4px} body.phone.p2 #mdots{gap:5px} body.phone.p2 #mdots button{min-width:30px;height:32px;padding:0 6px} body.phone.p2 #m-view,body.phone.p2 #m-read{height:32px;padding:0 8px;font-size:12px} }
   @media (max-width:340px){ body.phone.p2 #actions button,body.phone.p2 #gpanel .opts button,body.phone.p2 #gpanel .next{font-size:13px;padding:10px 11px} }
   @media (orientation:landscape) and (max-height:520px){
     body.phone.p2 .mshell{left:auto;right:0;top:0;bottom:0;width:42vw;height:auto;padding:6px calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) 8px}
