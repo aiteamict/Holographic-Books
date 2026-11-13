@@ -28,9 +28,9 @@ export const COVER = {
     lede: 'Chapter 8 of 8 in the IRC : 38 series: the design tables and Examples 11.7–11.9.',
     paras: [
       '**Source.** IRC : 38-1988, Indian Roads Congress, 1989. cl. 7.6–7.9, Tables 10–17, Appendices 2–5, Examples 11.7–11.9.',
-      '**Misprints, read on the page** (printed → right). Table 11.2 Es 54.720 → 54.726, 67.694 → 67.643. Table 11.3 s tan 28° 0.3550 → 0.3507. Table 13: 60° Ts 107.124 → 107.174; 99° Es 42.430 → 42.034; 82°, 119°, 137°, 138°; 130°/131° Es swapped. Table 14: 14 coefficients. Table 15: 25H R100 0.944 → 0.094; 30P R100 0.289 → 0.260; 40H R50, R55; 40P R60; 35H R40; 80P R500. Table 16: 14°, 16°, 55°, 78°, 86°, 88°, 91°, 92°, 106°, 109°, 116°, 117°, 118°, 120°. Table 17: R 40, 55, 100, 300, 400, 500, 600, 900.',
+      '**Misprints, read on the page** (printed → right). Table 11.1 (Ex. 11.3) Es 155/40 21.305 → 21.035, 170/15 21.599 → 22.599, 170/20 22.685 → 22.648. Table 11.2 Es 54.720 → 54.726, 67.694 → 67.643. Table 11.3 s tan 28° 0.3550 → 0.3507. Table 13: 60° Ts 107.124 → 107.174; 99° Es 42.430 → 42.034; 82°, 119°, 137°, 138°; 130°/131° Es swapped. Table 14: 14 coefficients. Table 15: 25H R100 0.944 → 0.094; 30P R100 0.289 → 0.260; 40H R50, R55; 40P R60; 35H R40; 80P R500. Table 16: 14°, 16°, 55°, 78°, 86°, 88°, 91°, 92°, 106°, 109°, 116°, 117°, 118°, 120°. Table 17: R 40, 55, 100, 300, 400, 500, 600, 900.',
     ],
-    notes: ['Tables 10–12 are too long to set here whole; their spreads compute any cell and check those the text quotes. Not a substitute for the standard.'],
+    notes: ['Tables 10–12 are too long to set here whole; their spreads compute any cell and check those the text quotes. IRC : 73 and other codes revised since 1988 also set some of these values. Not a substitute for the standard.'],
   },
 };
 

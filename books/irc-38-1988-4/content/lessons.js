@@ -27,11 +27,11 @@ export const COVER = {
     side: 'left', kicker: 'About this chapter · Sources', title: 'Room to turn, room to see.',
     lede: 'Chapter 4 of 8 in the IRC : 38 series: section 6 of the standard.',
     paras: [
-      '**Source.** IRC : 38-1988, Guidelines for Design of Horizontal Curves for Highways and Design Tables (First Revision), Indian Roads Congress, 1989. Section 6, Tables 7, 7A and 8, equations (8), (14) and (15), Figs. 14–19, Examples 11.29–11.32.',
+      '**Source.** IRC : 38-1988, Indian Roads Congress, 1989. Section 6, Tables 7, 7A and 8, equations (8), (14) and (15), Figs. 14–19, Examples 11.29–11.32.',
       '**Coverage.** cl. 6.1.1–6.1.3: spread 1 · cl. 6.2.1–6.2.3, eq. (8), Fig. 14: spread 2 · cl. 6.2.4, Table 7: spread 3 · cl. 6.2.5–6.2.7, 6.3.1–6.3.4, Figs. 15–16: spread 4 · cl. 6.3.5–6.3.7, Table 7A: spread 5 · cl. 6.4.1–6.4.3, eq. (14)–(15), Table 8, Figs. 17–19: spread 6 · cl. 6.4.4–6.4.6: spread 7 · Examples 11.29, 11.30, 11.32: spread 8.',
       '**Misprints, checked on the page and by the book’s own formulae.** Table 8 prints 2.3 m for R 150 m, S 60 m (eq. 14 gives 2.99 m) and 3.7 m for R 33 m, S 30 m (eq. 14 gives 3.35 m). Example 11.32 prints the outer apex distance as 23.96 m; its own working gives 22.956 m.',
     ],
-    notes: ['Vehicle swept paths use a simple pursuit model of the axles; they illustrate cl. 6.1, they are not a design tool. Nothing here is a substitute for the standard itself.'],
+    notes: ['Swept paths use a simple pursuit model of the axles: an illustration, not a design tool. IRC : 73 and other codes revised since 1988 also set some of these values. Nothing here is a substitute for the standard itself.'],
   },
 };
 

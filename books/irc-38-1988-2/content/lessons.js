@@ -31,7 +31,7 @@ export const COVER = {
       '**Coverage.** cl. 3.1–3.3: spread 1 · cl. 3.4, Table 1: spread 2 · cl. 3.4–3.6, Table 2: spread 3 · cl. 4.1, eq. (1)–(2), Figs. 4–5: spread 4 · cl. 4.1–4.3, eq. (3)–(5), Figs. 6–8: spread 5 · cl. 4.4.1–4.4.4, eq. (6), Table 3: spread 6 · cl. 4.4.5, Fig. 9: spread 7 · Examples 11.1, 11.2 (radius steps): spread 8.',
       '**Misprints, checked on the page.** cl. 4.3 says bullock carts find "a transverse slope of more than 70 per cent" inconvenient, then sets the maximum at 7 per cent: 70 should read 7. Example 11.1 states a radius of 260 m but works with 250 m.',
     ],
-    notes: ['Traffic speeds in spread 1 are an illustrative spread of speeds, not survey data. Vehicles and people are drawn larger than the road so they can be seen. Nothing here is a substitute for the standard itself.'],
+    notes: ['Spread 1’s traffic speeds are illustrative; vehicles and people are drawn larger. IRC : 73 and other codes revised since 1988 also set some of these values. Nothing here is a substitute for the standard itself.'],
   },
 };
 

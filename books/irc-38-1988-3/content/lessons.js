@@ -31,7 +31,7 @@ export const COVER = {
       '**Coverage.** cl. 5.1: spread 1 · cl. 5.2.1–5.2.3, eq. (7): spread 2 · Table 4, Fig. 10: spread 3 · cl. 5.3.1–5.3.3, Tables 5–6: spread 4 · cl. 5.4.1, Figs. 11, 13: spread 5 · cl. 5.4.2, Fig. 12: spread 6 · Example 11.1, Fig. 26: spread 7.',
       '**Misprints, checked on the page.** Table 6 prints 110 m for 25 km/h at 2 per cent camber; its own formula R = V²/225e gives 139 m. Example 11.1 states a radius of 260 m but works with 250 m (the result, e = 0.07, is the same).',
     ],
-    notes: ['Table 4 values in spread 3 are computed by e = V²/225Rc, as Table 4’s own note says they were. Vehicles are drawn larger than the road. Nothing here is a substitute for the standard itself.'],
+    notes: ['Table 4 values in spread 3 are computed by e = V²/225Rc, as Table 4’s own note says they were. Vehicles are drawn larger than the road. IRC : 73 and other codes revised since 1988 also set some of these values. Nothing here is a substitute for the standard itself.'],
   },
 };
 

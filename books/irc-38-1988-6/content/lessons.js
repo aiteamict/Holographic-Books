@@ -31,7 +31,7 @@ export const COVER = {
       '**Coverage.** Spreads 1–5: cl. 7.8–7.9, Ex. 11.17–11.24 · 6: cl. 7.10.1, Ex. 11.25 · 7: cl. 7.10.2–7.10.3, Figs. 21–24, Ex. 11.26–11.28 · 8: worked examples.',
       '**Misprints, checked on the page** (printed → right). 11.18 chord 27.59 → 27.47 m. 11.19 Table 11.5 point 8: 0.0469, 2.1963 → 0.0499, 2.330; point 9: 3.236 → 3.326. 11.20 ¼-point X 19.536 → 14.536. 11.22 Fig. 35 BA8 3°51′ → 2°51′. 11.23 points 5, 3, 2 (4°5′, 6°14′49″, 6°9′ → 4°50′, 6°14′11″, 6°49′); T.P. uses θs 11.6° for 11.62°. 11.24 point 7: 0.0663 → 0.0633; Table 14 col. 9: 0.0533, 0.0367 → 0.0633, 0.0567. cl. 7.10.2: 7.367 → 1.567 m. 11.25: 18.626 → 78.626; 83.870 → 83.876; Ls 100 → 80 m; 92.9692 → 92.9638. 11.27 Fig. 41: 27.746° → 24.746°. 11.28: “+ 3.93”, 23.395 → 23.348.',
     ],
-    notes: ['Computed values come from the exact spiral. Nothing here is a substitute for the standard itself.'],
+    notes: ['Computed values come from the exact spiral. IRC : 73 and other codes revised since 1988 also set some of these values. Nothing here is a substitute for the standard itself.'],
   },
 };
 

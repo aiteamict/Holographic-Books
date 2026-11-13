@@ -31,7 +31,7 @@ export const COVER = {
       '**Coverage.** cl. 7.1.1–7.1.3: spread 1 · cl. 7.2.1–7.2.4: spread 2 · cl. 7.3.1–7.3.2, eq. (16)–(17): spread 3 · cl. 7.3.3, eq. (18)–(19): spread 4 · cl. 7.3.4, 7.4.1–7.4.3, Table 9: spread 5 · cl. 7.5.1, 7.5.2, 7.5.4, eq. (20)–(24): spread 6 · cl. 7.5.3, 7.5.5, 7.5.6, eq. (25)–(28), Fig. 20: spread 7 · cl. 7.6, 7.7, Examples 11.10, 11.11, 11.15: spread 8 · Examples 11.12–11.14, 11.16: spread 9.',
       '**Misprints, checked against the book’s own working.** Example 11.13 prints LT = 49.84 m; 0.6673 × 67.195 = 44.84 m. Example 11.11 writes (199.92/100) × 106.153 for (119.92/100) × 106.153; its result, 127.298 m, is right. cl. 7.4.1 gives the shift of a 14.4 m transition on 1200 m as 0.043 m; L²/24R = 0.0072 m. cl. 7.7.3 says 1,000 m where cl. 7.4.3 and Table 9 say 1200 m.',
     ],
-    notes: ['Table 9 is set beside eq. (16)–(19); most cells agree, the rest differ by 5 m either way, as the table was rounded by judgement. Nothing here is a substitute for the standard itself.'],
+    notes: ['Table 9 is set beside eq. (16)–(19); cells that differ do so by 5 m, rounded by judgement. IRC : 73 and other codes revised since 1988 also set some of these values. Nothing here is a substitute for the standard itself.'],
   },
 };
 

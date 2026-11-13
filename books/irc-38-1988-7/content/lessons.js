@@ -31,7 +31,7 @@ export const COVER = {
       '**Coverage.** Spread 1: cl. 8.1–8.2 · 2–5: cl. 8.3–8.6, Ex. 11.33–11.37 · 6: cl. 9.1, Ex. 11.38–11.39 · 7: cl. 10.1–10.7, Ex. 11.40 · 8: Ex. 11.33–11.40 worked line by line.',
       '**Misprints, checked on the page** (printed → right). cl. 8.2 “C = 250 m =”. 11.33 Pa 0.03156 → 0.3157, carried into AB, AI, BI, T1 33.252 → 31.49 and T2 −21.855 → 23.63. 11.34 offsets on the wrong Pa; a 60 m column. 11.35 point 2: 489, 0.0210056, 1.071487 → 484, 0.210056, 1.260536. 11.37 “3.3/55” → 33/55. 11.38 FC Es 9.874 → 9.094; Fig. 52 62.820, 73.219 → 62.825, 73.319. 11.39 0.27227 → 0.272727; cos Δ2 0.9667612 → 0.970267; 0°26′18″ → 0°26′28″; O1O2 tan Δ2 for the common tangent (sin): straight 25.448 → 19.05 m. 11.40 coefficient 0.9287 → 0.9207; 24.312 → 24.28; Fig. 54 arc 11.32 → 13.47 m.',
     ],
-    notes: ['Method, not misprint: 11.37 lets the radius vary with length (384 m at point 6; the spiral gives 316 m); 11.38 takes only K off the straight (24.545 m left, not 25.062). Not a substitute for the standard.'],
+    notes: ['Method, not misprint: 11.37 lets the radius vary with length (384 m at point 6; the spiral gives 316 m); 11.38 takes only K off the straight (24.545 m left, not 25.062). IRC : 73 and other codes revised since 1988 also set some of these values. Not a substitute for the standard.'],
   },
 };
 
