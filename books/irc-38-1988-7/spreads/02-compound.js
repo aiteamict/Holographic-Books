@@ -191,3 +191,6 @@ export function compoundSpread(mode) {
 }
 
 export default compoundSpread('geometry');
+
+// exact geometry reused by the worked-examples spread
+export const GEO = { thA, PaExact, T1, T2, R6, at };

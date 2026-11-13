@@ -151,3 +151,6 @@ export default {
     return api;
   },
 };
+
+// exact geometry reused by the worked-examples spread
+export const GEO = { k1, k2, straightI, straightII, rotation };

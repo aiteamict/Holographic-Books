@@ -135,3 +135,6 @@ export default {
     return api;
   },
 };
+
+// exact geometry reused by the worked-examples spread
+export const GEO = { kin, kmid, kout };

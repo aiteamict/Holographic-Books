@@ -28,7 +28,7 @@ export const COVER = {
     lede: 'Chapter 7 of 8 in the IRC : 38 series: sections 8 to 10 of the standard.',
     paras: [
       '**Source.** IRC : 38-1988, Indian Roads Congress, 1989. Sections 8–10, Figs. 25, 50–54, Examples 11.33–11.40.',
-      '**Coverage.** Spread 1: cl. 8.1–8.2 · 2–5: cl. 8.3–8.6, Ex. 11.33–11.37 · 6: cl. 9.1, Ex. 11.38–11.39 · 7: cl. 10.1–10.7, Ex. 11.40.',
+      '**Coverage.** Spread 1: cl. 8.1–8.2 · 2–5: cl. 8.3–8.6, Ex. 11.33–11.37 · 6: cl. 9.1, Ex. 11.38–11.39 · 7: cl. 10.1–10.7, Ex. 11.40 · 8: Ex. 11.33–11.40 worked line by line.',
       '**Misprints, checked on the page** (printed → right). cl. 8.2 “C = 250 m =”. 11.33 Pa 0.03156 → 0.3157, carried into AB, AI, BI, T1 33.252 → 31.49 and T2 −21.855 → 23.63. 11.34 offsets on the wrong Pa; a 60 m column. 11.35 point 2: 489, 0.0210056, 1.071487 → 484, 0.210056, 1.260536. 11.37 “3.3/55” → 33/55. 11.38 FC Es 9.874 → 9.094; Fig. 52 62.820, 73.219 → 62.825, 73.319. 11.39 0.27227 → 0.272727; cos Δ2 0.9667612 → 0.970267; 0°26′18″ → 0°26′28″; O1O2 tan Δ2 for the common tangent (sin): straight 25.448 → 19.05 m. 11.40 coefficient 0.9287 → 0.9207; 24.312 → 24.28; Fig. 54 arc 11.32 → 13.47 m.',
     ],
     notes: ['Method, not misprint: 11.37 lets the radius vary with length (384 m at point 6; the spiral gives 316 m); 11.38 takes only K off the straight (24.545 m left, not 25.062). Not a substitute for the standard.'],
@@ -122,6 +122,19 @@ export const LESSONS = [null,
       ],
     },
     right: { kicker: 'Example 11.40 · Fig. 54', title: 'Doubling back on a hillside' },
+  },
+  {
+    id: 'examples', title: 'Worked examples', prompt: 'Pick an example and press Next step.',
+    left: {
+      kicker: 'Spread 8 · Examples 11.33–11.40', title: 'The working, line by line',
+      lede: 'Each example as the book works it, one line at a time, on the alignment it describes.',
+      paras: [
+        '**11.33–11.37:** the compound transition between 600 m and 240 m: Pa, T1 and T2, offsets from the circles, deflections for five and ten chords, and the move to point 6.',
+        '**11.38–11.39:** the reverse curve with the curves moved, then with the tangent moved. **11.40:** the three concentric lines of the hair-pin.',
+        'The card sets each printed result beside the exact geometry. A red result is a slip, and the line that causes it says why.',
+      ],
+    },
+    right: { kicker: 'Examples 11.33–11.40', title: 'Follow the book' },
   },
 ];
 
