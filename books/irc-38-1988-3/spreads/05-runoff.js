@@ -15,6 +15,8 @@ import { diorama, trees, track, car, VEH } from '../../_irc38/site.js';
 
 const F = 'Inter, Segoe UI, Arial', S = .085, VX = 10, GROUND = .5, LIFT = .35, O = new THREE.Vector3(0, GROUND, -7.5);
 const SLAB = { x0: -12.6, x1: 12.6, z0: -15.8, z1: 7.4 };
+// Fig. 26 (Example 11.1): what each section shows
+const SECTION = ['A: the straight, camber 2 per cent both ways, 7 m wide.', 'B: 15 m on, the outer half raised to level.', 'C: T.P.: crossfall 2 per cent one way, equal to the camber.', 'D: half-way along the 90 m transition.', 'E: end of the transition: full 7 per cent over 7.6 m, outer edge 0.266 m above the centre line.', 'F: on the circle, 7 per cent held.', 'G: still on the circle, 7 per cent.'];
 
 export function runoffSpread(mode) {
   const ex = mode === 'example';
@@ -24,7 +26,7 @@ export function runoffSpread(mode) {
       const { holo } = ctx, anims = new Anims();
       const group = new THREE.Group();
       const P = (xy, h = 0) => new THREE.Vector3(O.x + xy[0] * S, O.y + h, O.z - xy[1] * S);
-      const st = { axis: 'centre', Ls: ex ? 90 : 60, hills: false, kase: 'ii', V: 80, carD: 0, tick: 0 };
+      const st = { axis: 'centre', Ls: ex ? 90 : 60, hills: false, kase: 'ii', V: 80, carD: 0, tick: 0, hold: null };
       const slab = diorama({ ...SLAB, h: GROUND }); group.add(slab);
       const forest = trees(slab, 30, 47); group.add(forest);
       const deck = new THREE.Mesh(new THREE.BufferGeometry(), SM.asphalt); deck.receiveShadow = deck.castShadow = true; group.add(deck);
@@ -39,7 +41,7 @@ export function runoffSpread(mode) {
       const R = () => ex ? 250 : mode === 'where' ? .0358 * st.V * st.V : 230;
       const D = () => ex ? 60 / 250 * 180 / Math.PI + 2 * (90 / 500) * 180 / Math.PI : 60;
       const L1 = ex ? 30 : c * W0 * 200;   // stage 1 before T.P.: 1 in 200 on the outer half (Fig. 26 uses 15 m + 15 m)
-      let T = null, e1 = 0;
+      let T = null, e1 = 0, secS = [];   // secS: distances of Fig. 26 sections A–G along the road
       const width = s => W0 + Wwide * Math.min(1, Math.max(0, (s - (e1 - L1)) / (L1 + st.Ls)));
       const section = s => {   // heights of [inner edge, centre, outer edge] against the centre-line datum, metres
         const w = width(s), t = s - e1, h = w / 2;   // t: distance past T.P.
@@ -140,7 +142,7 @@ export function runoffSpread(mode) {
         mk(deck, pos, idx); mk(bank, bp, bi); deck.material.side = THREE.DoubleSide;
         for (const n of ['inner', 'centre', 'outer']) holo.setPoints(lines[n], ln[n]);
         const near = pts.filter((_, i) => i % 3 === 0).map(p => P(p)); forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.4) || (Math.abs(x - GP.x) < GW / 2 + .6 && Math.abs(z - GP.z) < 3));
-        if (ex) { const a0 = e1 - L1; [a0, a0 + 15, e1, e1 + 45, e1 + 90, e1 + 120, e1 + 150].forEach((s, i) => { const p = T.at(Math.min(s, T.length)); marks[i].position.copy(P([p.x - Math.sin(p.h) * 8, p.y + Math.cos(p.h) * 8], 1.6)); }); }
+        if (ex) { const a0 = e1 - L1; secS = [a0, a0 + 15, e1, e1 + 45, e1 + 90, e1 + 120, e1 + 150]; secS.forEach((s, i) => { const p = T.at(Math.min(s, T.length)); marks[i].position.copy(P([p.x - Math.sin(p.h) * 8, p.y + Math.cos(p.h) * 8], 1.6)); }); }
         card.redraw();
       }
       const set = (k, v) => { st[k] = v; rebuild(); };
@@ -153,7 +155,10 @@ export function runoffSpread(mode) {
       ] : mode === 'where' ? [
         { label: 'Case (i)', toggle: () => st.kase === 'i', run: () => set('kase', 'i') }, { label: 'Case (ii)', toggle: () => st.kase === 'ii', run: () => set('kase', 'ii') },
         { label: '65 km/h', toggle: () => st.V === 65, run: () => set('V', 65) }, { label: '80 km/h', toggle: () => st.V === 80, run: () => set('V', 80) },
-      ] : [];
+      ] : [
+        { label: 'Next section', run: () => { st.hold = st.hold == null ? 0 : (st.hold + 1) % 7; card.redraw(); guide.say(SECTION[st.hold]); } },
+        { label: 'Drive', toggle: () => st.hold == null, run: () => { st.hold = null; } },
+      ];
       const api = {
         group, targets: [], actions,
         tap(hit) { guide.tap(hit); },
@@ -161,7 +166,7 @@ export function runoffSpread(mode) {
         update(dt) {
           anims.tick(dt);
           if (T) {
-            st.carD = (st.carD + dt * 16) % T.length; const p = T.at(st.carD), [, hc, ho] = section(st.carD), w = width(st.carD);
+            st.carD = st.hold != null && secS.length ? Math.min(secS[st.hold], T.length) : (st.carD + dt * 16) % T.length; const p = T.at(st.carD), [, hc, ho] = section(st.carD), w = width(st.carD);
             const off = w / 4, yy = hc + (ho - hc) * .5;   // the outer lane, left of travel
             auto.position.copy(P([p.x - Math.sin(p.h) * off, p.y + Math.cos(p.h) * off], LIFT + yy * S * VX + .02)); auto.rotation.set(0, p.h, 0);
             auto.rotateX(-Math.atan((ho - hc) * 2 / w * VX));
@@ -171,7 +176,7 @@ export function runoffSpread(mode) {
           const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.4 : -5.4; guide.card.scale.setScalar(tall ? .82 : 1);
           card.position.x = tall ? 3.6 : 5.1; card.scale.setScalar(tall ? .82 : 1);
         },
-        reset() { anims.clear(); Object.assign(st, { axis: 'centre', Ls: ex ? 90 : 60, hills: false, kase: 'ii', V: 80, carD: 0 }); rebuild(); guide.reset(); },
+        reset() { anims.clear(); Object.assign(st, { axis: 'centre', Ls: ex ? 90 : 60, hills: false, kase: 'ii', V: 80, carD: 0, hold: null }); rebuild(); guide.reset(); },
         get debug() { const end = T ? section(e1 + st.Ls) : null; return { mode, axis: st.axis, Ls: st.Ls, kase: st.kase, V: st.V, R: +R().toFixed(1), endSection: end?.map(v => +v.toFixed(3)), widthEnd: T ? +width(e1 + st.Ls).toFixed(2) : null, guide: guide.debug }; },
       };
       const L = actions.map(a => a.label);
@@ -192,10 +197,10 @@ export function runoffSpread(mode) {
             check: { q: 'IRC attains the full superelevation…', options: ['at the end of the transition', 'at point B', 'at the tangent point'], answer: 0, why: 'Case (i) has no definite advantage and its setting out is complicated, so the full superelevation is attained at the end of the transition (cl. 5.4.2).' } },
         ],
         example: [
-          { title: 'The design', show: [], text: 'MDR at 80 km/h on R 250 m: V²/225R = 0.1137, more than 7 per cent, so e = 0.07 over a 90 m transition.',
+          { title: 'The design', show: L, text: 'MDR at 80 km/h on R 250 m: V²/225R = 0.1137, more than 7 per cent, so e = 0.07 over a 90 m transition.',
             check: { q: 'Example 11.1 computes e = 0.1137. What is provided?', options: ['0.07', '0.1137', '0.10'], answer: 0, why: 'It is more than the 7 per cent allowed, so 7 per cent is provided, reached at the end of the transition (Example 11.1).' } },
-          { title: 'Sections', show: [], text: 'Follow the car past sections A to G of Fig. 26: crown, outer half level, crossfall at camber, half-way, then full superelevation.' },
-          { title: 'Drainage', show: [], text: 'Rotating about the centre line, the inner edge drops 0.19 m below its level on the straight.',
+          { title: 'Sections', show: L, text: 'Follow the car past sections A to G of Fig. 26: crown, outer half level, crossfall at camber, half-way, then full superelevation.' },
+          { title: 'Drainage', show: L, text: 'Rotating about the centre line, the inner edge drops 0.19 m below its level on the straight.',
             check: { q: 'Why is a 0.19 m drop of the inner edge acceptable here?', options: ['the embankment is 0.3 m high', 'the curve is short', 'it is under 7 per cent'], answer: 0, why: 'There is no drainage trouble because the road is on a 0.3 m embankment (Example 11.1).' } },
         ],
       };

@@ -4,11 +4,13 @@
 //
 // cfg = { state, actions(st, refresh) → [{ label, run, toggle? }], curve(st) → [Δ°, Rc, Ls],
 //         pegs?(st, L, k) → { pts: [[x, y]], at: index|null }, card(c, W, H, st), steps, debug(st), size?,
-//         init?({ group, holo }) → deco (site objects of this table only), decorate?(deco, st, plan, k) on every refresh }
+//         init?({ group, holo }) → deco (site objects of this table only), decorate?(deco, st, plan, k) on every refresh,
+//         slider?: { name, label, at(st, L, k) → plan xy, get(st), set(st, i), n(st), say?(st) } a handle you slide sideways:
+//                  every ~24 px steps one row of the table (radius, station …), so a drag only lands on printed values }
 import * as THREE from 'three';
 import { Anims } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
-import { textPlane, cardBg } from '@engine/util.js';
+import { textPlane, cardBg, tagged } from '@engine/util.js';
 import { horizontalCurve } from '../../_irc38/curve.js';
 import { makePlan } from '../../_irc38/plan.js';
 import { diorama, trees, makeRoad, throughSlab, theodolite } from '../../_irc38/site.js';
@@ -66,6 +68,8 @@ export function tableSpread(cfg) {
       const rays = holo.segments([[0, 0, 0], [1, 0, 0]], holo.AMBER, .85, { width: .05 }); group.add(rays);
 
       const deco = cfg.init?.({ group, holo, GROUND });
+      const sl = cfg.slider, knob = sl ? holo.handle(sl.name, { label: sl.label, kind: 'lever', r: .8 }) : null; if (knob) group.add(knob);
+      let grip = null;
       const size = cfg.size || { w: 10, h: 7.6, px: 46 };
       const card = textPlane({ ...size, draw: (c, W, H) => { cardBg(c, W, H); cfg.card(c, W, H, st); } });
       card.position.set(5.1, 2.9 + Math.max(0, size.h - 7.6) * .42, 10.3); card.rotation.x = -.6; group.add(card);   // taller cards rise so their foot stays above the page
@@ -80,6 +84,7 @@ export function tableSpread(cfg) {
         const near = through.pts.filter((_, i) => i % 3 === 0).map(p => plan.P(p));
         forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.1));
         cfg.decorate?.(deco, st, plan, k);
+        if (knob) knob.position.copy(plan.P(sl.at(st, plan.L, k), .05));
         const pg = cfg.pegs?.(st, plan.L, k);
         pool.forEach((m, i) => { const q = pg?.pts[i]; m.visible = !!q; if (q) m.position.copy(plan.P(q, .45)); });
         theo.visible = rays.visible = pg?.at != null;
@@ -92,7 +97,14 @@ export function tableSpread(cfg) {
       }
       const actions = cfg.actions(st, refresh);
       const api = {
-        group, targets: [], actions,
+        group, targets: knob ? [knob] : [], actions, dragPlane: 'xz',
+        press(hit) { grip = knob && tagged(hit.object, 'handle') ? sl.get(st) : null; },
+        drag({ dx }) {
+          if (grip == null) return;
+          const v = Math.max(0, Math.min(sl.n(st) - 1, grip + Math.round(dx / 24)));
+          if (v !== sl.get(st)) { sl.set(st, v); refresh(); if (sl.say) guide.say(sl.say(st)); }
+        },
+        release() { grip = null; },
         tap(hit) { guide.tap(hit); },
         a11y: actions.map(a => ({ label: a.label, run: a.run })),
         update(dt) {

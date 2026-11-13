@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { Anims } from '@engine/anim.js';
 import { makeGuide } from '@engine/guide.js';
-import { textPlane, cardBg } from '@engine/util.js';
+import { textPlane, cardBg, tagged } from '@engine/util.js';
 import { SM } from '@engine/scene.js';
 import { horizontalCurve, layout } from '../../_irc38/curve.js';
 import { diorama, trees, track, throughSlab, car, VEH } from '../../_irc38/site.js';
@@ -40,6 +40,10 @@ export function lengthSpread(mode) {
       const tags = ['T.P.', 'C.T.'].map(n => { const t = holo.label(n, { h: .62, color: '#14202b', bg: 'rgba(255,253,248,.92)', weight: 700 }); group.add(t); return t; });
       const edgeTag = holo.label(mode === 'comfort' ? 'sideways acceleration builds up over the spiral' : 'outer edge, heights ×40', { h: .55, color: '#8a3f1c', bg: 'rgba(255,253,248,.92)' }); group.add(edgeTag);
       const auto = car(S * VEH, 0x24557a); group.add(auto);
+      // comfort: a speed handle by the road; sliding it sideways steps through the design speeds of Table 3
+      const SPD = [20, 25, 30, 35, 40, 50, 65, 80, 100], knob = mode === 'comfort' ? holo.handle('speed', { label: 'speed · drag', kind: 'lever', r: .8 }) : null;
+      if (knob) group.add(knob);
+      let grip = null;
 
       const rows9 = () => T9_R.filter(R => t9(st.V, st.hills ? 'H' : 'P', R) != null);
       const R = () => mode === 'table9' ? rows9()[Math.min(st.ri, rows9().length - 1)] : (st.hills ? MIN_RADIUS[st.V][2] : MIN_RADIUS[st.V][0]) * (st.big ? 2 : 1);
@@ -113,6 +117,7 @@ export function lengthSpread(mode) {
         const onSlab = q => { const v = P(q); return v.x > SLAB.x0 && v.x < SLAB.x1 && v.z > SLAB.z0 && v.z < SLAB.z1; };
         const sp = Ls ? L.pts.slice(0, Math.ceil(Ls) + 1).filter(onSlab) : [];
         spiralLine.visible = sp.length > 1; if (sp.length > 1) holo.setPoints(spiralLine, sp.map(p => P(p, .04)));
+        if (knob) { knob.position.copy(P(L.TP)); knob.position.z -= 2.8; }   // behind the road, clear of the guide card
         tags[0].position.copy(P(L.TP, 1.3)); tags[1].position.copy(P(L.CT, 1.3)); tags[1].visible = Ls > 0 && onSlab(L.CT);
         {   // the outer edge raised as it climbs from T.P. to C.T. (heights ×40) or, for eq. (16), the sideways acceleration
           const pts = offsetPts(road, LANE, 1), base = [], top = [];
@@ -140,7 +145,14 @@ export function lengthSpread(mode) {
       ];
       if (mode === 'table9') st.ri = firstNum();
       const api = {
-        group, targets: [], actions,
+        group, targets: knob ? [knob] : [], actions, dragPlane: 'xz',
+        press(hit) { grip = knob && tagged(hit.object, 'handle') ? Math.max(0, SPD.indexOf(st.V)) : null; },
+        drag({ dx }) {
+          if (grip == null) return;
+          const V = SPD[Math.max(0, Math.min(SPD.length - 1, grip + Math.round(dx / 28)))];
+          if (V !== st.V) { st.V = V; rebuild(); guide.say(`${V} km/h on R ${R()} m: Ls = 0.0215 V³ / CR = ${Ls} m.`); }
+        },
+        release() { grip = null; },
         tap(hit) { guide.tap(hit); },
         a11y: actions.map(a => ({ label: a.label, run: a.run })),
         update(dt) {

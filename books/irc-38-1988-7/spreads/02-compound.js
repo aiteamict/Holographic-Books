@@ -38,7 +38,7 @@ export function compoundSpread(mode) {
     build(ctx) {
       const { holo } = ctx, anims = new Anims();
       const group = new THREE.Group();
-      const st = { five: false, k: 0, t: 0, run: true };
+      const st = { five: false, k: 0, t: 0, run: true, g: 0 };   // g: rows of Example 11.33 revealed
       const ox = -4.5, oz = -9;
       const P = (xy, h = 0) => new THREE.Vector3(ox + xy[0] * S, GROUND + h, oz - xy[1] * S * YX);
       const onSlab = q => { const v = P(q); return v.x > SLAB.x0 + .3 && v.x < SLAB.x1 - .3 && v.z > SLAB.z0 + .3 && v.z < SLAB.z1 - .3; };
@@ -90,6 +90,7 @@ export function compoundSpread(mode) {
           ['T1 = R1 tan Δ1 + AI', '33.252 m', `${T1.toFixed(3)} m`, true],
           ['T2 = R2 tan Δ2 − BI', '−21.855 m', `${T2.toFixed(3)} m`, true],
         ] : steps.filter(s => !s.pre).map(s => [String(s.n), mode === 'offsets' ? `${s.book.toFixed(5)} m` : `${s.book.toFixed(5)}°`, steps.indexOf(s) < st.k ? (mode === 'offsets' ? `${s.off.toFixed(4)} m` : `${s.calc.toFixed(5)}°`) : '…', s.bad, steps.indexOf(s) === st.k - 1]);
+        if (mode === 'geometry') rows.forEach((r, i) => { if (i >= st.g) { r[2] = '…'; r[3] = false; } r[4] = i === st.g - 1; });
         const rh = mode === 'deflect' && !st.five ? 16 : 22;
         rows.forEach(([a, b, v, bad, now], i) => { const y = 82 + i * rh; if (now) { c.fillStyle = 'rgba(36,85,122,.12)'; c.fillRect(14, y - 12, W - 28, rh - 2); } c.fillStyle = '#5c6168'; c.font = `500 13px ${F}`; c.fillText(a, 18, y); c.textAlign = 'right'; c.font = `700 13px ${F}`; c.fillStyle = bad ? '#b3362b' : '#14202b'; c.fillText(b, W - 150, y); c.fillStyle = v === '…' ? '#c9ced3' : '#1f7a45'; c.fillText(v, W - 30, y); c.fillStyle = '#b3362b'; c.fillText(bad && v !== '…' ? '!' : '', W - 16, y); c.textAlign = 'left'; });
         const note = {
@@ -113,15 +114,15 @@ export function compoundSpread(mode) {
         holo.setPoints(c1, circ(O1, R1, -40 / R1, 100 / R1).map(q => P(q, .04)));
         holo.setPoints(c2, circ(C2, R2, a2 - 70 / R2, a2 + 25 / R2).map(q => P(q, .05)));
         holo.setPoints(sp, spiral.pts.filter((_, i) => i % 10 === 0).map(q => P(q, .08)));
-        tg.visible = tags.I.visible = mode === 'geometry';
+        tg.visible = tags.I.visible = mode === 'geometry' && st.g >= 5;
         if (mode === 'geometry') { holo.setPoints(tg, [P([0, 0], .06), P(I, .06), P([end.x, end.y], .06)]); tags.I.position.copy(P(I, 1)); }
         // Pa: from the 600 m circle, square to it, at the common radius (middle of the spiral) out to the 240 m circle
         const m = at(La / 2), r = Math.hypot(m[0] - O1[0], m[1] - O1[1]), u = [(m[0] - O1[0]) / r, (m[1] - O1[1]) / r];
         const onC1 = [O1[0] + u[0] * R1, O1[1] + u[1] * R1], onC2 = [O1[0] + u[0] * (R1 - PaExact), O1[1] + u[1] * (R1 - PaExact)];
-        tags.pa.visible = mode === 'geometry'; tags.pa.position.copy(P([m[0] - 6, m[1] - .9], 1.1));
+        tags.pa.visible = mode === 'geometry' && st.g >= 1; tags.pa.position.copy(P([m[0] - 6, m[1] - .9], 1.1));
         tags.cs1.position.copy(P([0, .7], 1)); tags.cs2.position.copy(P([end.x + 2, end.y + .7], 1));
         tags.r1.position.copy(P([80, -80 * 80 / 1200 + .4], 1)); tags.r2.position.copy(P([end.x - 52, end.y - 1.6], 1));
-        segs.userData.pa = mode === 'geometry' ? [P(onC1, .1), P(onC2, .1)] : null;
+        segs.userData.pa = mode === 'geometry' && st.g >= 1 ? [P(onC1, .1), P(onC2, .1)] : null;
         const near = [...spiral.pts.filter((_, i) => i % 40 === 0), ...circ(O1, R1, -40 / R1, 100 / R1).filter((_, i) => i % 6 === 0)].map(q => P(q)); forest.userData.hide((x, z) => near.some(q => Math.hypot(q.x - x, q.z - z) < 1.6));
         theo.position.copy(P(mode === 'station' ? at(33) : [0, 0]));
         draw(); card.redraw();
@@ -142,7 +143,11 @@ export function compoundSpread(mode) {
         if ((mode === 'deflect' || mode === 'station') && cur && !cur.pre) theo.userData.head.rotation.y = Math.atan2((cur.q[1] - S0[1]) * YX, cur.q[0] - S0[0]);
       }
       const restart = () => { st.k = steps.filter(s => s.pre).length; st.t = 0; st.run = true; draw(); card.redraw(); };
-      const actions = mode === 'geometry' ? [] : [
+      const GSTEP = ['Pa = 0.00574 × 55 (Table 12): the gap between the circles at the common radius. The book prints 0.03156; it is 0.3157 m.', 'Δ1 = 28.65 × 55 / 600 = 2°37′35″: the spiral angle on the 600 m circle.', 'Δ2 = 28.65 × 55 / 240 = 6°33′56″: on the 240 m circle.', 'AB = R2 exsec Δ2 − R1 exsec Δ1 − Pa: with the wrong Pa the book gets 0.9218 m.', 'T1 = R1 tan Δ1 + AI: from C.S.1 to I, where the two tangents meet.', 'T2 = R2 tan Δ2 − BI: from I to C.S.2. Printed −21.855 m; exact 23.63 m.'];
+      const actions = mode === 'geometry' ? [
+        { label: 'Next step', run: () => { if (st.g < 6) { st.g++; rebuild(); guide.say(GSTEP[st.g - 1]); } } },
+        { label: 'Show all', run: () => { st.g = 6; rebuild(); } },
+      ] : [
         { label: 'Set out', run: restart },
         { label: 'Next peg', run: () => { st.run = false; if (st.k < steps.length) { st.k++; draw(); card.redraw(); } } },
         ...(mode === 'deflect' ? [{ label: '10 chords (11.36)', toggle: () => !st.five, run: () => { st.five = false; rebuild(); } }, { label: '5 chords (11.35)', toggle: () => st.five, run: () => { st.five = true; rebuild(); } }] : []),
@@ -157,15 +162,15 @@ export function compoundSpread(mode) {
           const tall = ctx.camera.aspect < 1; guide.card.position.x = tall ? -3.4 : -5.4; guide.card.scale.setScalar(tall ? .82 : 1);
           card.position.x = tall ? 3.5 : 5.1; card.scale.setScalar(tall ? .8 : 1);
         },
-        reset() { anims.clear(); Object.assign(st, { five: false, run: true }); rebuild(); guide.reset(); },
+        reset() { anims.clear(); Object.assign(st, { five: false, run: true, g: 0 }); rebuild(); guide.reset(); },
         get debug() { return { mode, five: st.five, pegs: st.k, of: steps.length, Pa: +PaExact.toFixed(4), T1: +T1.toFixed(3), T2: +T2.toFixed(3), R6: +R6.toFixed(1), rows: steps.filter(s => !s.pre).map(s => [s.n, s.book, +(mode === 'offsets' ? s.off : s.calc).toFixed(5)]), guide: guide.debug }; },
       };
       const L = actions.map(a => a.label);
       const STEPS = {
         geometry: [
-          { title: 'Two circles', show: [], text: 'The 600 m circle (blue) and the 240 m circle (amber) are produced past each other. The spiral (red) joins them; the gap between the circles at the common radius is Pa.',
+          { title: 'Two circles', show: L, text: 'The 600 m circle (blue) and the 240 m circle (amber) are produced past each other. The spiral (red) joins them; the gap between the circles at the common radius is Pa.',
             check: { q: 'The common radius of the compound transition…', options: ['bisects the spiral', 'lies at C.S.1', 'lies at C.S.2'], answer: 0, why: 'The compound transition behaves like a tangent-to-curve transition with degree equal to the difference of degrees; the common radius bisects the spiral (cl. 8.4).' } },
-          { title: 'Tangents', show: [], text: 'The tangents at C.S.1 and C.S.2 meet at I: T1 and T2 locate the spiral from the two curves.',
+          { title: 'Tangents', show: L, text: 'The tangents at C.S.1 and C.S.2 meet at I: T1 and T2 locate the spiral from the two curves.',
             check: { q: 'The sharper curve of a compound pair lies…', options: ['inside the flatter one', 'outside the flatter one', 'on the same circle'], answer: 0, why: 'With a transition between curves of different radii, the sharper curve lies inside the flatter (cl. 8.1).' } },
         ],
         offsets: [

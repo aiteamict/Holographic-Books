@@ -34,6 +34,8 @@ function speedFor(R, Ls) {
 }
 export const table10 = tableSpread({
   ...level,
+  slider: { name: 'radius', label: 'Rc · drag', at: (s, L) => L.mid, get: s => s.r, set: (s, v) => { s.r = v; }, n: () => RADII.length,
+    say: s => { const k = hc(s.d, RADII[s.r], LENGTHS[s.l]); return `Rc ${RADII[s.r]} m: Ts ${f3(k.Ts)} m${k.Ts > 322 ? ', past the level crossing' : ''}.`; } },
   state: { d: 56, r: at(RADII, 500), l: at(LENGTHS, 110) },
   curve: s => [s.d, RADII[s.r], LENGTHS[s.l]],
   actions: (s, go) => [
@@ -52,7 +54,7 @@ export const table10 = tableSpread({
     foot(c, W, H, ['BOOK: the Table 10 cells Examples 11.3–11.9 quote (try Δ 56°, Rc 400–500).', 'Red: printed value read on the page, beyond rounding.']);
   },
   steps: [
-    { title: 'Ts and Es', text: 'Table 10 gives Ts and Es for Δ 6° to 120°, radii 14 to 2500 m and transitions 15 to 140 m (cl. 7.7.2). Step Δ, Rc and Ls.',
+    { title: 'Ts and Es', text: 'Table 10 gives Ts and Es for Δ 6° to 120°, radii 14 to 2500 m and transitions 15 to 140 m (cl. 7.7.2). Drag the Rc handle sideways, or step Δ, Rc and Ls.',
       check: { q: 'When terrain fixes Ts or Es, Table 10 helps you pick…', options: ['the largest radius that fits', 'the smallest radius', 'the longest transition'], answer: 0, why: 'Many pairs fit; the tables let the engineer choose the maximum radius and the best transition (cl. 7.6.2).' } },
     { title: 'Design speed', text: 'Zig-zag lines in Table 10 mark the design speeds. The card tests the pair against Table 3 (radius) and Table 9 (length).',
       check: { q: 'Values below a speed’s zig-zag line are for…', options: ['exceptional conditions only', 'village roads', 'never'], answer: 0, why: 'Only where a safe curve is impossible or prohibitively costly (cl. 7.7.2).' } },
@@ -146,6 +148,7 @@ function trueAngle(a, b, th) {
   return Math.abs(Math.atan2(q.y - p.y, q.x - p.x) - p.theta) * DEG;
 }
 export const table14 = tableSpread({
+  slider: { name: 'station', label: 'drag the theodolite', at: (s, L) => L.onSpiral(10 * s.at), get: s => s.at, set: (s, v) => { s.at = v; }, n: () => 11, say: s => `Instrument at station ${s.at}: its column is highlighted.` },
   size: { w: 11, h: 8.8, px: 52 },
   state: { at: 0, th: 30 },
   curve: s => [2 * s.th + 24, 100 / (2 * s.th * RAD), 100],
@@ -184,7 +187,7 @@ export const table14 = tableSpread({
       check: { q: 'From T.P. to point 8 with θs = 30°, the deflection is…', options: ['0.2133 × 30° = 6.399°', '0.64 × 30° = 19.2°', '0.8 × 30° = 24°'], answer: 0, why: 'Table 14, note 2 (i): 0.2133 × 30° = 6.399°.' } },
     { title: 'The rule', text: 'Every coefficient is (b − a)(b + 2a)/300 forward and (a − b)(2a + b)/300 back. Fourteen printed cells break it; they are red.',
       check: { q: 'No correction C is needed when θs is at most…', options: ['20°', '30°', '45°'], answer: 0, why: 'For θs of 20° and less no correction is necessary (Table 14, note 3).' } },
-    { title: 'True angle', text: 'Step the station and try θs 10° and 30°: the foot sets α against the angle on the true spiral.' },
+    { title: 'True angle', text: 'Drag the theodolite along the pegs and try θs 10° and 30°: the foot sets α against the angle on the true spiral.' },
   ],
   debug: s => ({ at: s.at, th: s.th, misprints: Object.keys(PR14).length, k80: coef(8, 0) }),
 });
