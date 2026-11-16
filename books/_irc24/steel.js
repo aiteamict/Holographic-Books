@@ -283,3 +283,37 @@ export function prying({ Te, lv, e, be, t, f0, fy, pre }) {
   const beta = pre ? 1 : 2, le = Math.min(e, 1.1 * t * Math.sqrt(beta * f0 / fy));
   return { beta, le, Q: Math.max(0, lv / (2 * le) * (Te * 1000 - beta * 1.5 * f0 * be * t ** 4 / (27 * le * lv * lv)) / 1000) };
 }
+
+// ---- chapter 9 · fabrication, erection and the annexes (cl. 513, 514, Annexes D to G)
+/** cl. 513.5.5.1: hole diameter for rivets and bolts: 1.5 mm larger up to 25 mm diameter, 2.0 mm at 25 mm and above. */
+export const holeSize = d => d + (d >= 25 ? 2 : 1.5);
+/**
+ * cl. 513.5.5.1: how a hole is made. 'ream': sub-drilled or sub-punched 3 mm under and reamed, for holes through more than one
+ * thickness or main material over 20 mm (up to E 250) or 16 mm (E 300 and above). 'punch': allowed only in secondary members
+ * not over 12 mm thick, steel up to E 250. Otherwise 'drill'.
+ */
+export const holeMethod = ({ t, main, plies, fy }) => plies > 1 || t > (fy >= 300 ? 16 : 20) ? 'ream' : !main && t <= 12 && fy <= 250 ? 'punch' : 'drill';
+// cl. 513.5.6.1, turn of nut after snug tight: [bolt length up to (diameters), both faces normal, one face sloped less than 1:20]
+export const TURN = [[4, 1 / 3, 1 / 2], [8, 1 / 2, 2 / 3], [12, 2 / 3, 5 / 6]];
+export const turnOfNut = (dias, sloped) => { const r = TURN.find(q => dias <= q[0]); return r ? r[sloped ? 2 : 1] : null; };
+// Table 20 and cl. 513.5.14.2, a selection: each returns the allowed deviation in mm as [minus, plus]
+export const TOLERANCE = {
+  length: L => L <= 12000 ? [2, 2] : [3.5, 3.5],                 // 1 c: other members, up to and over 12 m
+  bearing: () => [1, 1],                                         // 1 a: both ends finished for contact bearing
+  width: () => [3, 3],                                           // 2 a: width of built-up girders
+  depth: () => [2, 3],                                           // 3: depth of solid web and open web girders
+  column: L => { const v = Math.min(15, L / 300); return [v, v]; },   // 4 a: straightness of columns, as printed
+  web: d => { const v = Math.min(2, .005 * d); return [v, v]; },      // 6: flatness of plate webs, in a length equal to the depth
+  tilt: b => { const v = Math.min(2, .005 * b); return [v, v]; },     // 7 a: tilt of flange at splices, stiffeners, supports, bearings
+  butt: t => { const v = Math.min(3, .15 * t); return [v, v]; },      // 513.5.14.2: misalignment in welded butt joints
+};
+/** Annex F2.1: acceptance test load = 1.0 × self weight + 1.15 × remainder of the permanent load + 1.25 × variable load. */
+export const acceptanceLoad = (self, perm, variable) => self + 1.15 * perm + 1.25 * variable;
+// Table F.1, factors to allow for variability of structural units: number of similar units tested → [strength, serviceability]
+export const TABLE_F1 = { 1: [1.5, 1.2], 2: [1.4, 1.2], 3: [1.3, 1.2], 4: [1.3, 1.1], 5: [1.3, 1.1], 10: [1.2, 1.1] };
+// Annex G, Table G.1: classification of load combinations and the permissible increase in stress, per cent
+export const TABLE_G1 = [['I', 0], ['II', 15], ['III', 25], ['IV', 40], ['V', 25], ['VI', 30], ['VII', 40]];
+// Annex G, Table G.2: basic permissible stresses as a fraction of fy
+export const TABLE_G2 = { tension: () => .6, compression: () => .6, bendPlate: () => .66, bendGirder: () => .62, shearMax: () => .43, shearAvg: fy => fy <= 250 ? .38 : .35, bearing: () => .8 };
+/** Annex G2.2: permissible stress with the increase of Table G.1, limited to 90 per cent of the yield stress. */
+export const permissible = (kind, fy, inc) => Math.min(TABLE_G2[kind](fy) * fy * (1 + inc / 100), .9 * fy);

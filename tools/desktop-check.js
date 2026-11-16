@@ -1,4 +1,4 @@
-// Desktop walk of one IRC 24 chapter (set CH): every spread, every control twice, card text overflow, page errors, one screenshot a spread.
+// Desktop walk of one IRC 24 chapter (set CH): every spread, every control twice, card text that overflows or runs into its value, page errors, one screenshot a spread.
 // Run it against the dev server with a Playwright page: it is one async function taking `page`.
 async (page) => {
   const CH = 2;
@@ -14,6 +14,11 @@ async (page) => {
         const tr = this.getTransform(), w = this.measureText(t).width, W = this.canvas.width / tr.a, H = this.canvas.height / tr.d;
         const l = this.textAlign === 'right' ? x - w : this.textAlign === 'center' ? x - w / 2 : x, r = l + w;
         if (W > 430 && W < 450 && (l < 6 || r > W - 6 || y > H - 4)) window.__ovf.push(String(t).slice(0, 60) + ' | ' + Math.round(l) + '..' + Math.round(r) + ' of ' + Math.round(W) + ', y ' + Math.round(y) + ' of ' + Math.round(H));
+        if (W > 430 && W < 450) {   // a label on the left and its value on the right of the same row must not meet
+          const rows = this.canvas.__rows || (this.canvas.__rows = {}), k = Math.round(y);
+          if (this.textAlign === 'right') { if (rows[k] && l < rows[k].r + 6) window.__ovf.push('meet: ' + rows[k].t + ' | ' + String(t).slice(0, 40)); }
+          else rows[k] = { r, t: String(t).slice(0, 40) };
+        }
       } catch (e) {}
       return o.apply(this, arguments);
     };

@@ -7,7 +7,7 @@
 // Zero problems at every size is the pass mark.
 async (page) => {
   const SIZES = [[320, 568], [360, 640], [390, 844], [430, 932], [844, 390], [768, 1024]];
-  const BOOKS = [...[1, 2, 3, 4, 5, 6, 7, 8].map(n => `irc-38-1988-${n}`), 'irc-24-2010-1'];
+  const BOOKS = [...[1, 2, 3, 4, 5, 6, 7, 8].map(n => `irc-38-1988-${n}`), ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `irc-24-2010-${n}`)];
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   const report = {}, errs = []; page.on('pageerror', e => errs.push(e.message));

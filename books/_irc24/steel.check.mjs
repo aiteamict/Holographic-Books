@@ -107,3 +107,14 @@ console.log('IRC 24 steel checks pass');
   assert.equal(s.largeGrip(100, 20), 1); near(s.largeGrip(160, 20), 160 / 220, 1e-9, 'βlg'); assert.deepEqual([s.packingFactor(6), s.packingFactor(16)], [1, .8]);
   const p = s.prying({ Te: 80, lv: 40, e: 40, be: 100, t: 12, f0: 560, fy: 250, pre: false }); assert.equal(p.le, Math.min(40, 1.1 * 12 * Math.sqrt(2 * 560 / 250)));
   near(p.Q, 40 / (2 * p.le) * (80000 - 2 * 1.5 * 560 * 100 * 12 ** 4 / (27 * p.le * 1600)) / 1000, 1e-9, 'Q'); assert.equal(s.prying({ Te: 80, lv: 40, e: 40, be: 100, t: 40, f0: 560, fy: 250, pre: false }).Q, 0); }
+
+// ---- chapter 9 · cl. 513, 514, Annexes D to G
+{ const s = await import('./steel.js');
+  assert.deepEqual([s.holeSize(20), s.holeSize(24), s.holeSize(25), s.holeSize(30)], [21.5, 25.5, 27, 32]);
+  assert.deepEqual([s.holeMethod({ t: 10, main: false, plies: 1, fy: 250 }), s.holeMethod({ t: 10, main: true, plies: 1, fy: 250 }), s.holeMethod({ t: 16, main: false, plies: 1, fy: 250 }), s.holeMethod({ t: 25, main: true, plies: 1, fy: 250 }), s.holeMethod({ t: 18, main: true, plies: 1, fy: 300 }), s.holeMethod({ t: 8, main: true, plies: 2, fy: 250 })],
+    ['punch', 'drill', 'drill', 'ream', 'ream', 'ream']);
+  assert.deepEqual([s.turnOfNut(4, false), s.turnOfNut(6, false), s.turnOfNut(10, true), s.turnOfNut(14, false)], [1 / 3, 1 / 2, 5 / 6, null]);
+  assert.deepEqual([s.TOLERANCE.length(12000), s.TOLERANCE.length(15000), s.TOLERANCE.depth(), s.TOLERANCE.column(3000), s.TOLERANCE.column(9000), s.TOLERANCE.web(300), s.TOLERANCE.web(1600), s.TOLERANCE.butt(12), s.TOLERANCE.butt(40)],
+    [[2, 2], [3.5, 3.5], [2, 3], [10, 10], [15, 15], [1.5, 1.5], [2, 2], [.15 * 12, .15 * 12], [3, 3]]);
+  near(s.acceptanceLoad(400, 200, 600), 400 + 230 + 750, 1e-9, 'acceptance test load'); assert.deepEqual(s.TABLE_F1[1], [1.5, 1.2]); assert.deepEqual(s.TABLE_F1[10], [1.2, 1.1]);
+  near(s.permissible('tension', 250, 0), 150, 1e-9, '0.6 fy'); near(s.permissible('bendGirder', 250, 25), .62 * 250 * 1.25, 1e-9, 'with increase'); near(s.permissible('bearing', 250, 40), 225, 1e-9, 'capped at 0.9 fy'); near(s.permissible('shearAvg', 300, 0), .35 * 300, 1e-9, 'average shear'); }
