@@ -71,3 +71,18 @@ console.log('IRC 24 steel checks pass');
   near(s.ltb(.2, 250, true).chi, 1, 1e-9, 'χLT at λ 0.2'); assert.ok(s.ltb(1, 250, false).chi > s.ltb(1, 250, true).chi);
   assert.deepEqual(s.TABLE12.map(r => r[2]), [.7, .75, .8, .85, 1, 1, 1.2]); assert.deepEqual(s.TABLE13.d[3], [.5, .5]); assert.deepEqual(s.TABLE13.a[0], [3, 7.5]);
   near(s.holeLimit(250), 250 / 410 * (1.25 / 1.1) / .9, 1e-12, 'hole limit'); }
+
+// ---- chapter 6 · cl. 509.4–510
+{ const s = await import('./steel.js');
+  assert.deepEqual([s.Kv(0), s.Kv(1), s.Kv(.5), s.Kv(2)], [5.35, 9.35, 4 + 5.35 / .25, 5.35 + 1]);
+  const b = s.shearBuckling({ d: 1600, tw: 10, fyw: 250, cd: 1.5 });
+  near(b.tcr, b.kv * Math.PI ** 2 * 2e5 / (12 * .91 * 160 ** 2), 1e-9, 'τcr,e'); near(b.Vp, 1600 * 10 * 250 / Math.sqrt(3) / 1000, 1e-9, 'Vp'); assert.ok(b.lw > 1.2); near(b.tb, 250 / Math.sqrt(3) / b.lw ** 2, 1e-9, 'τb');
+  near(s.shearBuckling({ d: 600, tw: 12, fyw: 250, cd: 0 }).tb, 250 / Math.sqrt(3), 1e-9, 'stocky web yields');
+  const t = s.tensionField({ d: 1600, tw: 10, fyw: 250, cd: 1.5, bf: 500, tf: 32, fyf: 250 }); assert.ok(t.Vtf > t.Vcr && t.Vtf <= t.Vp + 1e-9); near(t.phi, Math.atan(1 / 1.5), 1e-12, 'φ');
+  near(s.anchorForces(2000, 500, 1600).Hq, 1.25 * 2000 * Math.sqrt(.75), 1e-9, 'Hq');
+  assert.deepEqual([s.webLimit('none', 2), s.webLimit('trans', 2), s.webLimit('trans', .8), s.webLimit('trans', .5), s.webLimit('trans', 3.5), s.webLimit('long1', 1.5), s.webLimit('long1', .5), s.webLimit('long2', 1)],
+    [[200, 'd'], [200, 'd'], [200, 'c'], [270, 'd'], [200, 'd'], [250, 'd'], [340, 'd'], [400, 'd']]);
+  near(s.flangeLimit(true, 1, 250), 345, 1e-9, 'flange limit'); near(s.flangeLimit(true, 2, 300), 345 * 250 / 300, 1e-9, 'flange limit');
+  near(s.stiffenerI(1600, 10, 3200), .75 * 1600 * 1000, 1e-6, 'Is'); near(s.stiffenerI(1600, 10, 1600), 1.5 * 1600 * 1000, 1e-6, 'Is');
+  assert.deepEqual([s.alphaS(40), s.alphaS(100), s.alphaS(200)], [.006, .003, 30 / 40000]);
+  near(s.highShear({ Md: 1000, Mfd: 600, ZeFy: 900, v: 1, compact: true }).Mdv, 600, 1e-9, 'Mdv at full shear'); assert.equal(s.highShear({ Md: 1000, Mfd: 600, ZeFy: 900, v: .5, compact: true }).Mdv, 1000); }

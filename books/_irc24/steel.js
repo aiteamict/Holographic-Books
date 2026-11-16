@@ -168,3 +168,56 @@ export const TABLE13 = {
 };
 /** cl. 509.2.1.4 (a): holes in the tension flange need not be considered if Anf/Agf ≥ (fy/fu)(γm1/γm0)/0.9. */
 export const holeLimit = fy => fy / FU[fy] * (GM1 / GM0) / .9;
+
+// ---- chapter 6 · shear, stiffeners and combined forces (cl. 509.4–510)
+/** cl. 509.4.2.2 (a): shear buckling coefficient. cd = c/d, the stiffener spacing over the web depth; 0 or null = stiffeners at supports only. */
+export const Kv = cd => !cd ? 5.35 : cd < 1 ? 4 + 5.35 / cd ** 2 : 5.35 + 4 / cd ** 2;
+/**
+ * cl. 509.4.1 and 509.4.2.2 (a), simple post-critical method, for a welded I (Av = d tw). τcr,e = Kv π² E / 12(1 − μ²)(d/tw)²,
+ * λw = √(fyw / √3 τcr,e); τb = fyw/√3 for λw ≤ 0.8, [1 − 0.8 (λw − 0.8)] fyw/√3 up to 1.2, fyw / (√3 λw²) beyond. Forces in kN.
+ */
+export function shearBuckling({ d, tw, fyw, cd }) {
+  const kv = Kv(cd), ty = fyw / Math.sqrt(3), tcr = kv * Math.PI ** 2 * E / (12 * (1 - MU * MU) * (d / tw) ** 2), lw = Math.sqrt(ty / tcr);
+  const tb = lw <= .8 ? ty : lw < 1.2 ? (1 - .8 * (lw - .8)) * ty : ty / (lw * lw);
+  return { kv, tcr, lw, tb, Vp: d * tw * ty / 1000, Vcr: d * tw * tb / 1000, limit: 67 * eps(fyw) * (cd ? Math.sqrt(kv / 5.35) : 1) };   // limit: d/tw above which buckling is verified (509.4.2.1)
+}
+/**
+ * cl. 509.4.2.2 (b), tension field method (c/d ≥ 1). φ = tan⁻¹(d/c), ψ = 1.5 τb sin 2φ, fv = [fyw² − 3τb² + ψ²]^0.5 − ψ,
+ * s = (2/sin φ) [Mfr / (fyw tw)]^0.5 ≤ c, Mfr = 0.25 bf tf² fyf [1 − nf²] with nf = Nf / (bf tf fyf / γm0),
+ * wtf = d cos φ + (c − sc − st) sin φ, Vtf = Av τb + 0.9 wtf tw fv sin φ ≤ Vp. Both flanges are taken alike (sc = st).
+ */
+export function tensionField({ d, tw, fyw, cd, bf, tf, fyf, nf = 0 }) {
+  const b = shearBuckling({ d, tw, fyw, cd }), c = cd * d, phi = Math.atan(d / c), psi = 1.5 * b.tb * Math.sin(2 * phi), fv = Math.sqrt(fyw ** 2 - 3 * b.tb ** 2 + psi ** 2) - psi;
+  const Mfr = .25 * bf * tf * tf * fyf * (1 - nf * nf), s = Math.min(c, 2 / Math.sin(phi) * Math.sqrt(Mfr / (fyw * tw))), wtf = d * Math.cos(phi) + (c - 2 * s) * Math.sin(phi);
+  const raw = (d * tw * b.tb + .9 * wtf * tw * fv * Math.sin(phi)) / 1000;
+  return { ...b, c, phi, psi, fv, Mfr, s, wtf, raw, Vtf: Math.min(raw, b.Vp) };
+}
+/** cl. 509.5.3: anchor forces of the tension field. Hq = 1.25 Vp (1 − Vcr/Vp)^½, Rtf = Hq/2, Mtf = Hq d/10 (kN, kNm; d in mm). */
+export function anchorForces(Vp, Vcr, d, ratio = 1) { const Hq = 1.25 * Vp * Math.sqrt(1 - Vcr / Vp) * ratio; return { Hq, Rtf: Hq / 2, Mtf: Hq * d / 10 / 1000 }; }
+/**
+ * cl. 509.6.1.1, serviceability limit on the web: returns [k, 'd' | 'c'] meaning d/tw or c/tw ≤ k εw. arr: 'none' no transverse
+ * stiffeners, 'trans' transverse only, 'long1' with one longitudinal stiffener, 'long2' with a second at the neutral axis.
+ * The Code prints the third transverse-only case as "c < d"; it is applied here below 0.74 d, where the second case ends.
+ */
+export function webLimit(arr, cd) {
+  if (arr === 'long2') return [400, 'd'];
+  if (arr === 'none' || (arr === 'trans' && cd > 3)) return [200, 'd'];
+  const [a, b] = arr === 'trans' ? [200, 270] : [250, 340];
+  return cd >= 1 ? [a, 'd'] : cd >= .74 ? [a, 'c'] : [b, 'd'];
+}
+/** cl. 509.6.1.2: so that the compression flange does not buckle into the web, d/tw ≤ 345 εf² (no stiffeners, or c ≥ 1.5 d), 345 εf (c < 1.5 d). */
+export const flangeLimit = (stiffened, cd, fyf) => 345 * (stiffened && cd < 1.5 ? eps(fyf) : eps(fyf) ** 2);
+/** cl. 509.7.2.4: least second moment of area of an intermediate transverse stiffener, mm⁴. */
+export const stiffenerI = (d, tw, c) => c / d >= Math.SQRT2 ? .75 * d * tw ** 3 : 1.5 * d ** 3 * tw ** 3 / c ** 2;
+/** cl. 509.7.4: local capacity of the web at its junction with the flange, Fw = (b1 + n2) tw fyw / γm0, kN. */
+export const webBearing = (b1, n2, tw, fyw) => (b1 + n2) * tw * fyw / GM0 / 1000;
+/** cl. 509.7.5.2: bearing strength of a load carrying stiffener, Fpsd = Aq fyq / (0.8 γm0), kN. */
+export const stiffenerBearing = (Aq, fyq) => Aq * fyq / (.8 * GM0) / 1000;
+/** cl. 509.7.9: αs for a torsional stiffener, Is ≥ 0.34 αs D³ Tcf. */
+export const alphaS = klr => klr <= 50 ? .006 : klr <= 100 ? .3 / klr : 30 / klr ** 2;
+/** cl. 510.2: moment capacity under shear v = V/Vd. Above 0.6: Mdv = Md − β (Md − Mfd) ≤ 1.2 Ze fy/γm0, β = (2v − 1)² (plastic, compact); Ze fy/γm0 (semi-compact). */
+export function highShear({ Md, Mfd, ZeFy, v, compact }) {
+  if (v <= .6) return { beta: 0, Mdv: Md };
+  if (!compact) return { beta: 0, Mdv: ZeFy };
+  const beta = (2 * v - 1) ** 2; return { beta, Mdv: Math.min(Md - beta * (Md - Mfd), 1.2 * ZeFy) };
+}
