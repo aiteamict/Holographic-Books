@@ -11,6 +11,7 @@ import { spread, sit, truss, truck, arrow, box, cyl, bend, paint, dispose, head,
 import { E, GM1, FU, TABLE9, uFrame, uFrameForce } from '../../_irc24/steel.js';
 
 const LP = 17, NP = 8, HT = 3.2, PAN = LP / NP, W2 = 1.3, TEN = 0x1d5f87, COM = 0xb0532a, HI = 0xd08a2e;
+const GHOST = new THREE.MeshStandardMaterial({ color: 0x8b959e, transparent: true, opacity: .3, depthWrite: false });
 const range = (a, b, s) => { const o = []; for (let v = a; v <= b + 1e-9; v += s) o.push(+v.toFixed(6)); return o; };
 const mk = () => truss({ L: LP, h: HT, n: NP, H: 2.4 });
 /** What a bar of the kit truss is, from its two panel points [i, top]. */
@@ -123,12 +124,12 @@ export const uframe = spread({
       place() {
         r = uf(st); const w = .22 + .07 * Math.log2(st.I1 * 2);
         if (w !== was) { was = w; for (const p of posts) { if (p.bar) { p.col.remove(p.bar); p.bar.geometry.dispose(); } p.bar = box(HV, w, .5, m, 0, 0, 0, 20); p.col.add(p.bar); } }
-        girder.scale.y = st.I2 === 8 ? 1.6 : 1; high.visible = st.sys === 'deck'; low.visible = !high.visible; for (const a of fa) a.visible = st.sys === 'u'; for (const p of posts) p.col.visible = st.sys !== 'none';   // case a): no cross frames, so no verticals; the chords sway free
+        girder.scale.y = st.I2 === 8 ? 1.6 : 1; high.visible = st.sys === 'deck'; low.visible = !high.visible; for (const a of fa) a.visible = st.sys === 'u'; for (const p of posts) p.bar.material = st.sys === 'none' ? GHOST : m;   // case a): the verticals are not a frame, so they are drawn faded and do not hold the chords
         tag.userData.setText(st.sys === 'none' ? `KL = span = ${USPAN} m` : st.sys === 'deck' ? 'KL = 0: held along its whole length' : `KL = ${(r.KL / 1000).toFixed(2)} m`);
       },
       update(dt, t) {
         const A = st.sys === 'deck' ? 0 : st.sys === 'none' ? 1.3 : Math.min(1.1, .15 + r.delta * 300), o = A * Math.sin(t * 1.6);
-        posts.forEach((p, i) => { bend(p.col, x => -p.s * o * (x / HV + .5) ** 2); chords[i].position.x = p.s * (B + o); fa[i].position.set(p.s * (B + o + .6), YB + HV + .1, 0); fa[i].userData.len(p.s * 1.3); });
+        posts.forEach((p, i) => { bend(p.col, x => st.sys === 'none' ? 0 : -p.s * o * (x / HV + .5) ** 2); chords[i].position.x = p.s * (B + o); fa[i].position.set(p.s * (B + o + .6), YB + HV + .1, 0); fa[i].userData.len(p.s * 1.3); });
       },
       debug: () => ({ delta: +(r.delta * 1000).toFixed(3), KL: +r.KL.toFixed(0), F: +(r.F / 1000).toFixed(1) }),
     };
@@ -268,7 +269,7 @@ const MEM = { bottom: ['Bottom chord', 5000, 1], top: ['Top chord', 5000, -1], d
 const cam = st => { const [name, L, sg] = MEM[st.mem], dl = sg * st.s * L / E, kl = (st.span === 'through' ? 1 : -1) * st.sc / E * L, tot = -dl + kl; return { name, L, sg, dl, kl, tot, len: Math.round((L + tot) * 2) / 2 }; };
 const mm = v => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)} mm`;
 export const camber = spread({
-  river: true, init: { mem: 'diag', span: 'through', s: 90, sc: 80 },
+  river: true, init: { mem: 'bottom', span: 'through', s: 160, sc: 80 },
   chips: [['mem', ['bottom', 'top', 'diag', 'vert'], v => MEM[v][0]], ['span', ['through', 'deck'], v => v === 'through' ? 'Through span' : 'Deck span'], ['sc', [60, 80, 100], v => `Loaded chord ${v} MPa`]],
   slider: { key: 's', name: 'Stress', label: 'member stress · drag', values: range(20, 160, 10) },
   model({ holo, group, st }) {

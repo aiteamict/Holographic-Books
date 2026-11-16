@@ -22,10 +22,10 @@ const counter = () => { let N = 0, side = 1; return { tick(x) { const s = Math.s
 const crackOn = b => { const c = box(.14, .5, .9, REDM, 0, 2.72, 1.5); c.geometry.translate(0, .25, 0); c.visible = false; b.g.add(c); return c; };
 /** A bar beside the bridge: fill = a stress range, a red line at a limit, both against max. */
 function gauge(group, holo) {
-  const GX = -6.5, GY = 5.2, GZ = -9, lb = holo.label("stress range", { h: .55, color: INK }); lb.position.set(GX, GY + 4.6, GZ); group.add(lb);   // above and behind the deck, clear of the truck and the cards
+  const GX = -6.5, GY = 5.2, GZ = -9, lb = holo.label("stress range", { h: .9, color: INK }), ll = holo.label("limit", { h: .75, color: "#b3362b" }); lb.position.set(GX, GY + 4.8, GZ); group.add(lb, ll, box(.3, GY - .5, .3, SM.steel, GX, (GY + .5) / 2, GZ));   // above and behind the deck, clear of the truck and the cards
   const fill = box(1, 1, 1, paint(0x2f8f55, .5, .2)), frame = holo.wireBox(1.05, 4.05, 1.05, holo.DIM), line = box(1.6, .08, 1.6, REDM);
   fill.geometry.translate(0, .5, 0); fill.position.set(GX, GY, GZ); frame.position.set(GX, GY + 2.03, GZ); line.position.set(GX, 0, GZ); group.add(fill, frame, line);
-  return { set(v, lim, max, bad) { fill.scale.y = Math.max(.02, Math.min(1, v / max) * 4); fill.material.color.setHex(bad ? 0xc23b2f : 0x2f8f55); line.visible = lim != null; if (lim != null) line.position.y = GY + Math.min(1, lim / max) * 4; } };
+  return { set(v, lim, max, bad) { fill.scale.y = Math.max(.02, Math.min(1, v / max) * 4); fill.material.color.setHex(bad ? 0xc23b2f : 0x2f8f55); line.visible = lim != null; if (lim != null) line.position.y = GY + Math.min(1, lim / max) * 4; ll.visible = line.visible; ll.position.set(GX + 2, line.position.y, GZ); } };
 }
 
 // ---------------------------------------------------------------- 1 · cycles and the thickness correction

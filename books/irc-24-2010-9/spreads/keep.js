@@ -126,8 +126,9 @@ export const wsm = spread({
     // a bar against fy: filled to the permissible stress, a dark line at the basic stress, a red line at 0.9 fy
     const X = -6.5, Z = -9, H = 4, B0 = 5.2, line = c => box(1.6, .07, 1.6, new THREE.MeshBasicMaterial({ color: c, toneMapped: false })), fill = box(1, 1, 1, paint(0x2f8f55, .5, .2)), frame = holo.wireBox(1.05, H + .05, 1.05, holo.DIM), cap = line(0xc23b2f), basic = line(0x262b31);
     fill.geometry.translate(0, .5, 0); fill.position.set(X, B0, Z); frame.position.set(X, B0 + H / 2, Z); cap.position.set(X, B0 + .9 * H, Z); basic.position.set(X, 0, Z); group.add(fill, frame, cap, basic);
-    const lf = holo.label('fy', { h: .55, color: INK }); lf.position.set(X, B0 + H + .5, Z); group.add(lf);
-    return { place() { const r = ws(st); sag(b, tk, .16); fill.scale.y = r.p / st.fy * H; fill.material.color.setHex(r.cap ? 0xb0532a : 0x2f8f55); basic.position.y = B0 + r.k * H; tag.userData.setText(`permissible stress ${r.p.toFixed(0)} MPa`); }, debug: () => ws(st) };
+    const lf = holo.label('fy', { h: .9, color: INK }), lc = holo.label('0.9 fy', { h: .75, color: '#b3362b' }), lb = holo.label('basic', { h: .75, color: INK }), lp = holo.label('permissible stress', { h: .8, color: INK });
+    lf.position.set(X, B0 + H + .6, Z); lc.position.set(X + 2.3, B0 + .9 * H, Z); lp.position.set(X, B0 - .9, Z + .8); group.add(lf, lc, lb, lp, box(.3, B0 - .5, .3, paint(0x6f7a84, .4, .6), X, (B0 + .5) / 2, Z));   // the bar stands on a post on the bank
+    return { place() { const r = ws(st); sag(b, tk, .16); fill.scale.y = r.p / st.fy * H; fill.material.color.setHex(r.cap ? 0xb0532a : 0x2f8f55); basic.position.y = B0 + r.k * H; lb.position.set(X - 2.1, B0 + r.k * H, Z); tag.userData.setText(`permissible stress ${r.p.toFixed(0)} MPa`); }, debug: () => ws(st) };
   },
   draw(c, W, H, st) {
     const r = ws(st);
