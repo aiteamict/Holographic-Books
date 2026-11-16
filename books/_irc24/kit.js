@@ -11,6 +11,26 @@ export const F = 'Inter, Segoe UI, Arial', INK = '#231a14', OXIDE = '#8a3f1c', D
 export const OXIDE_HEX = 0x9a4c33;
 export const paint = (color = OXIDE_HEX, rough = .5, metal = .3) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
 export const STEEL = paint();
+export const TAG = { h: .7, color: INK, bg: 'rgba(255,253,248,.92)', weight: 700 };
+export const DARK = new THREE.MeshStandardMaterial({ color: 0x1b1c1e, roughness: .8 });
+/** An upright cylinder mesh. */
+export function cyl(r, h, mat, x = 0, y = 0, z = 0, seg = 18) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), mat); m.position.set(x, y, z); m.castShadow = true; return m;
+}
+/** The cover every chapter after the first shares: an I-section with the chapter's motto under it, and an I-beam on the projector. */
+export const cover = motto => ({
+  coverMark(ctx, W) {
+    const k = W / 1040, cx = W / 2, cy = 800 * k;
+    ctx.fillStyle = OXIDE; ctx.fillRect(cx - 190 * k, cy - 250 * k, 380 * k, 46 * k); ctx.fillRect(cx - 190 * k, cy + 204 * k, 380 * k, 46 * k); ctx.fillRect(cx - 17 * k, cy - 204 * k, 34 * k, 408 * k);
+    ctx.font = '700 ' + 36 * k + 'px Georgia, serif'; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.fillText(motto, cx, cy + 330 * k); ctx.textAlign = 'left';
+  },
+  coverHolo({ holo }) {
+    const g = new THREE.Group(), up = new THREE.Group(), m = paint(); up.position.y = 2.2;
+    up.add(box(9, .5, 3.4, m, 0, -2, 0), box(9, 3.5, .34, m), box(9, .5, 3.4, m, 0, 2, 0));
+    g.add(holo.projector(9), up); g.userData.up = up;
+    return g;
+  },
+});
 
 /** A box mesh. seg > 1 cuts it along x and keeps the rest shape, so bend() can sag it. */
 export function box(w, h, d, mat, x = 0, y = 0, z = 0, seg = 1) {

@@ -49,6 +49,28 @@ export function minThickness(cond, calc = 0) {
   return Math.max(8, calc);                                                 // (a) both sides accessible
 }
 
+// ---- chapter 2 · tension members (cl. 506). Areas in mm², stresses in MPa, forces returned in kN.
+export const GM0 = 1.10, GM1 = 1.25;        // Table 1: yielding and buckling; ultimate stress
+export const FU = { 250: 410, 300: 440 };   // fy → fu for the two grades the Code names: E 250 (Fe 410 W), E 300 (Fe 440 W)
+/** cl. 506.1.1: yielding of the gross section, Tdg = Ag fy / γm0. */
+export const Tdg = (Ag, fy) => Ag * fy / GM0 / 1000;
+/** cl. 506.1.2.1: rupture of the net section, Tdn = 0.9 An fu / γm1. */
+export const Tdn = (An, fu) => .9 * An * fu / GM1 / 1000;
+/** cl. 506.1.2.1: An = [b − n dh + Σ ps² / 4g] t. legs: one [ps, g] per inclined leg of the section. */
+export const netArea = (b, t, n, dh, legs = []) => (b - n * dh + legs.reduce((s, [ps, g]) => s + ps * ps / (4 * g), 0)) * t;
+/** cl. 506.1.2.3: single angle connected through one leg. β = 1.4 − 0.076 (w/t)(fy/fu)(bs/Lc), not over fu γm0 / fy γm1, not under 0.7. */
+export function angleRupture({ Anc, Ago, w, t, bs, Lc, fy, fu }) {
+  const raw = 1.4 - .076 * (w / t) * (fy / fu) * (bs / Lc), beta = Math.max(.7, Math.min(fu * GM0 / (fy * GM1), raw));
+  return { raw, beta, Tdn: (.9 * Anc * fu / GM1 + beta * Ago * fy / GM0) / 1000 };
+}
+/** cl. 506.1.2.3: α for preliminary sizing, by the number of bolts or rivets along the end connection. */
+export const alphaPrelim = n => n <= 2 ? .6 : n === 3 ? .7 : .8;
+/** cl. 506.1.3.1: block shear, the smaller of the two expressions. */
+export function blockShear({ Avg, Avn, Atg, Atn, fy, fu }) {
+  const a = (Avg * fy / (Math.sqrt(3) * GM0) + .9 * Atn * fu / GM1) / 1000, b = (.9 * Avn * fu / (Math.sqrt(3) * GM1) + Atg * fy / GM0) / 1000;
+  return { a, b, Tdb: Math.min(a, b) };
+}
+
 /** Stability against overturning (cl. 503.5.1): permanent loads that resist are multiplied by 0.9. Moments per metre run. */
 export function overturning({ Gk, W, h, s, gf }) {
   const Mo = gf * W * h, Mr = .9 * Gk * s / 2;

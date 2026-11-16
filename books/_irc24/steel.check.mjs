@@ -34,3 +34,14 @@ near(40000 / DEFL.total, 66.67, .01, 'total deflection'); near(40000 / DEFL.live
 { const r = overturning({ Gk: 60, W: 12, h: 2.5, s: 2, gf: 1.5 }); near(r.Mo, 45, 1e-9, 'Mo'); near(r.Mr, 54, 1e-9, 'Mr'); assert.equal(r.ok, true); }
 
 console.log('IRC 24 steel checks pass');
+
+// ---- chapter 2 · cl. 506
+{ const s = await import('./steel.js');
+  near(s.Tdg(3200, 250), 727.27, .01, 'Tdg'); near(s.Tdn(2496, 410), 736.82, .01, 'Tdn');
+  near(s.netArea(300, 16, 3, 22, [[40, 75], [40, 75]]), (300 - 66 + 2 * 1600 / 300) * 16, 1e-9, 'staggered net area');
+  const a = s.angleRupture({ Anc: 730, Ago: 950, w: 100, t: 10, bs: 145, Lc: 120, fy: 250, fu: 410 });
+  near(a.raw, 1.4 - .076 * 10 * (250 / 410) * (145 / 120), 1e-9, 'β'); near(a.beta, .84, .005, 'β value');
+  assert.equal(s.angleRupture({ Anc: 730, Ago: 950, w: 100, t: 10, bs: 145, Lc: 50, fy: 250, fu: 410 }).beta, .7);   // the floor
+  assert.deepEqual([1, 2, 3, 4, 6].map(s.alphaPrelim), [.6, .6, .7, .8, .8]);
+  const b = s.blockShear({ Avg: 3200, Avn: 2100, Atg: 750, Atn: 530, fy: 250, fu: 410 });
+  near(b.a, 576.3, .2, 'block shear, first'); near(b.b, 528.4, .2, 'block shear, second'); assert.equal(b.Tdb, b.b); }
