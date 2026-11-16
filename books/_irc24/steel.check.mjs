@@ -45,3 +45,12 @@ console.log('IRC 24 steel checks pass');
   assert.deepEqual([1, 2, 3, 4, 6].map(s.alphaPrelim), [.6, .6, .7, .8, .8]);
   const b = s.blockShear({ Avg: 3200, Avn: 2100, Atg: 750, Atn: 530, fy: 250, fu: 410 });
   near(b.a, 576.3, .2, 'block shear, first'); near(b.b, 528.4, .2, 'block shear, second'); assert.equal(b.Tdb, b.b); }
+
+// ---- chapter 3 · cl. 507. Table 6c (class c) as printed: fy 250 at KL/r 50, 100, 150; fy 300 at KL/r 80
+{ const s = await import('./steel.js');
+  near(s.buckling(50, 250, 'c').fcd, 183, .6, 'Table 6c'); near(s.buckling(100, 250, 'c').fcd, 107, .6, 'Table 6c'); near(s.buckling(150, 250, 'c').fcd, 59.2, .2, 'Table 6c'); near(s.buckling(80, 300, 'c').fcd, 149, .6, 'Table 6c');
+  near(s.buckling(10, 250, 'c').fcd, 227, .6, 'Table 6c, capped at fy / γm0');
+  assert.deepEqual(s.KEFF.map(k => k[1]), [2, 2, 1, 1.2, .8, .65]);
+  near(s.slabBase(6, 125, 100, 250), Math.sqrt(2.5 * 6 * (15625 - 3000) * 1.1 / 250), 1e-9, 'slab base');
+  const a = s.angleStrut({ l: 2000, rvv: 19.4, b1: 100, b2: 100, t: 10, fy: 250, bolts: 2, fix: 'F' });
+  near(a.lvv, 2000 / 19.4 / Math.sqrt(Math.PI ** 2 * 2e5 / 250), 1e-9, 'λvv'); near(a.le, Math.sqrt(.2 + .35 * a.lvv ** 2 + 20 * a.lphi ** 2), 1e-9, 'λe'); }

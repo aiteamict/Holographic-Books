@@ -71,6 +71,40 @@ export function blockShear({ Avg, Avn, Atg, Atn, fy, fu }) {
   return { a, b, Tdb: Math.min(a, b) };
 }
 
+// ---- chapter 3 · compression members (cl. 507)
+export const IMPERFECTION = { a: .21, b: .34, c: .49, d: .76 };   // Table 3: imperfection factor α by buckling class
+/** cl. 507.1.2.1 from the non-dimensional slenderness λ: φ = 0.5 [1 + α (λ − 0.2) + λ²], χ = 1 / [φ + (φ² − λ²)^0.5], fcd = χ fy / γm0 ≤ fy / γm0. */
+export function bucklingLam(lam, fy, cls) {
+  const phi = .5 * (1 + IMPERFECTION[cls] * (lam - .2) + lam * lam), chi = Math.min(1, 1 / (phi + Math.sqrt(Math.max(0, phi * phi - lam * lam))));
+  return { lam, phi, chi, fcd: chi * fy / GM0 };
+}
+/** cl. 507.1.2.1 from the effective slenderness ratio KL/r: λ = √(fy (KL/r)² / π² E). */
+export const buckling = (klr, fy, cls) => bucklingLam(Math.sqrt(fy * klr * klr / (Math.PI ** 2 * E)), fy, cls);
+// Table 4, buckling class of cross-sections: [key, cross-section and limits, class about z-z, class about y-y]
+export const BUCKLING_CLASS = [
+  ['ri1', 'Rolled I-section, h/bf > 1.2, tf ≤ 40 mm', 'a', 'b'], ['ri2', 'Rolled I-section, h/bf > 1.2, 40 mm < tf ≤ 100 mm', 'b', 'c'],
+  ['ri3', 'Rolled I-section, h/bf ≤ 1.2, tf ≤ 100 mm', 'b', 'c'], ['ri4', 'Rolled I-section, h/bf ≤ 1.2, tf > 100 mm', 'd', 'd'],
+  ['wi1', 'Welded I-section, tf ≤ 40 mm', 'b', 'c'], ['wi2', 'Welded I-section, tf > 40 mm', 'c', 'd'],
+  ['hr', 'Hollow section, hot rolled', 'a', 'a'], ['hc', 'Hollow section, cold formed', 'b', 'b'],
+  ['box', 'Welded box section, generally', 'b', 'b'], ['boxw', 'Welded box section, thick welds and b/tf < 30 (z-z), h/tw < 30 (y-y)', 'c', 'c'],
+  ['open', 'Channel, angle, T and solid sections', 'c', 'c'], ['built', 'Built-up member', 'c', 'c'],
+];
+// Table 7, effective length of prismatic compression members: [key, K, one end: translation, rotation, other end: translation, rotation] (R restrained, F free)
+export const KEFF = [['cant', 2.0, 'R', 'R', 'F', 'F'], ['psway', 2.0, 'F', 'R', 'R', 'F'], ['pp', 1.0, 'R', 'F', 'R', 'F'], ['fsway', 1.2, 'R', 'R', 'F', 'R'], ['fp', .8, 'R', 'R', 'R', 'F'], ['ff', .65, 'R', 'R', 'R', 'R']];
+/** cl. 507.4.3.1: minimum thickness of a rectangular slab base, mm. w in MPa, projections a ≥ b in mm. It must also exceed the flange thickness. */
+export const slabBase = (w, a, b, fy) => Math.sqrt(2.5 * w * (a * a - .3 * b * b) * GM0 / fy);
+// Table 8, constants k1, k2, k3: bolts at each end connection (2 = two or more) and gusset fixity (F fixed, H hinged)
+export const K_ANGLE = { '2F': [.20, .35, 20], '2H': [.70, .60, 5], '1F': [.75, .35, 20], '1H': [1.25, .50, 60] };
+/**
+ * cl. 507.5.1.2: single angle loaded through one leg. λe = √(k1 + k2 λvv² + k3 λφ²), λvv = (l/rvv) / (ε √(π²E/250)),
+ * λφ = (b1 + b2)/2t / (ε √(π²E/250)). The Code prints ε under the root where the Euler term needs E; E is used here.
+ */
+export function angleStrut({ l, rvv, b1, b2, t, fy, bolts, fix }) {
+  const d = eps(fy) * Math.sqrt(Math.PI ** 2 * E / 250), lvv = l / rvv / d, lphi = (b1 + b2) / (2 * t) / d, k = K_ANGLE[(bolts >= 2 ? '2' : '1') + fix];
+  const le = Math.sqrt(k[0] + k[1] * lvv * lvv + k[2] * lphi * lphi);
+  return { k, lvv, lphi, le, ...bucklingLam(le, fy, 'c') };   // angles are buckling class c (Table 4)
+}
+
 /** Stability against overturning (cl. 503.5.1): permanent loads that resist are multiplied by 0.9. Moments per metre run. */
 export function overturning({ Gk, W, h, s, gf }) {
   const Mo = gf * W * h, Mr = .9 * Gk * s / 2;
