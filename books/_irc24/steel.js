@@ -249,3 +249,37 @@ export const DETAILS = [
   ['cover', 37, 'End zone of a welded cover plate, flange or plate up to 25 mm thick (27 above 25 mm)'],
   ['cruci', 27, 'Cruciform joint, partial penetration or fillet welds, stress range on the throat area (41 on the plate area)'],
 ];
+
+// ---- chapter 8 · connections (cl. 512). Stresses MPa, lengths mm, forces returned in kN.
+export const GMW = { shop: 1.25, site: 1.50 }, GMB = 1.25;   // Table 1: welds in the shop and in the field; bolts
+// cl. 512.5.5.1: net tensile stress area of bolts, mm², by nominal diameter
+export const BOLT_AREA = { 12: 84, 14: 115, 16: 157, 18: 192, 20: 245, 22: 303, 24: 353, 27: 459, 30: 561, 33: 694 };
+/** cl. 512.4.5.1.1: design strength of a fillet weld on its throat area, fwd = fu / (√3 γmw), MPa. */
+export const filletStrength = (fu, site = false) => fu / Math.sqrt(3) / GMW[site ? 'site' : 'shop'];
+/** cl. 512.4.5.3: long welded joints (lj > 150 tt), βlw = 1.2 − 0.2 lj / (150 tt) ≤ 1.0. */
+export const weldLongJoint = (lj, tt) => Math.min(1, 1.2 - .2 * lj / (150 * tt));
+/** cl. 512.4.8.1.1: equivalent stress in a fillet weld under normal stress fa and shear q, to be kept within fu / (√3 γmw). */
+export const weldEquivalent = (fa, q) => Math.sqrt(fa * fa + 3 * q * q);
+/** cl. 512.5.5.3: Vdsb = fub (nn Anb + ns Asb) / (√3 γmb). nn, ns: shear planes with and without threads in them. */
+export const boltShear = ({ d, fub, nn = 0, ns = 0 }) => fub / Math.sqrt(3) * (nn * BOLT_AREA[d] + ns * Math.PI * d * d / 4) / GMB / 1000;
+/** cl. 512.5.5.4: Vdpb = 2.5 kb d t f'u / γmb, kb the least of e/3d0, p/3d0 − 0.25, fub/fu, 1.0; hole d0 = d + 1.5 (cl. 512.5.4 a). */
+export function boltBearing({ d, t, e, p, fub, fu }) {
+  const d0 = d + 1.5, kb = Math.min(e / (3 * d0), p / (3 * d0) - .25, fub / fu, 1);
+  return { d0, kb, V: 2.5 * kb * d * t * Math.min(fub, fu) / GMB / 1000 };
+}
+/** cl. 512.5.5.5: Tdb = Tnb / γmb, Tnb = 0.90 fub Anb, not more than fyb Asb (γmb/γm0). */
+export const boltTension = ({ d, fub, fyb }) => Math.min(.9 * fub * BOLT_AREA[d], fyb * Math.PI * d * d / 4 * GMB / GM0) / GMB / 1000;
+/** cl. 512.5.8: long joints (lj > 15 d), βlj = 1.075 − lj / (200 d), between 0.75 and 1.0. */
+export const longJoint = (lj, d) => Math.max(.75, Math.min(1, 1.075 - lj / (200 * d)));
+/** cl. 512.5.9: large grip lengths (lg > 5 d), βlg = 8 d / (3 d + lg). */
+export const largeGrip = (lg, d) => lg > 5 * d ? 8 * d / (3 * d + lg) : 1;
+/** cl. 512.5.9: bolts carrying shear through a packing thicker than 6 mm, βpk = 1 − 0.0125 tpk. */
+export const packingFactor = tpk => tpk > 6 ? 1 - .0125 * tpk : 1;
+/**
+ * cl. 512.7: prying force per bolt, Q = (lv / 2 le) [Te − β η f0 be t⁴ / (27 le lv²)], not less than zero. le is the lesser of the
+ * end distance e and 1.1 t √(β f0 / fy); β = 2 for a non pre-tensioned bolt, 1 for a pre-tensioned one; η = 1.5. Te and Q in kN.
+ */
+export function prying({ Te, lv, e, be, t, f0, fy, pre }) {
+  const beta = pre ? 1 : 2, le = Math.min(e, 1.1 * t * Math.sqrt(beta * f0 / fy));
+  return { beta, le, Q: Math.max(0, lv / (2 * le) * (Te * 1000 - beta * 1.5 * f0 * be * t ** 4 / (27 * le * lv * lv)) / 1000) };
+}

@@ -94,3 +94,16 @@ console.log('IRC 24 steel checks pass');
   near(s.fatigueLife(83, s.fatigueStrength(83, 2e6)), 2e6, 1, 'life inverts strength'); near(s.fatigueLife(83, s.fatigueStrength(83, 5e7)), 5e7, 50, 'life inverts strength'); assert.equal(s.fatigueLife(100, 50), Infinity);
   assert.deepEqual(s.GAMMA_MFT, { good: [1, 1.25], poor: [1.15, 1.35] }); assert.equal(s.lowFatigue(20, 1e9, 1.25).exempt, true); assert.equal(s.lowFatigue(60, 1e7, 1.25).exempt, false);
   assert.deepEqual(s.DETAILS.map(d => d[1]), [118, 103, 92, 92, 83, 66, 59, 83, 66, 52, 59, 37, 27]); }
+
+// ---- chapter 8 · cl. 512
+{ const s = await import('./steel.js');
+  near(s.filletStrength(410), 410 / Math.sqrt(3) / 1.25, 1e-9, 'fwd shop'); near(s.filletStrength(410, true), 410 / Math.sqrt(3) / 1.5, 1e-9, 'fwd site');
+  near(s.weldLongJoint(840, 5.6), 1, 1e-9, 'βlw at 150 tt'); near(s.weldLongJoint(1680, 5.6), .8, 1e-9, 'βlw at 300 tt');
+  near(s.weldEquivalent(60, 80), Math.sqrt(3600 + 19200), 1e-9, 'fe');
+  near(s.boltShear({ d: 20, fub: 400, nn: 1 }), 400 / Math.sqrt(3) * 245 / 1.25 / 1000, 1e-9, 'Vdsb'); assert.ok(s.boltShear({ d: 20, fub: 400, ns: 1 }) > s.boltShear({ d: 20, fub: 400, nn: 1 }));
+  const b = s.boltBearing({ d: 20, t: 12, e: 40, p: 60, fub: 400, fu: 410 }); near(b.kb, 40 / 64.5, 1e-9, 'kb'); near(b.V, 2.5 * b.kb * 20 * 12 * 400 / 1.25 / 1000, 1e-9, 'Vdpb');
+  near(s.boltTension({ d: 20, fub: 800, fyb: 640 }), .9 * 800 * 245 / 1.25 / 1000, 1e-9, 'Tdb');
+  assert.deepEqual([s.longJoint(300, 20), s.longJoint(3000, 20)], [1, .75]); near(s.longJoint(600, 20), .925, 1e-9, 'βlj');
+  assert.equal(s.largeGrip(100, 20), 1); near(s.largeGrip(160, 20), 160 / 220, 1e-9, 'βlg'); assert.deepEqual([s.packingFactor(6), s.packingFactor(16)], [1, .8]);
+  const p = s.prying({ Te: 80, lv: 40, e: 40, be: 100, t: 12, f0: 560, fy: 250, pre: false }); assert.equal(p.le, Math.min(40, 1.1 * 12 * Math.sqrt(2 * 560 / 250)));
+  near(p.Q, 40 / (2 * p.le) * (80000 - 2 * 1.5 * 560 * 100 * 12 ** 4 / (27 * p.le * 1600)) / 1000, 1e-9, 'Q'); assert.equal(s.prying({ Te: 80, lv: 40, e: 40, be: 100, t: 40, f0: 560, fy: 250, pre: false }).Q, 0); }
