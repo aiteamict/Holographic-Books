@@ -110,3 +110,22 @@ export function overturning({ Gk, W, h, s, gf }) {
   const Mo = gf * W * h, Mr = .9 * Gk * s / 2;
   return { Mo, Mr, ok: Mr >= Mo };
 }
+
+// ---- chapter 4 · trusses (cl. 508)
+// Table 9, effective length KL of compression members: [factor, the distance it multiplies] for buckling in the plane of the
+// truss, normal to it with the member effectively braced by a lateral system, and normal to it unbraced (null: see cl. 508.4.4)
+export const TABLE9 = {
+  chord: [[.85, 'distance between centres of intersection with the web members'], [.85, 'distance between centres of intersection with the lateral bracing members or rigidly connected cross girders'], null],
+  single: [[.70, 'distance between centres of intersection with the main chords'], [.85, 'distance between centres of intersections'], [1, 'distance between centres of intersection']],
+  multi: [[.85, 'greatest distance between centres of any two adjacent intersections'], [.70, 'distance between centres of intersection with the main chords'], [.85, 'distance between centres of intersection with the main chords']],
+};
+/**
+ * cl. 508.4.4 (b): compression chord held by U frames. δ = d1³ / 3EI1 + d2² b / EI2 (mm per N), KL = 2.5 ⁴√(E I a δ), not
+ * less than a; KL = a when δ ≤ a³ / 40EI. Lengths in mm, moments of inertia in mm⁴.
+ */
+export function uFrame({ I, a, d1, d2, b, I1, I2 }) {
+  const delta = d1 ** 3 / (3 * E * I1) + d2 * d2 * b / (E * I2), stiff = a ** 3 / (40 * E * I);
+  return { delta, stiff, KL: Math.max(a, 2.5 * (E * I * a * delta) ** .25) };
+}
+/** cl. 508.4.4 (b): horizontal force on a U frame, F = 1.4 × 10⁻³ KL / δ (fcc/fa − 1.7), N. fcc = π² E / (KL/r)². */
+export function uFrameForce(KL, delta, r, fa) { const fcc = Math.PI ** 2 * E / (KL / r) ** 2; return { fcc, F: 1.4e-3 * KL / (delta * (fcc / fa - 1.7)) }; }

@@ -89,9 +89,9 @@ export function girderBridge({ L = 18, d = 1.1, n = 3, gap = 1.5, H = 2.4, bf = 
 
 /**
  * A through Pratt truss of n panels along x. pose(c) lifts every panel point by c(x), which is how it is cambered or
- * deflected. Returns { g, pose, top }: top is the deck level.
+ * deflected. Returns { g, span, mem, pose, top }: top is the deck level; open leaves out the top lateral struts.
  */
-export function truss({ L = 18, h = 3, n = 8, w = 2.6, t = .16, H = 2.4 } = {}) {
+export function truss({ L = 18, h = 3, n = 8, w = 2.6, t = .16, H = 2.4, open = false } = {}) {
   const g = new THREE.Group(), span = new THREE.Group(), mat = paint(), p = L / n, mem = [], cross = []; span.position.y = H + .12; g.add(span);
   const bar = tt => { const m = box(1, tt, tt, mat); span.add(m); return m; };
   for (const z of [-w / 2, w / 2]) {
@@ -103,7 +103,7 @@ export function truss({ L = 18, h = 3, n = 8, w = 2.6, t = .16, H = 2.4 } = {}) 
     for (const s of [-1, 1]) g.add(box(.4, .12, .4, SM.steel, s * (L / 2 - .2), H + .06, z));
   }
   for (let i = 0; i <= n; i++) { const m = box(t, t, w, mat); span.add(m); cross.push([m, [i, 0]]); }                 // cross girders
-  for (let i = 1; i < n; i++) { const m = box(t * .8, t * .8, w, mat); span.add(m); cross.push([m, [i, 1]]); }        // top lateral struts
+  if (!open) for (let i = 1; i < n; i++) { const m = box(t * .8, t * .8, w, mat); span.add(m); cross.push([m, [i, 1]]); }   // top lateral struts; a half-through (open) truss has none
   const deck = box(L, .1, w - .4, SM.asphalt, 0, t + .05, 0, n * 3); span.add(deck);
   abutments(g, L, H, w);
   const pose = c => {
@@ -113,7 +113,7 @@ export function truss({ L = 18, h = 3, n = 8, w = 2.6, t = .16, H = 2.4 } = {}) 
     bend(span, c);
   };
   pose(() => 0);
-  return { g, span, mat, L, h, pose, top: H + .12 + t + .1 };
+  return { g, span, mat, L, h, w, n, mem, pose, top: H + .12 + t + .1 };   // mem: [mesh, [i, top], [j, top], z] for every bar of the two trusses
 }
 
 // ---- card text helpers (logical pixels; a 9.6 cm card is about 442 px wide)

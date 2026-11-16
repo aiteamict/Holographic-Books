@@ -54,3 +54,11 @@ console.log('IRC 24 steel checks pass');
   near(s.slabBase(6, 125, 100, 250), Math.sqrt(2.5 * 6 * (15625 - 3000) * 1.1 / 250), 1e-9, 'slab base');
   const a = s.angleStrut({ l: 2000, rvv: 19.4, b1: 100, b2: 100, t: 10, fy: 250, bolts: 2, fix: 'F' });
   near(a.lvv, 2000 / 19.4 / Math.sqrt(Math.PI ** 2 * 2e5 / 250), 1e-9, 'λvv'); near(a.le, Math.sqrt(.2 + .35 * a.lvv ** 2 + 20 * a.lphi ** 2), 1e-9, 'λe'); }
+
+// ---- chapter 4 · cl. 508
+{ const s = await import('./steel.js');
+  const u = s.uFrame({ I: 2e8, a: 5000, d1: 5000, d2: 5500, b: 3500, I1: 1e8, I2: 2e9 });
+  near(u.delta, 1.25e11 / 6e13 + 3.025e7 * 3500 / 4e14, 1e-12, 'δ'); near(u.KL, 2.5 * (2e5 * 2e8 * 5000 * u.delta) ** .25, 1e-6, 'KL');
+  assert.equal(s.uFrame({ I: 2e8, a: 5000, d1: 5000, d2: 5500, b: 3500, I1: 1e13, I2: 1e14 }).KL, 5000);   // a stiff frame: KL = a
+  near(s.uFrameForce(u.KL, u.delta, 120, 100).fcc, Math.PI ** 2 * 2e5 / (u.KL / 120) ** 2, 1e-9, 'fcc');
+  assert.deepEqual([s.TABLE9.chord[0][0], s.TABLE9.single[0][0], s.TABLE9.single[2][0], s.TABLE9.multi[1][0]], [.85, .7, 1, .7]); }
