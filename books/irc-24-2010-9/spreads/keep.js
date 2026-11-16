@@ -123,7 +123,11 @@ export const wsm = spread({
   chips: [['kind', Object.keys(KIND), v => ({ tension: 'Tension', compression: 'Compression', bendPlate: 'Bending · plates', bendGirder: 'Bending · girders', shearMax: 'Shear · maximum', shearAvg: 'Shear · average', bearing: 'Bearing' })[v]], ['c', [0, 1, 2, 3, 4, 5, 6], v => `Combination ${TABLE_G1[v][0]}`], GRADES],
   model({ holo, group, st }) {
     const { b, tk } = bridge(group), tag = holo.label('', TAG); tag.position.set(0, 8.4, -5); group.add(tag);
-    return { place() { const r = ws(st); sag(b, tk, .16); b.mat.color.setHex(OXIDE_HEX); tag.userData.setText(`permissible stress ${r.p.toFixed(0)} MPa`); }, debug: () => ws(st) };
+    // a bar against fy: filled to the permissible stress, a dark line at the basic stress, a red line at 0.9 fy
+    const X = 8.4, Z = .6, H = 5, line = c => box(1.6, .07, 1.6, new THREE.MeshBasicMaterial({ color: c, toneMapped: false })), fill = box(1, 1, 1, paint(0x2f8f55, .5, .2)), frame = holo.wireBox(1.05, H + .05, 1.05, holo.DIM), cap = line(0xc23b2f), basic = line(0x262b31);
+    fill.geometry.translate(0, .5, 0); fill.position.set(X, .52, Z); frame.position.set(X, .52 + H / 2, Z); cap.position.set(X, .52 + .9 * H, Z); basic.position.set(X, 0, Z); group.add(fill, frame, cap, basic);
+    const lf = holo.label('fy', { h: .55, color: INK }); lf.position.set(X, .52 + H + .5, Z); group.add(lf);
+    return { place() { const r = ws(st); sag(b, tk, .16); fill.scale.y = r.p / st.fy * H; fill.material.color.setHex(r.cap ? 0xb0532a : 0x2f8f55); basic.position.y = .52 + r.k * H; tag.userData.setText(`permissible stress ${r.p.toFixed(0)} MPa`); }, debug: () => ws(st) };
   },
   draw(c, W, H, st) {
     const r = ws(st);

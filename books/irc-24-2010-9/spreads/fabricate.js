@@ -122,8 +122,9 @@ export const tolerance = spread({
   model({ holo, group, st }) {
     const g = new THREE.Group(); g.position.set(0, .5, -5); g.scale.setScalar(1.1); group.add(g);
     const m = paint(), b = beam(g, m, 30), tag = holo.label('', TAG); tag.position.set(0, 9, -5); group.add(tag);
+    const ghost = holo.wireBox(14, 2.4, 1.6, holo.DIM); ghost.position.y = 3.6; g.add(ghost);   // the nominal outline, from the drawing
     return {
-      place() { const r = tol(st); m.color.setHex(r.ok ? OXIDE_HEX : 0xc23b2f); bend(b, x => st.item === 'column' || st.item === 'web' ? st.dev * .06 * (1 - (2 * x / 14) ** 2) : 0); b.scale.x = 1 + (st.item === 'length' ? st.dev * .004 : 0); b.scale.y = 1 + (st.item === 'depth' ? st.dev * .02 : 0); b.rotation.x = st.item === 'tilt' ? st.dev * .03 : 0; tag.userData.setText(`${st.dev > 0 ? '+' : ''}${st.dev} mm ${r.ok ? 'within tolerance' : 'outside tolerance'}`); },
+      place() { const r = tol(st); m.color.setHex(r.ok ? OXIDE_HEX : 0xc23b2f); bend(b, x => st.item === 'column' || st.item === 'web' ? st.dev * .1 * (1 - (2 * x / 14) ** 2) : 0); b.scale.x = 1 + (st.item === 'length' ? st.dev * .015 : 0); b.scale.y = 1 + (st.item === 'depth' ? st.dev * .05 : 0); b.scale.z = 1 + (st.item === 'width' ? st.dev * .06 : 0); b.rotation.x = st.item === 'tilt' ? st.dev * .06 : 0; tag.userData.setText(`${st.dev > 0 ? '+' : ''}${st.dev} mm ${r.ok ? 'within tolerance' : 'outside tolerance'}`); },   // deviations drawn far larger than true
       debug: () => tol(st),
     };
   },

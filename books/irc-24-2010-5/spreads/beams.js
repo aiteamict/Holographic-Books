@@ -124,7 +124,7 @@ export const ltbSpread = spread({
   chips: [SECCHIP, ['welded', [false, true], v => v ? 'Welded' : 'Rolled'], GRADES],
   slider: { key: 'L', name: 'LLT', label: 'length · drag', values: range(2, 30, 2), at: [-9, .5, -.6] },
   model({ holo, group, st }) {
-    const g = new THREE.Group(); g.position.set(0, .5, -5); g.scale.setScalar(1.1); group.add(g);
+    const g = new THREE.Group(); g.position.set(0, .5, -5); g.rotation.y = -.55; g.scale.setScalar(1.1); group.add(g);   // turned so the sideways sway is seen across the page, not as sag
     const LB = 15, m = paint(); posts(g, LB / 2, 2.6); let beam = null, key = '', r = lt(st);
     const a = down(g, 0, 6.2), tag = holo.label('', TAG); tag.position.set(0, 10, -5); group.add(tag);
     return {
@@ -172,7 +172,7 @@ export const efflen = spread({
   init: { row: 0, load: 'n', L: 20 },
   chips: [['row', [0, 1, 2, 3, 4, 5, 6], v => ROW[v]], ['load', ['n', 'd'], v => v === 'n' ? 'Normal load' : 'Destabilising load'], ['L', [10, 20, 30], v => `L ${v} m`]],
   model({ holo, group, st }) {
-    const g = new THREE.Group(); g.position.set(0, .5, -5); g.scale.setScalar(1.1); group.add(g);
+    const g = new THREE.Group(); g.position.set(0, .5, -5); g.rotation.y = -.55; g.scale.setScalar(1.1); group.add(g);   // turned so the sideways sway is seen across the page, not as sag
     const LB = 15, m = paint(), beam = ibeam(LB, 1.5, .16, 2.6, .1, m, 40); beam.position.y = 2.6 + .16 + 1.3; g.add(beam); posts(g, LB / 2, 2.6);
     const fit = { stiff: [], both: [], top: [] };
     for (const s of [-1, 1]) {
@@ -218,7 +218,7 @@ export const cantilever = spread({
   init: { sup: 'c', top: 0, load: 'n', L: 4 },
   chips: [['sup', ['a', 'b', 'c', 'd'], v => ({ a: 'Support a · top flange held', b: 'Support b · partial torsion', c: 'Support c · lateral + torsion', d: 'Support d · built in' })[v]], ['top', [0, 1, 2, 3], v => 'Tip: ' + ['free', 'lateral', 'torsional', 'lateral + torsional'][v]], ['load', ['n', 'd'], v => v === 'n' ? 'Normal load' : 'Destabilising load'], ['L', [2, 4, 6], v => `L ${v} m`]],
   model({ holo, group, st }) {
-    const g = new THREE.Group(); g.position.set(-1, .5, -5); g.scale.setScalar(1.1); group.add(g);
+    const g = new THREE.Group(); g.position.set(-1, .5, -5); g.rotation.y = -.55; g.scale.setScalar(1.1); group.add(g);   // turned so the sideways sway is seen across the page
     const m = paint(), LC = 9, x0 = -3, beam = ibeam(LC, 1.4, .16, 2.4, .1, m, 30); beam.position.set(x0 + LC / 2, 5, 0); g.add(beam);
     const back = ibeam(4.5, 1.4, .16, 2.4, .1, m); back.position.set(x0 - 2.25, 5, 0); const cross = ibeam(5, 1.2, .16, 2, .1, m); cross.rotation.y = Math.PI / 2; cross.position.set(x0, 2.6, 0);
     const wall = box(1.4, 8, 5, SM.concrete, x0 - .7, 4, 0), pier = box(1.2, 1.5, 5, SM.concrete, x0, .75, 0), sTop = box(.14, .14, 3.4, GREEN, x0, 6.36, 0), sTor = box(.14, 2.4, .7, GREEN, x0, 5, .45), sTor2 = box(.14, 2.4, .7, GREEN, x0, 5, -.45);
@@ -262,7 +262,7 @@ export const openings = spread({
   chips: [['gap', [2, 3, 4], v => `${v} × apart`], ['per', [1, 2], v => v === 1 ? 'One at a section' : 'Two at a section'], ['hole', [.7, .8, .9], v => `Anf / Agf ${v}`], GRADES],
   slider: { key: 'size', name: 'Size', label: 'size · drag', values: range(4, 20, 2), at: [-9, .5, -.6] },
   model({ holo, group, st }) {
-    const g = new THREE.Group(); g.position.set(0, .5, -5); g.scale.setScalar(1.1); group.add(g);
+    const g = new THREE.Group(); g.position.set(0, .5, -5); g.rotation.y = -.55; g.scale.setScalar(1.1); group.add(g);   // turned so the sideways sway is seen across the page, not as sag
     const LB = 16, DW = 4.4, m = paint(), mOk = new THREE.MeshStandardMaterial({ color: 0x14301f, roughness: .9 }), mBad = new THREE.MeshStandardMaterial({ color: 0x7a1c15, roughness: .9 }), holes = new THREE.Group();
     const beam = ibeam(LB, 1.6, .2, DW, .12, m); beam.position.y = 2.2 + .2 + DW / 2; g.add(beam, holes); posts(g, LB / 2, 2.2);
     const tag = holo.label('', TAG); tag.position.set(0, 10.4, -5); group.add(tag);

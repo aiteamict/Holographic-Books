@@ -53,9 +53,13 @@ export const shear = spread({
     const g = stage(group), mat = paint(), gi = girder(g, { xs: stiffXs(0), mat, seg: 40 }); loads(g);
     const tag = holo.label('', TAG); tag.position.set(0, 10.6, -5); group.add(tag);
     let k = 0, r = sh(st);
+    // a grid on the web near each support: under shear its squares lean into parallelograms
+    const off = x => -k * Math.min(1, Math.max(0, (LG / 2 - .5 - Math.abs(x)) / 2.5)), B0 = Y0 + .2, T0 = Y0 + .2 + DG;
+    const gridPts = () => { const p = []; for (const s of [-1, 1]) { const X = [0, 1.25, 2.5].map(d => s * (LG / 2 - .5 - d)); for (const x of X) p.push([x, B0 + off(x), .12], [x, T0 + off(x), .12]); for (const y of [B0, B0 + DG / 2, T0]) p.push([X[0], y + off(X[0]), .12], [X[2], y + off(X[2]), .12]); } return p; };
+    const grid = holo.segments(gridPts(), holo.AMBER, .95, { width: .1 }); g.add(grid);
     return {
       place() { r = sh(st); const over = st.V > r.Vd + 1e-6; mat.color.setHex(over ? 0xc23b2f : OXIDE_HEX); tag.userData.setText(over ? 'V > Vd: the web yields in shear' : 'V ≤ Vd'); },
-      update(dt) { const u = st.V / r.Vd, to = u > 1 ? Math.min(1.2, .3 + (u - 1) * 3) : .22 * u; k += (to - k) * Math.min(1, dt * 4); bend(gi.g, x => -k * Math.min(1, (LG / 2 - .5 - Math.abs(x)) / 2.5)); },
+      update(dt) { const u = st.V / r.Vd, to = u > 1 ? Math.min(1.2, .3 + (u - 1) * 3) : .22 * u; k += (to - k) * Math.min(1, dt * 4); bend(gi.g, x => -k * Math.min(1, (LG / 2 - .5 - Math.abs(x)) / 2.5)); holo.setPoints(grid, gridPts()); },
       debug: () => ({ Vp: +r.Vp.toFixed(0), Vd: +r.Vd.toFixed(0) }),
     };
   },
@@ -165,6 +169,8 @@ export const endpanel = spread({
     const g = stage(group), mat = paint(); let gi = null, key = '';
     const tag = holo.label('', TAG), la = holo.label('A', { h: 1, color: INK, weight: 700 }), lb = holo.label('B', { h: 1, color: INK, weight: 700 }), a = arrow(0xc23b2f, .1);
     tag.position.set(0, 10.6, -5); group.add(tag); g.add(la, lb, a);
+    const arcPts = R => Array.from({ length: 22 }, (_, i) => { const t = Math.PI * (.25 + 1.5 * i / 21); return [-LG / 2 + .5 + R * Math.cos(t), YM + R * Math.sin(t), .5]; });
+    const arc = holo.polyline(arcPts(1), holo.RED, { width: .12 }); g.add(arc);   // Mtf on the end post
     return {
       place() {
         const r = ep(st);
@@ -174,7 +180,7 @@ export const endpanel = spread({
           gi.g.add(holo.segments(bands(xs, st.type === 'f7' ? 1 : 0), holo.AMBER, .95, { width: .14 }));
         }
         lb.position.set(-LG / 2 + .5 + 3, YM, .9); la.position.set(-LG / 2 + .5 + 9, YM, .9);
-        a.position.set(-LG / 2 + .2, Y0 + .3 + DG, 0); a.userData.len(.3 + 2.2 * st.ratio);
+        a.position.set(-LG / 2 - 2.8, Y0 + .3 + DG, .9); a.userData.len(.3 + 2.2 * st.ratio); holo.setPoints(arc, arcPts(.4 + 1.2 * st.ratio));   // Rtf at the flange, Mtf as the arc; both grow with Hq
         tag.userData.setText(`Rtf = ${kN(r.Rtf)} · Mtf = ${r.Mtf.toFixed(0)} kNm`);
       },
       debug: () => { const r = ep(st); return { Hq: +r.Hq.toFixed(0), Rtf: +r.Rtf.toFixed(0), Mtf: +r.Mtf.toFixed(0) }; },

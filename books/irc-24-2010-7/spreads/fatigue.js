@@ -19,7 +19,13 @@ const WELD = paint(0x6f7a84, .4, .6), REDM = new THREE.MeshBasicMaterial({ color
 const crossing = (b, tk, t, sag = .16) => { const x = Math.sin(t * .8) * 6.5, f = X => -sag * (1 - (2 * X / 17) ** 2); b.bend(f); tk.position.set(x, b.top + f(x), 0); tk.rotation.y = Math.cos(t * .8) < 0 ? Math.PI : 0; return x; };
 const counter = () => { let N = 0, side = 1; return { tick(x) { const s = Math.sign(x || 1); if (s !== side) { side = s; N++; } return N; }, reset() { N = 0; }, get n() { return N; } }; };
 /** A crack that opens upward from the soffit of the near girder at mid-span. */
-const crackOn = b => { const c = box(.07, .5, .7, REDM, 0, 2.72, 1.5); c.geometry.translate(0, .25, 0); c.visible = false; b.g.add(c); return c; };
+const crackOn = b => { const c = box(.14, .5, .9, REDM, 0, 2.72, 1.5); c.geometry.translate(0, .25, 0); c.visible = false; b.g.add(c); return c; };
+/** A bar beside the bridge: fill = a stress range, a red line at a limit, both against max. */
+function gauge(group, holo) {
+  const fill = box(1, 1, 1, paint(0x2f8f55, .5, .2)), frame = holo.wireBox(1.05, 4.05, 1.05, holo.DIM), line = box(1.6, .08, 1.6, REDM);
+  fill.geometry.translate(0, .5, 0); fill.position.set(9.4, .52, -1.6); frame.position.set(9.4, 2.55, -1.6); line.position.set(9.4, 0, -1.6); group.add(fill, frame, line);
+  return { set(v, lim, max, bad) { fill.scale.y = Math.max(.02, Math.min(1, v / max) * 4); fill.material.color.setHex(bad ? 0xc23b2f : 0x2f8f55); line.visible = lim != null; if (lim != null) line.position.y = .52 + Math.min(1, lim / max) * 4; } };
+}
 
 // ---------------------------------------------------------------- 1 · cycles and the thickness correction
 const mu1 = st => st.flush ? 1 : muR(st.tp);
@@ -149,8 +155,9 @@ export const sn = spread({
   model({ holo, group, st }) {
     const b = girderBridge({ L: 17, d: 1, H: 2.6 }); group.add(sit(b.g)); const tk = truck(.32); b.g.add(tk);
     const tag = holo.label('', TAG); tag.position.set(0, 8.4, -5); group.add(tag);
+    const gg = gauge(group, holo);
     return {
-      place() { tag.userData.setText(`${sci(st.N)} cycles: ff = ${fatigueStrength(st.cat, st.N).toFixed(0)} MPa`); },
+      place() { const ff = fatigueStrength(st.cat, st.N); gg.set(ff, null, fatigueStrength(118, 1e5), st.N > 5e6); tag.userData.setText(`${sci(st.N)} cycles: ff = ${ff.toFixed(0)} MPa`); },   // the bar is the stress range the detail can stand; red past 5 × 10⁶ where the slope changes
       update(dt, t) { crossing(b, tk, t); },
       debug: () => ({ ff: +fatigueStrength(st.cat, st.N).toFixed(1) }),
     };
@@ -184,10 +191,10 @@ export const assess = spread({
   slider: { key: 'f', name: 'f', label: 'stress range · drag', values: range(10, 200, 10) },
   model({ holo, group, st }) {
     const b = girderBridge({ L: 17, d: 1, H: 2.6 }); group.add(sit(b.g)); const tk = truck(.32), crack = crackOn(b), cnt = counter(); b.g.add(tk);
-    const tag = holo.label('', TAG); tag.position.set(0, 8.4, -5); group.add(tag); let r = as(st), key = '';
+    const tag = holo.label('', TAG); tag.position.set(0, 8.4, -5); group.add(tag); let r = as(st), key = ''; const gg = gauge(group, holo);
     return {
-      place() { r = as(st); const k = JSON.stringify(st); if (k !== key) { key = k; cnt.reset(); } b.mat.color.setHex(r.exempt || r.ok ? OXIDE_HEX : 0xb0532a); tag.userData.setText(r.exempt ? 'low fatigue: no assessment needed' : r.ok ? 'f ≤ ffd' : 'f > ffd: a crack grows'); },
-      update(dt, t) { const n = cnt.tick(crossing(b, tk, t)), bad = !r.exempt && !r.ok; crack.visible = bad && n > 0; crack.scale.y = Math.max(.05, Math.min(1, n / 12) * 1.6); },
+      place() { r = as(st); gg.set(st.f, r.ffd, 200, !r.exempt && !r.ok); const k = JSON.stringify(st); if (k !== key) { key = k; cnt.reset(); } b.mat.color.setHex(r.exempt || r.ok ? OXIDE_HEX : 0xb0532a); tag.userData.setText(r.exempt ? 'low fatigue: no assessment needed' : r.ok ? 'f ≤ ffd' : 'f > ffd: a crack grows'); },   // the bar is the actual stress range f, the red line ffd
+      update(dt, t) { const n = cnt.tick(crossing(b, tk, t)), bad = !r.exempt && !r.ok; crack.visible = bad && n > 0; crack.scale.y = Math.max(.05, Math.min(1, n / 12) * 2.6); },
       debug: () => ({ fLim: +r.fLim.toFixed(1), ff: +r.ff.toFixed(1), ffd: +r.ffd.toFixed(1), exempt: r.exempt, ok: r.ok }),
     };
   },

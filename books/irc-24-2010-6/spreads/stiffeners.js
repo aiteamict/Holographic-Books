@@ -27,6 +27,7 @@ export const webthick = spread({
       place() {
         const k = st.arr + st.cd;
         if (k !== key) { key = k; if (gi) { g.remove(gi.g); dispose(gi.g); } gi = girder(g, { xs: stiffXs(st.arr === 'none' ? 0 : st.cd), longs: st.arr === 'long1' ? [.2] : st.arr === 'long2' ? [.2, .5] : [], mat }); }
+        gi.web.scale.z = Math.max(1, wt(st).t / 4);   // the web drawn as thick as it must be, 2.5 times larger
         tag.userData.setText(`web at least ${wt(st).t.toFixed(1)} mm thick`);
       },
       debug: () => { const r = wt(st); return { k: r.k, on: r.on, t1: +r.t1.toFixed(2), t2: +r.t2.toFixed(2) }; },
@@ -142,14 +143,18 @@ const cb = (st, v = st.v) => {
   return { cls: c.cls, Md: m.Md, Mfd, ...hs, a, Mn: Math.min(m.Md, m.Md * (1 - st.n) / (1 - .5 * a)), lin: m.Md * (1 - st.n) };
 };
 export const combined = spread({
-  river: true, init: { sec: 'B', v: .5, n: .2, fy: 250 },
+  init: { sec: 'B', v: .5, n: .2, fy: 250 },
   chips: [['sec', ['A', 'B', 'C'], v => `Web ${SEC[v].d} × ${SEC[v].tw}`], ['n', [0, .2, .4], v => `N/Nd ${v}`], GRADES],
   slider: { key: 'v', name: 'V/Vd', label: 'shear · drag', values: range(0, 1, .1) },
   model({ holo, group, st }) {
-    const b = girderBridge({ L: 17, d: 1.1, H: 2.6 }); group.add(sit(b.g));
-    const tk = truck(.32); b.g.add(tk); const tag = holo.label('', TAG); tag.position.set(0, 8.4, -5); group.add(tag);
+    // the girder of these pages: its web coloured by how hard it works in shear, a bar above for the moment it can still carry
+    const g = stage(group), gi = girder(g, { xs: stiffXs(0), mat: paint() }), wm = new THREE.MeshStandardMaterial({ roughness: .5, metalness: .3 }); gi.web.material = wm;
+    const yb = Y0 + .6 + DG, bar = box(LG - 3, 1, .5, paint(0x1d5f87, .5, .2)), frame = holo.wireBox(LG - 3, 1.6, .55, holo.DIM), lm = holo.label('moment capacity', { h: .6, color: INK }), lv = holo.label('web in shear', { h: .6, color: INK });
+    bar.geometry.translate(0, .5, 0); bar.position.set(0, yb, 0); frame.position.set(0, yb + .8, 0); lm.position.set(0, yb + 2.2, 0); lv.position.set(-4, YM, .6); g.add(bar, frame, lm, lv);
+    const tag = holo.label('', TAG); tag.position.set(0, 12.6, -5); group.add(tag);
+    const G = new THREE.Color(0x2f8f55), R = new THREE.Color(0xc23b2f);
     return {
-      place() { const r = cb(st), f = x => -.2 * (1 - (2 * x / 17) ** 2), x = -7 * st.v; b.bend(f); tk.position.set(x, b.top + f(x), 0); tag.userData.setText(st.v > .6 ? `high shear: Mdv = ${r.Mdv.toFixed(0)} kNm` : 'shear up to 0.6 Vd: full Md'); },
+      place() { const r = cb(st); wm.color.copy(G).lerp(R, st.v); bar.scale.y = Math.max(.02, 1.6 * Math.min(r.Mdv, r.Mn) / r.Md); tag.userData.setText(st.v > .6 ? `high shear: Mdv = ${r.Mdv.toFixed(0)} kNm` : 'shear up to 0.6 Vd: full Md'); },
       debug: () => { const r = cb(st); return { beta: +r.beta.toFixed(3), Mdv: +r.Mdv.toFixed(0), Mn: +r.Mn.toFixed(0) }; },
     };
   },

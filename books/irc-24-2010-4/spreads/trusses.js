@@ -25,6 +25,7 @@ export const pins = spread({
   model({ holo, group, st }) {
     const tr = mk(); group.add(sit(tr.g));
     const M = { T: paint(TEN), C: paint(COM), B: paint(0xc23b2f) }, tk = truck(.3); tr.g.add(tk);
+    const arc = holo.polyline(Array.from({ length: 13 }, (_, i) => { const t = i / 12, [x0, , z] = node(3, 0); return [x0 + t * PAN, -.45 * Math.sin(Math.PI * t), z + .25]; }), holo.RED, { width: .14 }); tr.span.add(arc);   // the loaded bottom chord bending between its joints
     const dot = new THREE.Mesh(new THREE.SphereGeometry(.32, 16, 12), new THREE.MeshBasicMaterial({ color: 0xc23b2f, toneMapped: false })); dot.position.set(...node(2, 1)); tr.span.add(dot);
     const tag = holo.label('', TAG), lt = holo.label('tension', { h: .8, color: '#1d5f87', weight: 700 }), lc = holo.label('compression', { h: .8, color: '#b0532a', weight: 700 });
     tag.position.set(0, 9.6, -5); lt.position.set(-4.5, 1.4, -1.4); lc.position.set(4.5, 1.4, -1.4); group.add(tag, lt, lc);
@@ -32,7 +33,7 @@ export const pins = spread({
       place() {
         const mid = st.at === 'panel';
         tint(tr, (k, a) => mid && k === 'bottom' && a[0] === 3 ? M.B : k === 'bottom' || k === 'diag' ? M.T : M.C);
-        tk.position.set(mid ? -PAN / 2 : 0, tr.top, 0); dot.visible = st.ecc;
+        tk.position.set(mid ? -PAN / 2 : 0, tr.top, 0); dot.visible = st.ecc; arc.visible = mid;
         tag.userData.setText((mid ? 'the loaded member also bends' : 'axial forces only') + (st.ecc ? ' · secondary stress at the joint' : ''));
       },
     };
@@ -68,11 +69,14 @@ export const efflen = spread({
     const M = { n: paint(), hi: paint(HI) }, xs = [];
     for (const s of [-1, 1]) for (let i = 1; i < NP - 1; i++) { const left = i < NP / 2; xs.push(node(i, left ? 0 : 1, s), node(i + 1, left ? 1 : 0, s)); }
     const cross = holo.segments(xs, holo.AMBER, .95, { width: .1 }); tr.span.add(cross);
+    const bow = holo.polyline(Array.from({ length: 25 }, () => [0, 0, 0]), holo.RED, { width: .26 }); tr.span.add(bow);   // the buckled half-wave, KL long
     const tag = holo.label('', TAG); tag.position.set(0, 9.6, -5); group.add(tag);
     return {
       place() {
         const web = st.mem !== 'chord', r = el(st);
         tint(tr, k => (web ? k === 'diag' || k === 'vert' : k === 'top') ? M.hi : M.n); cross.visible = st.mem === 'multi';
+        const [a, b] = web ? [node(2, 1), node(3, 0)] : [node(3, 1), node(4, 1)], f = r ? Math.min(1, r.KL / (web ? DG : 5)) : 1, dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy), n = st.dir === 'in' ? [-dy / len, dx / len, 0] : [0, 0, 1];
+        holo.setPoints(bow, Array.from({ length: 25 }, (_, i) => { const t = i / 24, u = .5 - f / 2 + f * t, s = 1.1 * Math.sin(Math.PI * t); return [a[0] + dx * u + n[0] * s, a[1] + dy * u + n[1] * s, a[2] + n[2] * s]; }));   // in the plane it bows within the truss, normal to it it bows sideways
         tag.userData.setText(r ? `KL = ${r.KL.toFixed(2)} m` : 'KL: see cl. 508.4.4');
       },
       debug: () => ({ KL: el(st)?.KL ?? null }),
@@ -104,7 +108,7 @@ export const efflen = spread({
 const UF = { I: 2e8, a: 5000, d1: 5000, d2: 5500, b: 3500 }, UR = 120, UFA = 100, USPAN = 40;   // illustrative; mm, mm⁴, MPa, m
 const uf = st => { const u = uFrame({ ...UF, I1: st.I1 * 1e8, I2: st.I2 * 1e9 }); return { ...u, ...uFrameForce(u.KL, u.delta, UR, UFA) }; };
 export const uframe = spread({
-  init: { sys: 'u', I1: 1, I2: 2 },
+  init: { sys: 'none', I1: 1, I2: 2 },
   chips: [['sys', ['none', 'u', 'deck'], v => ({ none: 'No lateral support', u: 'U frames', deck: 'Continuous deck' })[v]], ['I2', [2, 8], v => `Cross girder I ${v} × 10⁹`]],
   slider: { key: 'I1', name: 'I1', label: 'stiffness · drag', values: [.5, 1, 2, 4, 8, 16, 32], at: [-9, .5, -.6] },
   model({ holo, group, st }) {
@@ -228,10 +232,11 @@ export const bracing = spread({
     for (let i = 2; i < NP - 1; i++) { const x = i * PAN - LP / 2; S.sway.push([x, HT, -W2], [x, HT * .55, W2], [x, HT, W2], [x, HT * .55, -W2], [x, HT * .55, -W2], [x, HT * .55, W2]); }
     const Ln = {}; for (const k in S) { Ln[k] = [holo.segments(S[k], holo.RED, .95, { width: .2 }), holo.segments(S[k], holo.DIM, .8, { width: .05 })]; tr.span.add(...Ln[k]); }
     const tk = truck(.3); tk.position.set(-2, tr.top, 0); tr.g.add(tk);
+    const pushes = []; for (let i = 1; i < NP; i++) { const a = arrow(0xc23b2f, .07); a.rotation.y = -Math.PI / 2; a.position.set(i * PAN - LP / 2, HT, -W2 - .2); tr.span.add(a); pushes.push(a); }   // the design shear, shared along the chord
     const tag = holo.label('', TAG); tag.position.set(0, 9.6, -5); group.add(tag);
     const V = () => st.sys === 'lateral' ? .025 * 2 * st.C : st.sys === 'portal' ? .0125 * 2 * st.C : .5 * PLL;
     return {
-      place() { for (const k in Ln) { Ln[k][0].visible = st.sys === k; Ln[k][1].visible = st.sys !== k; } tag.userData.setText(`design shear ${V().toFixed(1)} kN`); },
+      place() { for (const k in Ln) { Ln[k][0].visible = st.sys === k; Ln[k][1].visible = st.sys !== k; } for (const a of pushes) a.userData.len(.3 + V() / 90); tag.userData.setText(`design shear ${V().toFixed(1)} kN`); },
       debug: () => ({ V: V() }),
     };
   },
@@ -270,7 +275,10 @@ export const camber = spread({
     const tr = mk(); group.add(sit(tr.g)); tr.pose(x => .45 * (1 - (2 * x / LP) ** 2));
     const M = { n: paint(), hi: paint(HI) }, tag = holo.label('', TAG); tag.position.set(0, 10, -5); group.add(tag);
     return {
-      place() { const r = cam(st); tint(tr, k => k === st.mem ? M.hi : M.n); tag.userData.setText(`make it ${r.len.toFixed(1)} mm: ${mm(r.len - r.L)}`); },
+      place() {
+        const r = cam(st); tint(tr, k => k === st.mem ? M.hi : M.n); tr.pose(x => .45 * (1 - (2 * x / LP) ** 2));
+        for (const [m, a, b] of tr.mem) if (kindOf(a, b) === st.mem) m.scale.x *= 1 + r.tot / r.L * 600;   // the camber change, drawn 600 times larger
+        tag.userData.setText(`make it ${r.len.toFixed(1)} mm: ${mm(r.len - r.L)}`); },
       debug: () => { const r = cam(st); return { dl: +r.dl.toFixed(3), kl: +r.kl.toFixed(3), len: r.len }; },
     };
   },
