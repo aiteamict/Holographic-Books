@@ -86,3 +86,11 @@ console.log('IRC 24 steel checks pass');
   near(s.stiffenerI(1600, 10, 3200), .75 * 1600 * 1000, 1e-6, 'Is'); near(s.stiffenerI(1600, 10, 1600), 1.5 * 1600 * 1000, 1e-6, 'Is');
   assert.deepEqual([s.alphaS(40), s.alphaS(100), s.alphaS(200)], [.006, .003, 30 / 40000]);
   near(s.highShear({ Md: 1000, Mfd: 600, ZeFy: 900, v: 1, compact: true }).Mdv, 600, 1e-9, 'Mdv at full shear'); assert.equal(s.highShear({ Md: 1000, Mfd: 600, ZeFy: 900, v: .5, compact: true }).Mdv, 1000); }
+
+// ---- chapter 7 · cl. 511
+{ const s = await import('./steel.js');
+  near(s.muR(25), 1, 1e-12, 'μr'); near(s.muR(50), .5 ** .25, 1e-12, 'μr'); assert.equal(s.muR(12), 1);
+  near(s.fatigueStrength(83, 5e6), 83, 1e-9, 'ff at 5e6'); near(s.fatigueStrength(83, 2e6), 83 * 2.5 ** (1 / 3), 1e-9, 'ff at 2e6'); near(s.fatigueStrength(83, 1e8), 83 * .05 ** .2, 1e-9, 'ff at 1e8'); near(s.fatigueStrength(67, 2e6, true), 67 * 2.5 ** .2, 1e-9, 'τf');
+  near(s.fatigueLife(83, s.fatigueStrength(83, 2e6)), 2e6, 1, 'life inverts strength'); near(s.fatigueLife(83, s.fatigueStrength(83, 5e7)), 5e7, 50, 'life inverts strength'); assert.equal(s.fatigueLife(100, 50), Infinity);
+  assert.deepEqual(s.GAMMA_MFT, { good: [1, 1.25], poor: [1.15, 1.35] }); assert.equal(s.lowFatigue(20, 1e9, 1.25).exempt, true); assert.equal(s.lowFatigue(60, 1e7, 1.25).exempt, false);
+  assert.deepEqual(s.DETAILS.map(d => d[1]), [118, 103, 92, 92, 83, 66, 59, 83, 66, 52, 59, 37, 27]); }

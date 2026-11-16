@@ -221,3 +221,31 @@ export function highShear({ Md, Mfd, ZeFy, v, compact }) {
   if (!compact) return { beta: 0, Mdv: ZeFy };
   const beta = (2 * v - 1) ** 2; return { beta, Mdv: Math.min(Md - beta * (Md - Mfd), 1.2 * ZeFy) };
 }
+
+// ---- chapter 7 · fatigue (cl. 511)
+// Table 18, partial safety factor for fatigue strength γmft: inspection and access good or poor → [fail-safe, non-fail-safe]
+export const GAMMA_MFT = { good: [1.00, 1.25], poor: [1.15, 1.35] };
+/** cl. 511.2.1: capacity reduction for plates thicker than 25 mm joined by transverse fillet or butt welds, μr = (25/tp)^0.25 ≤ 1. */
+export const muR = tp => Math.min(1, (25 / tp) ** .25);
+/** cl. 511.4: fatigue strength for N cycles from the strength at 5 × 10⁶. Normal stress: cube root up to 5 × 10⁶, fifth root to 10⁸; shear: fifth root. */
+export const fatigueStrength = (ffn, N, shear = false) => ffn * (5e6 / N) ** (shear || N > 5e6 ? 1 / 5 : 1 / 3);
+/** The same curve read the other way: cycles to failure at a normal stress range f. Ranges under 0.55 of the strength at 5 × 10⁶ are disregarded (cl. 511.5.2.4). */
+export const fatigueLife = (ffn, f) => f < .55 * ffn ? Infinity : f >= ffn ? 5e6 * (ffn / f) ** 3 : 5e6 * (ffn / f) ** 5;
+/** cl. 511.2.2.3, low fatigue: no assessment if f ≤ 27/γmft, or if Nsc < 5 × 10⁶ (27/γmft / γfft f)³. */
+export const lowFatigue = (f, N, gm, gf = 1) => { const lim = 5e6 * (27 / gm / (gf * f)) ** 3; return { fLim: 27 / gm, nLim: lim, exempt: f <= 27 / gm || N < lim }; };
+// Table 19 (a), (b), a selection: [key, detail category (MPa at 5 × 10⁶ cycles), the constructional detail]
+export const DETAILS = [
+  ['plate', 118, 'Rolled and extruded products: plates and flats, rolled sections, seamless tubes'],
+  ['bolted', 103, 'Bolted connections; material with gas-cut or sheared edges with no draglines'],
+  ['gascut', 92, 'Material with machine gas-cut edges with draglines, or manual gas-cut material'],
+  ['lwauto', 92, 'Continuous automatic longitudinal fillet or butt welds from both sides, no un-repaired stop-start positions'],
+  ['lwstop', 83, 'Continuous longitudinal welds from both sides containing stop-start positions; automatic butt welds from one side on a backing bar'],
+  ['lwone', 66, 'Continuous longitudinal welds carried out from one side only'],
+  ['lwint', 59, 'Intermittent longitudinal welds'],
+  ['buttflush', 83, 'Transverse butt weld, complete penetration, reinforcement ground flush, 100 per cent NDT'],
+  ['butt', 66, 'Transverse butt-welded splices of plates, rolled sections or plate girders'],
+  ['backing', 52, 'Transverse butt-welded splice made on a backing bar'],
+  ['stiff', 59, 'Vertical stiffener or transverse fillet weld on a plate up to 12 mm thick (52 above 12 mm)'],
+  ['cover', 37, 'End zone of a welded cover plate, flange or plate up to 25 mm thick (27 above 25 mm)'],
+  ['cruci', 27, 'Cruciform joint, partial penetration or fillet welds, stress range on the throat area (41 on the plate area)'],
+];
