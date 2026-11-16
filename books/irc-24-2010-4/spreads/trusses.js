@@ -106,7 +106,7 @@ const uf = st => { const u = uFrame({ ...UF, I1: st.I1 * 1e8, I2: st.I2 * 1e9 })
 export const uframe = spread({
   init: { sys: 'u', I1: 1, I2: 2 },
   chips: [['sys', ['none', 'u', 'deck'], v => ({ none: 'No lateral support', u: 'U frames', deck: 'Continuous deck' })[v]], ['I2', [2, 8], v => `Cross girder I ${v} × 10⁹`]],
-  slider: { key: 'I1', name: 'I1', label: 'stiffness · drag', values: [.5, 1, 2, 4, 8, 16, 32], at: [-10, .5, -.6] },
+  slider: { key: 'I1', name: 'I1', label: 'stiffness · drag', values: [.5, 1, 2, 4, 8, 16, 32], at: [-9, .5, -.6] },
   model({ holo, group, st }) {
     const g = new THREE.Group(); g.position.set(0, .5, -5); g.scale.setScalar(1.15); group.add(g);
     const m = paint(), HV = 5, B = 3.4, YB = 1.95, girder = box(2 * B + .6, .7, .6, m, 0, 1.6, 0), low = box(2 * B - .6, .16, 3, SM.asphalt, 0, 2.05, 0), high = box(2 * B + 1.8, .3, 3, SM.concrete, 0, YB + HV + .7, 0);
@@ -159,7 +159,7 @@ const pinReq = Fo => { const An = Fo * 1000 * GM1 / (.9 * FU[250]); return { An,
 export const joints = spread({
   init: { kind: 'angle', Fo: 200 },
   chips: [['kind', ['angle', 'channel', 'pin'], v => ({ angle: 'Lug angle · angle member', channel: 'Lug angle · channel', pin: 'Pin hole' })[v]]],
-  slider: { key: 'Fo', name: 'F', label: 'force · drag', values: range(50, 500, 50), at: [-10, .5, -.6] },
+  slider: { key: 'Fo', name: 'F', label: 'force · drag', values: range(50, 500, 50), at: [-9, .5, -.6] },
   model({ holo, group, st }) {
     const g = new THREE.Group(); g.position.set(0, .5, -5); g.scale.setScalar(1.2); group.add(g);
     const m = paint(), ml = paint(0x2f8f55, .5, .2), parts = new THREE.Group(), a = arrow(0xc23b2f, .1); g.add(parts, a, box(1.2, 8, 1.4, SM.concrete, -7.4, 4, -1));

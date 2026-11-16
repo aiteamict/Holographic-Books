@@ -129,3 +129,42 @@ export function uFrame({ I, a, d1, d2, b, I1, I2 }) {
 }
 /** cl. 508.4.4 (b): horizontal force on a U frame, F = 1.4 × 10⁻³ KL / δ (fcc/fa − 1.7), N. fcc = π² E / (KL/r)². */
 export function uFrameForce(KL, delta, r, fa) { const fcc = Math.PI ** 2 * E / (KL / r) ** 2; return { fcc, F: 1.4e-3 * KL / (delta * (fcc / fa - 1.7)) }; }
+
+// ---- chapter 5 · beams in bending (cl. 509.1–509.3)
+/** A doubly symmetric I: flanges bf × tf, web d × tw (mm). Section moduli in mm³, ry about the weak axis, hf between flange centres. */
+export function iSection({ bf, tf, d, tw }) {
+  const D = d + 2 * tf, I = (bf * D ** 3 - (bf - tw) * d ** 3) / 12, A = 2 * bf * tf + d * tw, Iy = (2 * tf * bf ** 3 + d * tw ** 3) / 12;
+  return { D, A, I, Ze: I / (D / 2), Zp: bf * tf * (d + tf) + tw * d * d / 4, Iy, ry: Math.sqrt(Iy / A), hf: d + tf };
+}
+/**
+ * cl. 509.2.1.2: laterally supported beam with shear not over 0.6 Vd. Md = βb Zp fy / γm0, kept below 1.2 Ze fy / γm0 for a
+ * simply supported beam and 1.5 Ze fy / γm0 for a cantilever. βb = 1 for plastic and compact sections, Ze/Zp for semi-compact. kNm.
+ */
+export function bendingStrength(sec, cls, fy, cantilever = false) {
+  const s = iSection(sec), bb = cls <= 2 ? 1 : s.Ze / s.Zp, raw = bb * s.Zp * fy / GM0 / 1e6, cap = (cantilever ? 1.5 : 1.2) * s.Ze * fy / GM0 / 1e6;
+  return { ...s, bb, raw, cap, Md: Math.min(raw, cap) };
+}
+/** cl. 509.2.2.1, the equation Table 11 was prepared from: fcr,b = 1.1 π² E / (LLT/ry)² × [1 + (1/20) ((LLT/ry) / (hf/tf))²]^0.5, MPa. */
+export const fcrb = (klr, hft) => 1.1 * Math.PI ** 2 * E / klr ** 2 * Math.sqrt(1 + (klr / hft) ** 2 / 20);
+/** cl. 509.2.2: χLT = 1 / {φLT + [φLT² − λLT²]^0.5} ≤ 1, φLT = 0.5 [1 + αLT (λLT − 0.2) + λLT²], αLT 0.21 rolled, 0.49 welded. */
+export function ltb(lam, fy, welded) {
+  const a = welded ? .49 : .21, phi = .5 * (1 + a * (lam - .2) + lam * lam), chi = Math.min(1, 1 / (phi + Math.sqrt(Math.max(0, phi * phi - lam * lam))));
+  return { a, phi, chi, fbd: chi * fy / GM0 };
+}
+// Table 12, effective length LLT of simply supported beams: [torsional restraint, warping restraint, normal, destabilising, × D added]
+export const TABLE12 = [
+  ['Fully restrained', 'Both flanges fully restrained', .70, .85, 0],
+  ['Fully restrained', 'Compression flange fully restrained', .75, .90, 0],
+  ['Fully restrained', 'Both flanges fully restrained', .80, .95, 0],   // printed with the same words as the first row
+  ['Fully restrained', 'Compression flange partially restrained', .85, 1.00, 0],
+  ['Fully restrained', 'Warping not restrained in both flanges', 1.00, 1.20, 0],
+  ['Partially restrained by bottom flange support connection', 'Warping not restrained in both flanges', 1.0, 1.2, 2],
+  ['Partially restrained by bottom flange bearing support', 'Warping not restrained in both flanges', 1.2, 1.4, 2],
+];
+// Table 13, effective length LLT of a cantilever of length L: support condition a–d, then top restraint i–iv, as [normal, destabilising] × L
+export const TABLE13 = {
+  a: [[3.0, 7.5], [2.7, 7.5], [2.4, 4.5], [2.1, 3.6]], b: [[2.0, 5.0], [1.8, 5.0], [1.6, 3.0], [1.4, 2.4]],
+  c: [[1.0, 2.5], [.9, 2.5], [.8, 1.5], [.7, 1.2]], d: [[.8, 1.4], [.7, 1.4], [.6, .6], [.5, .5]],
+};
+/** cl. 509.2.1.4 (a): holes in the tension flange need not be considered if Anf/Agf ≥ (fy/fu)(γm1/γm0)/0.9. */
+export const holeLimit = fy => fy / FU[fy] * (GM1 / GM0) / .9;

@@ -211,7 +211,7 @@ const str = st => { const [leg, t, rvv, A] = ANG[st.size], r = angleStrut({ l: s
 export const strut = spread({
   init: { size: 100, l: 2000, bolts: 2, fix: 'F', fy: 250 },
   chips: [['size', [75, 100, 150], v => `ISA ${v}`], ['bolts', [1, 2], v => v === 1 ? '1 bolt' : '2 or more bolts'], ['fix', ['F', 'H'], v => v === 'F' ? 'Gusset fixed' : 'Gusset hinged'], GRADES],
-  slider: { key: 'l', name: 'l', label: 'length · drag', values: range(1000, 4000, 250), at: [-10, .5, -.6] },
+  slider: { key: 'l', name: 'l', label: 'length · drag', values: range(1000, 4000, 250), at: [-9, .5, -.6] },
   model({ holo, group, st }) {
     const g = new THREE.Group(); g.position.set(0, .5, -5); g.scale.setScalar(1.1); group.add(g);
     const m = paint(), bar = new THREE.Group(), bolts = new THREE.Group(), posts = [-1, 1].map(s => { const p = box(1.4, 5, 2.4, SM.concrete, 0, 2.5, -.6); g.add(p); return p; }), gus = [-1, 1].map(s => { const p = box(2.4, 2.4, .2, SM.steel); g.add(p); return p; });

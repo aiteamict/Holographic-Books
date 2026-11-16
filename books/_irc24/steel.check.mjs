@@ -62,3 +62,12 @@ console.log('IRC 24 steel checks pass');
   assert.equal(s.uFrame({ I: 2e8, a: 5000, d1: 5000, d2: 5500, b: 3500, I1: 1e13, I2: 1e14 }).KL, 5000);   // a stiff frame: KL = a
   near(s.uFrameForce(u.KL, u.delta, 120, 100).fcc, Math.PI ** 2 * 2e5 / (u.KL / 120) ** 2, 1e-9, 'fcc');
   assert.deepEqual([s.TABLE9.chord[0][0], s.TABLE9.single[0][0], s.TABLE9.single[2][0], s.TABLE9.multi[1][0]], [.85, .7, 1, .7]); }
+
+// ---- chapter 5 · cl. 509.1–509.3. Table 11 as printed: KL/r 100 with h/tf 20; 50 with 30; 200 with 50
+{ const s = await import('./steel.js');
+  near(s.fcrb(100, 20), 325.8, .15, 'Table 11'); near(s.fcrb(50, 30), 927.1, .3, 'Table 11'); near(s.fcrb(200, 50), 72.8, .1, 'Table 11');
+  const b = s.iSection({ bf: 400, tf: 25, d: 1200, tw: 12 }); near(b.Zp, 400 * 25 * 1225 + 12 * 1200 * 1200 / 4, 1e-6, 'Zp'); near(b.ry, 88.07, .05, 'ry');
+  const m = s.bendingStrength({ bf: 400, tf: 25, d: 1200, tw: 12 }, 2, 250); near(m.Md, 16.57e6 * 250 / 1.1 / 1e6, 1, 'Md'); assert.equal(m.bb, 1);
+  near(s.ltb(.2, 250, true).chi, 1, 1e-9, 'χLT at λ 0.2'); assert.ok(s.ltb(1, 250, false).chi > s.ltb(1, 250, true).chi);
+  assert.deepEqual(s.TABLE12.map(r => r[2]), [.7, .75, .8, .85, 1, 1, 1.2]); assert.deepEqual(s.TABLE13.d[3], [.5, .5]); assert.deepEqual(s.TABLE13.a[0], [3, 7.5]);
+  near(s.holeLimit(250), 250 / 410 * (1.25 / 1.1) / .9, 1e-12, 'hole limit'); }

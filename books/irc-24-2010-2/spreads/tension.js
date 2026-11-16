@@ -21,7 +21,7 @@ const tens = st => { const Ag = st.b * st.t, An = netArea(st.b, st.t, st.n, st.d
 export const modes = spread({
   init: { b: 200, t: 16, n: 2, dh: 22, fy: 250, T: 500 },
   chips: [['b', [150, 200, 250], v => `b ${v}`], ['t', [10, 16, 20], v => `t ${v}`], ['n', [1, 2, 3], v => v === 1 ? '1 hole' : `${v} holes`], ['dh', [18, 22, 26], v => `hole ${v}`], GRADES],
-  slider: { key: 'T', name: 'T', label: 'tension · drag', values: range(100, 1500, 100), at: [-10, .5, -.6] },
+  slider: { key: 'T', name: 'T', label: 'tension · drag', values: range(100, 1500, 100), at: [-9, .5, -.6] },
   model({ holo, group, st }) {
     const g = table(group), mat = paint(), holes = new THREE.Group();
     const halves = [0, 1].map(() => { const m = box(1, 1, 1, mat); g.add(m); return m; }), grips = [0, 1].map(() => { const m = box(1.4, 1.5, 1, SM.steel); g.add(m); return m; }), arrows = [0, 1].map(() => { const a = arrow(0xc23b2f, .1); g.add(a); return a; });
@@ -130,7 +130,7 @@ const ang = st => {
 export const angle = spread({
   init: { size: 100, nb: 3, p: 60, fy: 250 },
   chips: [['size', [75, 100, 150], v => `ISA ${v}`], ['p', [50, 60, 75], v => `pitch ${v}`], GRADES],
-  slider: { key: 'nb', name: 'Bolts', label: 'bolts · drag', values: [2, 3, 4, 5, 6], at: [-10, .5, -.6] },
+  slider: { key: 'nb', name: 'Bolts', label: 'bolts · drag', values: [2, 3, 4, 5, 6], at: [-9, .5, -.6] },
   model({ holo, group, st }) {
     const g = new THREE.Group(); g.position.set(-1, 1.2, -5); g.scale.setScalar(1.12); group.add(g);
     const mo = paint(), conn = box(1, 1, 1, paint()), out = box(1, 1, 1, mo), gus = box(1, 1, .3, SM.steel), bolts = new THREE.Group(), a = arrow(0xc23b2f, .1);
@@ -181,7 +181,7 @@ const blk = st => {
 export const block = spread({
   init: { n: 3, p: 60, t: 10, g: 75, fy: 250, T: 300 },
   chips: [['n', [2, 3, 4], v => `${v} bolts a line`], ['p', [60, 75], v => `pitch ${v}`], ['t', [10, 16], v => `t ${v}`], ['g', [75, 100], v => `gauge ${v}`], GRADES],
-  slider: { key: 'T', name: 'T', label: 'tension · drag', values: range(100, 1800, 100), at: [-10, .5, -.6] },
+  slider: { key: 'T', name: 'T', label: 'tension · drag', values: range(100, 1800, 100), at: [-9, .5, -.6] },
   model({ holo, group, st }) {
     const g = table(group, 2.2), mat = paint(), mb = paint(), mov = new THREE.Group(), fix = new THREE.Group(), a = arrow(0xc23b2f, .1); g.add(mov, fix, a);
     const tag = holo.label('', TAG); tag.position.set(0, 7.6, -5); group.add(tag);
