@@ -123,7 +123,7 @@ export const uframe = spread({
       place() {
         r = uf(st); const w = .22 + .07 * Math.log2(st.I1 * 2);
         if (w !== was) { was = w; for (const p of posts) { if (p.bar) { p.col.remove(p.bar); p.bar.geometry.dispose(); } p.bar = box(HV, w, .5, m, 0, 0, 0, 20); p.col.add(p.bar); } }
-        girder.scale.y = st.I2 === 8 ? 1.6 : 1; high.visible = st.sys === 'deck'; low.visible = !high.visible; for (const a of fa) a.visible = st.sys === 'u';
+        girder.scale.y = st.I2 === 8 ? 1.6 : 1; high.visible = st.sys === 'deck'; low.visible = !high.visible; for (const a of fa) a.visible = st.sys === 'u'; for (const p of posts) p.col.visible = st.sys !== 'none';   // case a): no cross frames, so no verticals; the chords sway free
         tag.userData.setText(st.sys === 'none' ? `KL = span = ${USPAN} m` : st.sys === 'deck' ? 'KL = 0: held along its whole length' : `KL = ${(r.KL / 1000).toFixed(2)} m`);
       },
       update(dt, t) {
@@ -277,7 +277,7 @@ export const camber = spread({
     return {
       place() {
         const r = cam(st); tint(tr, k => k === st.mem ? M.hi : M.n); tr.pose(x => .45 * (1 - (2 * x / LP) ** 2));
-        for (const [m, a, b] of tr.mem) if (kindOf(a, b) === st.mem) m.scale.x *= 1 + r.tot / r.L * 600;   // the camber change, drawn 600 times larger
+        for (const [m, a, b] of tr.mem) if (kindOf(a, b) === st.mem) { const L0 = m.scale.x, d = r.tot / r.L * 600 * L0 / 2; m.scale.x = L0 + 2 * d; m.position.x += Math.cos(m.rotation.z) * d; m.position.y += Math.sin(m.rotation.z) * d; }   // the camber change, drawn 600 times larger, with the first end kept on its joint
         tag.userData.setText(`make it ${r.len.toFixed(1)} mm: ${mm(r.len - r.L)}`); },
       debug: () => { const r = cam(st); return { dl: +r.dl.toFixed(3), kl: +r.kl.toFixed(3), len: r.len }; },
     };

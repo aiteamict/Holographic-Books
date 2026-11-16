@@ -22,12 +22,15 @@ export const webthick = spread({
   slider: { key: 'cd', name: 'c/d', label: 'spacing · drag', values: [.5, .6, .74, .9, 1, 1.25, 1.5, 2, 2.4, 3, 3.5], at: [-9, .5, -.6] },
   model({ holo, group, st }) {
     const g = stage(group), mat = paint(); let gi = null, key = '';
+    const sec = new THREE.Group(), ls = holo.label('', TAG); sec.position.set(-4, 0, 6); sec.scale.setScalar(1.5); ls.position.set(1.4, 2.4, 6); g.add(sec, ls);   // an end section of the girder, so the web thickness can be seen
     const tag = holo.label('', TAG); tag.position.set(0, 10.6, -5); group.add(tag);
     return {
       place() {
         const k = st.arr + st.cd;
         if (k !== key) { key = k; if (gi) { g.remove(gi.g); dispose(gi.g); } gi = girder(g, { xs: stiffXs(st.arr === 'none' ? 0 : st.cd), longs: st.arr === 'long1' ? [.2] : st.arr === 'long2' ? [.2, .5] : [], mat }); }
         gi.web.scale.z = Math.max(1, wt(st).t / 4);   // the web drawn as thick as it must be, 2.5 times larger
+        dispose(sec); sec.clear(); const tw = wt(st).t, w = Math.max(.1, tw * .06); sec.add(box(1.8, .25, .5, mat, 0, .125, 0), box(w, 2.6, .5, GREEN, 0, .25 + 1.3, 0), box(1.8, .25, .5, mat, 0, 2.85 + .125, 0));   // web width 15 times the flange scale
+        ls.userData.setText(`end section · web ×15 · tw ≥ ${tw.toFixed(1)} mm`);
         tag.userData.setText(`web at least ${wt(st).t.toFixed(1)} mm thick`);
       },
       debug: () => { const r = wt(st); return { k: r.k, on: r.on, t1: +r.t1.toFixed(2), t2: +r.t2.toFixed(2) }; },
