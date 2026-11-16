@@ -1,4 +1,4 @@
-// Phone layout check for the books that use phoneLayout: 2 (the IRC 38 chapters). Run it against the dev server
+// Phone layout check for the books that use phoneLayout: 2 (the IRC 38 and IRC 24 chapters). Run it against the dev server
 // (npx vite --host --port 5173) with a Playwright page: it is one async function taking `page`.
 // It walks every spread of every chapter at six screen sizes with touch emulation and reports, per size:
 //   problems  controls off-screen or overlapping, the canvas under the panel, text under 12 px, a step panel under 60 px,
@@ -7,7 +7,7 @@
 // Zero problems at every size is the pass mark.
 async (page) => {
   const SIZES = [[320, 568], [360, 640], [390, 844], [430, 932], [844, 390], [768, 1024]];
-  const BOOKS = [1, 2, 3, 4, 5, 6, 7, 8].map(n => `irc-38-1988-${n}`);
+  const BOOKS = [...[1, 2, 3, 4, 5, 6, 7, 8].map(n => `irc-38-1988-${n}`), 'irc-24-2010-1'];
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   const report = {}, errs = []; page.on('pageerror', e => errs.push(e.message));

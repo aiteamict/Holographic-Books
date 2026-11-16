@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IRC 24-2010 · Steel Road Bridges · Holographic Books</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23dcc9b4%27/%3E%3Cpath d=%27M8 7h16v4h-6v10h6v4H8v-4h6V11H8z%27 fill=%27%238a3f1c%27/%3E%3C/svg%3E" />
+<meta name="description" content="IRC 24-2010, Steel Road Bridges (Limit State Method), as nine interactive 3D chapters." />
+<style>
+  :root { --ink:#1f2328; --ink2:#5c6168; --cyan:#8a3f1c; --amber:#b0532a; --paper:#f7f3ec; --edge:rgba(29,34,40,.14); }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, #faf7f2 0%, #efe7dc 60%, #e2d6c7 100%); color: var(--ink); font-family: "Inter","Segoe UI",system-ui,Arial,sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1080px; margin: 0 auto; padding: 40px 16px 64px; }
+  .back { display: inline-block; margin-bottom: 22px; font-size: 13px; font-weight: 600; color: var(--cyan); text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  header p { margin: 0 0 6px; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); }
+  header h1 { margin: 0; font: italic 800 clamp(30px, 5.4vw, 50px)/1.08 Georgia, "Times New Roman", serif; letter-spacing: -.02em; }
+  header span { display: block; margin-top: 12px; max-width: 42rem; color: var(--ink2); line-height: 1.55; }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .facts b { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: rgba(138,63,28,.1); color: var(--cyan); }
+  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 22px; margin-top: 34px; }
+  .book { display: flex; flex-direction: column; text-decoration: none; color: inherit; border-radius: 14px; overflow: hidden; background: var(--paper); border: 1px solid var(--edge); box-shadow: 0 8px 24px rgba(40,50,60,.12); transition: transform .2s, box-shadow .2s; }
+  a.book:hover, a.book:focus-visible { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(40,50,60,.2); }
+  .book.soon { opacity: .62; box-shadow: none; }
+  .cover { aspect-ratio: 4 / 3; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, #e4d5c4, #c4a98f); position: relative; }
+  .cover .n { font: italic 800 64px/1 Georgia, serif; color: #14202b; }
+  .cover .tag { position: absolute; top: 10px; right: 10px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: #1f7a45; color: #fff; }
+  .soon .cover .tag { background: #5c6168; }
+  .meta { padding: 14px 16px 18px; }
+  /* phones: each chapter is one compact row, so all eight fit in a couple of screens */
+  @media (max-width: 560px) {
+    .shelf { grid-template-columns: 1fr; gap: 12px; margin-top: 24px; }
+    .book { flex-direction: row; }
+    .cover { aspect-ratio: auto; flex: 0 0 88px; }
+    .cover .n { font-size: 40px; }
+    .cover .tag { top: auto; bottom: 8px; right: 50%; transform: translateX(50%); font-size: 9px; padding: 3px 7px; }
+    .meta { padding: 12px 14px 14px; min-width: 0; }
+  }
+  .meta small { display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+  .meta b { display: block; font: 600 19px Georgia, serif; }
+  .meta span { display: block; margin-top: 6px; font-size: 13px; color: var(--ink2); line-height: 1.45; }
+  footer { margin-top: 40px; font-size: 13px; color: var(--ink2); line-height: 1.55; max-width: 46rem; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="../">← Holographic Books library</a>
+  <header>
+    <p>IRC : 24-2010 · Third Revision</p>
+    <h1>Steel Road Bridges: the Limit State Method</h1>
+    <span>Section V of the Standard Specifications and Code of Practice for Road Bridges, as nine short holographic books: clauses 501 to 514 and the annexes, each with live 3D models you can load, resize and test.</span>
+    <div class="facts"><b>Chapter 1 ready</b><b>9 chapters planned</b><b>Clauses 501–514</b><b>Annexes A–G</b></div>
+  </header>
+  <section class="shelf" aria-label="Chapters">
+    <a class="book" href="../irc-24-2010-1/">
+      <div class="cover"><span class="n">1</span><span class="tag">Ready</span></div>
+      <div class="meta"><small>Clauses 501–505 · 8 spreads</small><b>The Limit State Method</b><span>Scope, the steel, limit states, partial safety factors, overturning, classes of cross-section, depth, deflection and camber.</span></div>
+    </a>
+    <div class="book soon">
+      <div class="cover"><span class="n">2</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clause 506</small><b>Tension Members</b><span>Yielding of the gross section, rupture at the holes, shear lag in angles, block shear, lacing, battens and splices.</span></div>
+    </div>
+    <div class="book soon">
+      <div class="cover"><span class="n">3</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clause 507</small><b>Compression Members</b><span>The four buckling curves, effective length, base plates, angle struts, lacing and battening.</span></div>
+    </div>
+    <div class="book soon">
+      <div class="cover"><span class="n">4</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clause 508 · Annex B</small><b>Trusses and Open Web Girders</b><span>Pin-jointed analysis, effective lengths of chords and webs, U-frames, lug angles, bracing and cambering.</span></div>
+    </div>
+    <div class="book soon">
+      <div class="cover"><span class="n">5</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clauses 509.1–509.3 · Annex C</small><b>Beams in Bending</b><span>Laterally supported and unsupported beams, lateral torsional buckling, the elastic critical moment.</span></div>
+    </div>
+    <div class="book soon">
+      <div class="cover"><span class="n">6</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clauses 509.4–510</small><b>Plate Girders: Shear and Stiffeners</b><span>Shear buckling, tension field action, end panels, every kind of stiffener, combined shear, bending and axial force.</span></div>
+    </div>
+    <div class="book soon">
+      <div class="cover"><span class="n">7</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clause 511</small><b>Fatigue</b><span>Detail categories, the S-N curves, stress ranges and cycle counting, when no assessment is needed.</span></div>
+    </div>
+    <div class="book soon">
+      <div class="cover"><span class="n">8</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clause 512</small><b>Connections</b><span>Welds, bearing bolts and rivets, friction grip bolts, long joints, prying forces, splices.</span></div>
+    </div>
+    <div class="book soon">
+      <div class="cover"><span class="n">9</span><span class="tag">Soon</span></div>
+      <div class="meta"><small>Clauses 513–514 · Annexes D–G</small><b>Building and Keeping the Bridge</b><span>Fabrication and tolerances, inspection and testing of welds, erection, durability, maintenance, design by testing.</span></div>
+    </div>
+  </section>
+  <footer>Source: IRC : 38-1988, Indian Roads Congress, New Delhi (published 1989). Each chapter’s back page lists the clauses, tables, figures and examples it covers, and any misprints found and checked on the page. Nothing here is a substitute for the standard itself.</footer>
+</main>
+</body>
+</html>

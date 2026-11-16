@@ -128,7 +128,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
       camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur; return;
     }
     if (p2() && preset !== CAM.cover && !tour) {   // layout 2: look down steeply enough that the page's depth fills a tall canvas, then fit the hologram
-      const e = Math.asin(THREE.MathUtils.clamp(25.2 / (camera.aspect * 29), .62, .9));
+      const e = Math.asin(Math.min(preset.tilt ?? 1, THREE.MathUtils.clamp(25.2 / (camera.aspect * 29), .62, .9)));   // a spread of standing models may ask for a lower camera (cam.tilt = sine of the elevation)
       at.set(PAGE_W / 2 + .2, 0, -1); to.set(at.x, Math.sin(e) * 70, at.z + Math.cos(e) * 70);
       if (preset.fit) fitPortrait(preset.fit, to, at, true);
       camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur; return;
