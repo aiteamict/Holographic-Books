@@ -5,7 +5,7 @@
 //   factors  (cl. 503.4, Table 1)        design strength = ultimate strength / γm
 import * as THREE from 'three';
 import { SM } from '@engine/scene.js';
-import { spread, sit, girderBridge, truss, truck, arrow, box, bend, paint, dispose, head, foot, lines, kv, F, INK, OXIDE, DIMC, OK, BAD, OXIDE_HEX } from '../../_irc24/kit.js';
+import { spread, sit, girderBridge, truss, truck, arrow, box, cyl, bend, paint, dispose, head, foot, lines, kv, F, INK, OXIDE, DIMC, OK, BAD, OXIDE_HEX } from '../../_irc24/kit.js';
 import { thermal, GAMMA } from '../../_irc24/steel.js';
 
 const Z = -4.5, TAG = { h: .7, color: INK, bg: 'rgba(255,253,248,.92)', weight: 700 };
@@ -23,22 +23,101 @@ const ANNEX = {
   bascule: 'the mechanical equipment needs its own codes; the structural part can follow this Code.',
   box: 'special analysis and detailing are warranted.', pre: 'special analysis and detailing are warranted.', arch: 'special analysis and detailing are warranted.',
 };
-/** A line drawing of each special type: pairs of points, deck at y = 3, 18 cm long. */
-function outline(type) {
-  const s = [], L = (x1, y1, x2, y2, z1 = 0, z2 = z1) => s.push([x1, y1, z1], [x2, y2, z2]);
-  const deck = () => { L(-9, 3, 9, 3); L(-9, 2.6, 9, 2.6); L(-9, 3, -9, 2.6); L(9, 3, 9, 2.6); };
-  const posts = (...xs) => xs.forEach(x => { L(x - .3, .5, x - .3, 2.6); L(x + .3, .5, x + .3, 2.6); });
-  if (type === 'curved') { for (const r of [14, 16.5]) for (let i = 0; i < 16; i++) { const a = -.6 + i * .075, b = a + .075; L(Math.sin(a) * r, 3, Math.sin(b) * r, 3, 15 - Math.cos(a) * r, 15 - Math.cos(b) * r); } for (const a of [-.6, 0, .6]) L(Math.sin(a) * 15.2, .5, Math.sin(a) * 15.2, 3, 15 - Math.cos(a) * 15.2); }
-  if (type === 'cable') { deck(); for (const x of [-3.6, 3.6]) { L(x, .5, x, 9); for (const k of [1, 2, 3, 4]) for (const d of [-1, 1]) if (Math.abs(x + d * k * 1.15) < 9) L(x, 9.2 - k * .45, x + d * k * 1.15, 3); } }
-  if (type === 'susp') { deck(); const y = x => 3.7 + 5.3 * (x / 5.5) ** 2; for (const x of [-5.5, 5.5]) { L(x, .5, x, 9); L(x, 9, Math.sign(x) * 9, 3.1); } for (let x = -5.5; x < 5.4; x += .55) { L(x, y(x), x + .55, y(x + .55)); if (Math.abs(x) > .1 && Math.round(x / .55) % 2 === 0) L(x, y(x), x, 3); } }
-  if (type === 'temp') { deck(); posts(-8.6, 8.6); for (let x = -9; x < 9; x += 3) { L(x, 3, x, 4.5); L(x, 4.5, x + 3, 4.5); L(x, 3, x + 3, 4.5); L(x + 3, 3, x, 4.5); } L(9, 3, 9, 4.5); }
-  if (type === 'ped') { L(-9, 3, 9, 3); L(-9, 2.85, 9, 2.85); L(-9, 3.9, 9, 3.9); for (let x = -9; x <= 9; x += 1.5) L(x, 3, x, 3.9); posts(-8.6, 8.6); for (const d of [-1, 1]) { L(d * 9, 3, d * 11.6, .6); L(d * 9, 3.9, d * 11.6, 1.5); } }
-  if (type === 'swing') { const c = Math.cos(.55), n = Math.sin(.55); for (const o of [-.8, .8]) L(-9 * c + o * n, 3, 9 * c + o * n, 3, 9 * n + o * c, -9 * n + o * c); for (const d of [-1, 1]) L(d * 9 * c - .8 * n, 3, d * 9 * c + .8 * n, 3, -d * 9 * n - .8 * c, -d * 9 * n + .8 * c); L(-.5, .5, -.5, 2.6); L(.5, .5, .5, 2.6); for (const x of [-9.6, 9.6]) { L(x, .5, x, 3, -.8); L(x, .5, x, 3, .8); L(x, 3, x, 3, -.8, .8); } }
-  if (type === 'bascule') { const c = Math.cos(.7), n = Math.sin(.7); for (const d of [-1, 1]) { L(d * 9, 3, d * (9 - 8.6 * c), 3 + 8.6 * n); L(d * 9, 2.6, d * (9 - 8.6 * c + .4 * n), 2.6 + 8.6 * n + .4 * c - .4); L(d * 9.3, .5, d * 9.3, 3); L(d * 10.5, .5, d * 10.5, 3); L(d * 9.3, 3, d * 10.5, 3); } }
-  if (type === 'box') { L(-6, 5.2, 6, 5.2); L(-6, 4.9, -3.2, 4.9); L(3.2, 4.9, 6, 4.9); L(-6, 5.2, -6, 4.9); L(6, 5.2, 6, 4.9); L(-3.2, 4.9, -2.2, 2.2); L(3.2, 4.9, 2.2, 2.2); L(-2.2, 2.2, 2.2, 2.2); L(-2.75, 4.9, -1.9, 2.5); L(2.75, 4.9, 1.9, 2.5); L(-1.9, 2.5, 1.9, 2.5); L(-2.75, 4.9, 2.75, 4.9); L(-.8, .5, -.8, 2.2); L(.8, .5, .8, 2.2); }
-  if (type === 'pre') { deck(); posts(-8.6, 8.6); L(-9, 2.8, -3, 1.2); L(-3, 1.2, 3, 1.2); L(3, 1.2, 9, 2.8); L(-3, 2.6, -3, 1.2); L(3, 2.6, 3, 1.2); }
-  if (type === 'arch') { deck(); const y = x => 3 + 4.5 * (1 - (x / 9) ** 2); for (let x = -9; x < 8.9; x += .75) { L(x, y(x), x + .75, y(x + .75)); if (Math.abs(x) < 8 && Math.round(x / .75) % 2 === 0) L(x, y(x), x, 3); } posts(-8.6, 8.6); }
-  return s;
+/** A thin round member between two points: a cable, a hanger, a stay or an arch segment. */
+function bar(a, b, r, mat) {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), m = cyl(r, A.distanceTo(B), mat, 0, 0, 0, 8);
+  m.position.copy(A).lerp(B, .5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.sub(A).normalize()); return m;
+}
+const CABLE = paint(0x5d6873, .35, .7), TENDON = paint(0xf2b134, .35, .4), BAILEY = paint(0x5f7148, .6, .2), TIMBER = paint(0x8a6a44, .9, 0);
+/** A solid model of each special type, 18 long like the girder bridge, its deck near y = 3.7. */
+function special(type) {
+  const g = new THREE.Group(), add = (...o) => { g.add(...o); return o[0]; };
+  const deck = (o = {}) => { const b = girderBridge({ L: 18, H: 2.2, ...o }); g.add(b.g); return b; };
+  if (type === 'cable') {   // two pylons, a fan of stays to each side: the deck hangs from the pylons
+    const b = deck({ d: .6 }), z = b.w / 2 + .25, top = b.top;
+    for (const x of [-4.2, 4.2]) {
+      add(box(1.6, 2.2, b.w + 1.4, SM.concrete, x, 1.1, 0));
+      for (const s of [-1, 1]) add(box(.45, 8.4, .45, b.mat, x, 2.2 + 4.2, s * z));
+      add(box(.4, .4, 2 * z, b.mat, x, 9.9, 0), box(.4, .4, 2 * z, b.mat, x, top + .2, 0));
+      for (const s of [-1, 1]) for (let k = 1; k <= 4; k++) for (const d of [-1, 1]) { const xe = x + d * k * 1.15; if (Math.abs(xe) < 8.8) add(bar([x, 10.2 - k * .45, s * z], [xe, top, s * z], .05, CABLE)); }
+    }
+  }
+  if (type === 'susp') {   // towers, a main cable sagging between them and anchored behind, hangers down to the deck
+    const b = deck({ d: .5 }), z = b.w / 2 + .15, top = b.top, X = 5.5, Y = 10, y = x => top + .6 + (Y - top - .6) * (x / X) ** 2;
+    for (const x of [-X, X]) { add(box(1.6, 2.2, b.w + 1.4, SM.concrete, x, 1.1, 0)); for (const s of [-1, 1]) add(box(.45, Y, .45, b.mat, x, 2.2 + Y / 2 - 1.1, s * z)); add(box(.4, .4, 2 * z, b.mat, x, Y + .9, 0)); }
+    for (const s of [-1, 1]) {
+      for (let x = -X; x < X - 1e-6; x += .55) add(bar([x, y(x), s * z], [x + .55, y(x + .55), s * z], .07, CABLE));
+      for (const d of [-1, 1]) add(bar([d * X, Y + .7, s * z], [d * 9.6, 1.4, s * z], .07, CABLE));
+      for (let x = -X + .55; x < X - .3; x += .55) add(bar([x, y(x), s * z], [x, top, s * z], .025, CABLE));
+    }
+    for (const d of [-1, 1]) add(box(1.6, 1.4, b.w + 1, SM.concrete, d * 9.9, .7, 0));   // anchor blocks
+  }
+  if (type === 'arch') {   // an arch rib over the deck, the deck hung from it
+    const b = deck({ d: .5 }), z = b.w / 2 + .05, top = b.top, y = x => top + 5 * (1 - (x / 8.6) ** 2);
+    for (const s of [-1, 1]) {
+      for (let x = -8.6; x < 8.6 - 1e-6; x += .43) add(bar([x, y(x), s * z], [x + .43, y(x + .43), s * z], .22, b.mat));
+      for (let x = -7.3; x < 7.4; x += 1.3) add(bar([x, y(x), s * z], [x, top, s * z], .04, CABLE));
+    }
+    for (let x = -4.3; x < 4.4; x += 2.15) add(box(.25, .25, 2 * z, b.mat, x, y(x), 0));   // wind bracing between the ribs
+  }
+  if (type === 'pre') {   // a girder bridge with its prestressing tendons laid bare: draped low at mid-span, anchored at the ends
+    const b = deck({ d: 1.1 }), y0 = 2.32, gap = 1.5, pts = [[-8.8, y0 + .75], [-3, y0 + .15], [3, y0 + .15], [8.8, y0 + .75]];
+    for (const z of [gap + .12, gap + .2]) {   // on the girder nearest the reader, in amber so the drape reads against the red-oxide steel
+      for (let i = 0; i < 3; i++) add(bar([pts[i][0], pts[i][1] - (z - gap - .12) * 2, z], [pts[i + 1][0], pts[i + 1][1] - (z - gap - .12) * 2, z], .09, TENDON));
+      for (const x of [-3, 3]) add(box(.18, .25, .2, SM.steel, x, y0 + .15, z));   // deviators
+      for (const x of [-8.85, 8.85]) add(box(.12, .4, .4, SM.steel, x, y0 + .75, z));   // anchor plates
+    }
+  }
+  if (type === 'box') {   // a hollow trapezoidal steel box under the deck slab; a cut section stands on the bank, facing the reader
+    const L = 18, H = 2.2, m = paint();
+    { const o = new THREE.Shape([[-1.2, 0], [1.2, 0], [1.8, 1.6], [-1.8, 1.6]].map(p => new THREE.Vector2(...p))), t = .14, hole = new THREE.Path([[-1.2 + t, t], [1.2 - t, t], [1.8 - t * 1.4, 1.6 - t], [-1.8 + t * 1.4, 1.6 - t]].map(p => new THREE.Vector2(...p)));
+      o.holes.push(hole); const sec = new THREE.Group(); sec.position.set(-6.6, .5, 3.3); sec.scale.setScalar(1.4); g.add(sec);
+      const sh = new THREE.Mesh(new THREE.ExtrudeGeometry(o, { depth: .6, bevelEnabled: false }), m); sh.castShadow = true; sec.add(sh, box(4.4, .22, .6, SM.concrete, 0, 1.71, .3), box(3.9, .08, .6, SM.asphalt, 0, 1.86, .3)); }
+    for (const s of [-1, 1]) add(box(1.6, H, 5.2, SM.concrete, s * (L / 2 + .45), H / 2, 0));
+    add(box(L, .14, 2.4, m, 0, H + .07, 0, 24));
+    for (const s of [-1, 1]) { const w = add(box(L, 1.55, .12, m, 0, H + .85, s * 1.5, 24)); w.rotation.x = -s * .3; add(box(L, .12, .7, m, 0, H + 1.6, s * 1.75, 24)); }
+    for (let x = -7.5; x <= 7.5; x += 3.75) add(box(.08, 1.3, 2.3, m, x, H + .8, 0));   // diaphragms inside the box
+    add(box(L + .5, .22, 4.6, SM.concrete, 0, H + 1.77, 0), box(L + .5, .08, 4.1, SM.asphalt, 0, H + 1.92, 0));
+    for (const s of [-1, 1]) add(box(L + .5, .34, .12, SM.concreteDark, 0, H + 2.05, s * 2.24));
+  }
+  if (type === 'curved') {   // the deck follows an arc in plan, carried on piers
+    const R = 15, m = paint(), n = 16, a0 = -.6, da = 1.2 / n;
+    for (let i = 0; i < n; i++) {
+      const a = a0 + (i + .5) * da, seg = new THREE.Group(); seg.position.set(Math.sin(a) * R, 0, 15 - Math.cos(a) * R); seg.rotation.y = -a; g.add(seg);
+      const len = R * da + .06;
+      seg.add(box(len, .9, .14, m, 0, 2.65, -1), box(len, .9, .14, m, 0, 2.65, 1), box(len, .12, .5, m, 0, 2.2, -1), box(len, .12, .5, m, 0, 2.2, 1));
+      seg.add(box(len, .22, 3.6, SM.concrete, 0, 3.21, 0), box(len, .08, 3.1, SM.asphalt, 0, 3.36, 0));
+    }
+    for (const a of [-.6, -.2, .2, .6]) { const p = add(box(1, 2.15, 3.2, SM.concrete, Math.sin(a) * R, 1.07, 15 - Math.cos(a) * R)); p.rotation.y = -a; }
+  }
+  if (type === 'temp') {   // a panel truss in field green on timber cribs: put up quickly, taken away later
+    const t = truss({ L: 18, h: 2.4, n: 6, H: 2.2 }); g.add(t.g); t.mat.color.copy(BAILEY.color);
+    t.g.traverse(o => { if (o.material === SM.concrete) o.visible = false; });
+    for (const s of [-1, 1]) for (let k = 0; k < 6; k++) { const c = add(box(1.8, .36, .36, TIMBER, s * 9.25, .18 + k * .37, (k % 2 ? 1 : -1) * 1.1)); if (k % 2) c.rotation.y = Math.PI / 2; }
+  }
+  if (type === 'ped') {   // a narrow deck with handrails, and stairs down at each end
+    const b = deck({ d: .55, n: 2, gap: 1.2, bf: .35 }), top = b.top, z = b.w / 2 - .08, rail = paint(0x5d6873, .4, .6);
+    for (const s of [-1, 1]) { for (let x = -8.8; x <= 8.8; x += 1.1) add(box(.06, 1.1, .06, rail, x, top + .55, s * z)); add(box(17.8, .07, .07, rail, 0, top + 1.1, s * z)); }
+    for (const d of [-1, 1]) for (let k = 0; k < 9; k++) add(box(.42, .1, b.w - .3, SM.concrete, d * (9.5 + k * .42), top - (k + 1) * .38, 0));
+  }
+  if (type === 'swing') {   // the whole span turned on a central pivot pier to open the channel
+    const span = new THREE.Group(); span.rotation.y = .6; g.add(span);
+    const b = girderBridge({ L: 18, d: 1, H: 2.6, abut: false }); span.add(b.g);
+    add(cyl(1.5, 2.6, SM.concrete, 0, 1.3, 0, 24), cyl(1.1, .3, SM.steel, 0, 2.75, 0, 24));
+    for (const s of [-1, 1]) add(box(1.6, 2.6, 5, SM.concrete, s * 9.6, 1.3, 0));
+  }
+  if (type === 'bascule') {   // two leaves lifted about trunnions on the piers, counterweights behind
+    const m = paint();
+    for (const s of [-1, 1]) {
+      add(box(2.4, 2.4, 5, SM.concrete, s * 8.8, 1.2, 0), box(1.6, 1.4, 4.2, SM.concreteDark, s * 9.6, 3.1, 0));   // pier and counterweight
+      const leaf = new THREE.Group(); leaf.position.set(s * 7.8, 2.9, 0); leaf.rotation.z = -s * .78; g.add(leaf);
+      const L = 7.6, xc = -s * L / 2;
+      for (const zz of [-1.4, 1.4]) leaf.add(box(L, .9, .14, m, xc, 0, zz), box(L, .12, .5, m, xc, -.45, zz), box(L, .12, .5, m, xc, .45, zz));
+      leaf.add(box(L, .22, 3.8, SM.concrete, xc, .62, 0), box(L, .08, 3.3, SM.asphalt, xc, .77, 0));
+      add(cyl(.3, 4.4, SM.steel, s * 7.8, 2.9, 0, 12)).rotation.x = Math.PI / 2;   // trunnion
+    }
+  }
+  return g;
 }
 export const scope = spread({
   river: true, init: { type: 'girder' },
@@ -46,7 +125,7 @@ export const scope = spread({
   model({ holo, group, st }) {
     const gb = girderBridge({ L: 18, d: 1.1, H: 2.2 }), tr = truss({ L: 18, h: 3, H: 2.2 }); group.add(sit(gb.g), sit(tr.g));
     const tk = truck(.3); tk.position.set(-2, gb.top, 0); gb.g.add(tk);
-    const sil = {}; for (const [k, , ok] of TYPES) if (!ok) { const l = holo.segments(outline(k), holo.CYAN, .95, { width: .09 }); group.add(sit(l)); sil[k] = l; }
+    const sil = {}; for (const [k, , ok] of TYPES) if (!ok) { const m = special(k); group.add(sit(m)); sil[k] = m; }   // each special type as a solid model, like the two normal ones
     return { place() { gb.g.visible = st.type === 'girder'; tr.g.visible = st.type === 'truss'; for (const k in sil) sil[k].visible = st.type === k; } };
   },
   draw(c, W, H, st) {
@@ -61,7 +140,7 @@ export const scope = spread({
   steps: [
     { title: 'Normal bridges', text: 'The Code is written for normal steel road bridges. Pick the beam or plate girder bridge, then the open web girder.',
       check: { q: 'The Code deals mainly with the structural steelwork of… (cl. 501.1.1)', options: ['normal road bridges', 'all steel structures', 'railway bridges'], answer: 0, why: 'It deals mainly with the design of the structural steelwork of normal road bridges, e.g. beams, plate girders, open web girders (cl. 501.1.1).' } },
-    { title: 'Special types', text: 'Ten types have special requirements. Pick each one: the drawing shows the type, the card what Annex A says.',
+    { title: 'Special types', text: 'Ten types have special requirements. Pick each one: the model shows what makes the type special, the card what Annex A says.',
       check: { q: 'For a cable-stayed bridge, the Code says… (cl. 501.2)', options: ['special literature may be referred to', 'use this Code alone', 'steel is not allowed'], answer: 0, why: 'For the listed types there are special requirements for design; special literature may be referred to (cl. 501.2).' } },
     { title: 'Members still apply', text: 'Even on a special bridge, members and connections may follow this Code.',
       check: { q: 'Which sections does the Code cover (cl. 501.1.2)?', options: ['hot rolled only', 'cold formed too', 'aluminium'], answer: 0, why: 'Provisions generally apply to riveted, bolted and welded construction using hot rolled steel sections only. Cold formed sections are not covered (cl. 501.1.2).' } },
