@@ -96,11 +96,11 @@ export function createStage(canvas) {
   const ao = new N8AOPostPass(scene, camera, 1, 1);
   ao.configuration.aoRadius = 4; ao.configuration.distanceFalloff = 1.5; ao.configuration.intensity = 2.4; ao.configuration.halfRes = true;
   ao.configuration.color = new THREE.Color('#05070c'); ao.setQualityMode('Medium');
-  if (!off.has('noao')) composer.addPass(ao);
+  if (!off.has('noao') && !coarse) composer.addPass(ao);   // touch tiers never use AO or DoF: left out, their passes would still hold screen-size buffers
   if (coarse) { ao.enabled = false; key.shadow.mapSize.set(1024, 1024); }   // touch devices start light; setTier may raise this after measuring
   const dof = new DepthOfFieldEffect(camera, { focalLength: .05, bokehScale: 2.6 });
   dof.target = new THREE.Vector3(13, 1.5, 0);
-  const dofPass = new EffectPass(camera, dof); if (!off.has('nodof')) composer.addPass(dofPass);
+  const dofPass = new EffectPass(camera, dof); if (!off.has('nodof') && !coarse) composer.addPass(dofPass);
   // bloom kept to the hologram lines (high threshold, small radius) so glyphs do not halo; neutral tone mapping keeps
   // white text white where ACES would grey it down
   const bloom = new BloomEffect({ luminanceThreshold: .86, luminanceSmoothing: .15, intensity: .6, mipmapBlur: true, radius: .4 });

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import './book.css';
 import { createStage } from './stage.js';
 import { Book } from './book.js';
-import { renderPage as rawPage, renderCover, PAGE_W, PAGE_H, PHONE as TOUCH } from './page.js';
+import { renderPage as rawPage, renderCover, PAGE_W, PAGE_H, QUIET_PX, PHONE as TOUCH } from './page.js';
 import { UI } from './ui.js';
 import * as holo from './holo.js';
 import { TIERS, measureFrameMs, pickTier } from './quality.js';
@@ -22,7 +22,7 @@ import { tagged } from './util.js';
  * @param cfg.coverHolo ({ THREE, holo }) => Group shown beside the closed book; set userData.up on a child to make it sway
  */
 export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false, phoneLayout = 1, phoneZoom = false, phoneTilt = 1 }) {
-  const renderPage = s => rawPage({ foot: BOOK.foot, ...s });
+  const renderPage = (s, px) => rawPage({ foot: BOOK.foot, ...s }, undefined, px);
   const canvas = document.getElementById('c');
   const stage = createStage(canvas);
   const { scene, camera } = stage;
@@ -36,8 +36,8 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // quiet twin shown while the reading panel carries the text
   for (let k = 1; k <= N; k++) pages.push({
     left: renderPage({ ...LESSONS[k].left, side: 'left', pageNo: k * 2 - 1 }),
-    leftQuiet: renderPage({ kicker: LESSONS[k].left.kicker, side: 'left', pageNo: k * 2 - 1 }),   // kicker only: nothing to bleed through the panel
-    right: renderPage({ kicker: `${LESSONS[k].right.kicker} · ${LESSONS[k].right.title}`, side: 'right', pageNo: k * 2, quiet: true }),
+    leftQuiet: renderPage({ kicker: LESSONS[k].left.kicker, side: 'left', pageNo: k * 2 - 1 }, QUIET_PX),   // kicker only: nothing to bleed through the panel
+    right: renderPage({ kicker: `${LESSONS[k].right.kicker} · ${LESSONS[k].right.title}`, side: 'right', pageNo: k * 2, quiet: true }, QUIET_PX),
   });
   const cover = renderCover(BOOK.cover || { title: [BOOK.title], kicker: BOOK.subtitle }, coverMark);
   const insideBack = renderPage(COVER.insideBack);

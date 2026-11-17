@@ -4,7 +4,7 @@ import * as THREE from 'three';
 // 1456 × 1904 px pages on desktop: more texels than screen pixels even up close. Touch devices get 884 × 1156: still more
 // than a phone shows a page at, and 24 pages at full size (~600 MB of canvas + GPU memory) crashed phone browsers.
 export const PHONE = typeof matchMedia === 'function' && (matchMedia('(pointer: coarse)').matches || /[?&]phone\b/.test(location.search));   // ?phone tests it on desktop
-export const PAGE_W = 26, PAGE_H = 34, PX = PHONE ? 34 : 56;
+export const PAGE_W = 26, PAGE_H = 34, PX = PHONE ? 34 : 56, QUIET_PX = PHONE ? 24 : PX;   // QUIET_PX: pages that carry one line
 const W = PAGE_W * PX, H = PAGE_H * PX;
 const SERIF = '"Source Serif 4","Georgia","Times New Roman",serif';
 const SANS = 'Inter,"Segoe UI",Arial,sans-serif';
@@ -73,7 +73,7 @@ export function renderPage(spec, draw, px = PX) {   // px: pixels per cm; phones
   ctx.font = `500 ${17 * k}px ${SANS}`; ctx.fillText(spec.foot || '', fx, 64 * k);
   ctx.textAlign = 'left';
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; t.minFilter = THREE.LinearMipmapLinearFilter;
-  return t;
+  return release(t, c);
 }
 
 /** The cover: dark board. spec = { title: [lines], kicker, foot: [lines], colors? }; drawMark paints the artwork. */
@@ -90,5 +90,8 @@ export function renderCover(spec, drawMark) {
   ctx.font = `600 ${26 * k}px ${SANS}`; ctx.fillStyle = C.cyan; ctx.fillText(spec.kicker || '', W / 2, (190 + (spec.title || []).length * 120) * k);
   if (drawMark) { ctx.save(); drawMark(ctx, W, H); ctx.restore(); }   // a mark must not leave textAlign, fonts or dashes behind for the foot
   ctx.font = `500 ${24 * k}px ${SANS}`; ctx.fillStyle = C.dim; (spec.foot || []).forEach((t, i, a) => ctx.fillText(t, W / 2, H - (112 + (a.length - 1 - i) * 38) * k));
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; return release(t, c);
 }
+
+/** Phones: once the GPU holds the page, shrink its canvas. iOS Safari caps total canvas memory, and every page kept twice ran it out. */
+function release(t, c) { if (PHONE) t.onUpdate = () => { c.width = c.height = 1; }; return t; }
