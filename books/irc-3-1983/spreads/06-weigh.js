@@ -209,7 +209,7 @@ export default {
 
     setType(START);
     // columns, wheels and the truck are rebuilt with the vehicle, so the tap targets are read live
-    Object.defineProperty(api, 'targets', { get: () => [guide.card, ticket, ...bars.map(b => b.hit), ...rig.groups.flatMap(a => a.wheels), turnHit] });
+    Object.defineProperty(api, 'targets', { get: () => [guide.card, (ticket.userData.zoom = true, ticket), ...bars.map(b => b.hit), ...rig.groups.flatMap(a => a.wheels), turnHit] });
     return api;
   },
 };

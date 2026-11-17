@@ -21,7 +21,7 @@ import { tagged } from './util.js';
  * @param cfg.coverMark (ctx2d, W, H) => draws the artwork on the cover board
  * @param cfg.coverHolo ({ THREE, holo }) => Group shown beside the closed book; set userData.up on a child to make it sway
  */
-export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false, phoneLayout = 1, phoneZoom = false }) {
+export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, coverMark, coverHolo: makeCoverHolo, fitPhone = false, phoneLayout = 1, phoneZoom = false, phoneTilt = 1 }) {
   const renderPage = s => rawPage({ foot: BOOK.foot, ...s });
   const canvas = document.getElementById('c');
   const stage = createStage(canvas);
@@ -79,7 +79,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     if (!built[k]) {
       const i = SPREADS[k].build({ ...ctx, ui: scopedUI(k) }); i.group.visible = false; i.group.userData.pop = 0; holoRoot.add(i.group); built[k] = i;
       if (p2()) {   // the panel carries the step text, so the card in the scene goes; readout cards say they open large
-        const gc = i.guide?.card; if (gc) { gc.visible = false; i.targets = i.targets.filter(t => t !== gc); }
+        const gc = i.guide?.card; if (gc) { gc.visible = false; const d = Object.getOwnPropertyDescriptor(i, "targets"); if (!d || "value" in d) i.targets = i.targets.filter(t => t !== gc); }   // a spread that lists its targets through a getter keeps it; hidden objects are never picked
         for (const t of i.targets) if (t.userData.zoom && t.geometry?.parameters) { const m = holo.label('⤢ tap to enlarge', { h: .62, color: '#ffffff', bg: 'rgba(29,34,40,.86)', weight: 700 }); m.position.set(0, t.geometry.parameters.height / 2 + .5, .05); t.add(m); }
       }
     }
@@ -110,7 +110,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // the camera the book asks for (bpos, look) and, on top of it, what the reader has done with two fingers:
   // view.s scales the distance (below 1 = closer), view.d moves the point looked at across the desk
   const bpos = camera.position.clone(), view = { s: 1, d: new THREE.Vector3() }, uLook = new THREE.Vector3();
-  let vmode = "model";   // layout 2: "model" (the right page), "left" (the text page) or "book" (both pages)
+  let vmode = "model", refitAt = 0, refits = 0;   // layout 2: "model" (the right page), "left" (the text page) or "book" (both pages)
   const camT = { from: null, to: null, t: 1, dur: 1.4 };
   const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   function moveCam(preset, dur = 1.5) {
@@ -128,7 +128,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
       camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur; return;
     }
     if (p2() && preset !== CAM.cover && !tour) {   // layout 2: look down steeply enough that the page's depth fills a tall canvas, then fit the hologram
-      const e = Math.asin(Math.min(preset.tilt ?? 1, THREE.MathUtils.clamp(25.2 / (camera.aspect * 29), .62, .9)));   // a spread of standing models may ask for a lower camera (cam.tilt = sine of the elevation)
+      const e = Math.asin(Math.min(preset.tilt ?? phoneTilt, THREE.MathUtils.clamp(25.2 / (camera.aspect * 29), .62, .9)));   // a spread of standing models may ask for a lower camera (cam.tilt = sine of the elevation)
       at.set(PAGE_W / 2 + .2, 0, -1); to.set(at.x, Math.sin(e) * 70, at.z + Math.cos(e) * 70);
       if (preset.fit) fitPortrait(preset.fit, to, at, true);
       camT.to = { pos: to, look: at }; camT.t = 0; camT.dur = dur; return;
@@ -247,13 +247,28 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
   // ---- input ---------------------------------------------------------------------------------------
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const toNdc = e => { const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); };
-  const pick = (e, targets) => { if (!targets?.length) return null; toNdc(e); ray.setFromCamera(ndc, camera); return ray.intersectObjects(targets, true)[0] || null; };
+  // A press that just misses every control looks around it (slop, in CSS px) and takes the nearest one: a fingertip needs
+  // about 44 px, a mouse pointer about 24, and many controls draw smaller than that on a phone. A direct hit always wins.
+  const SLOP = { touch: 26, mouse: 8 };
+  const shown = o => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
+  const first = hits => hits.find(h => shown(h.object)) || null;   // a hidden object (a folded card, a part switched off) is never picked
+  const pick = (e, targets, slop = 0) => {
+    if (!targets?.length) return null; toNdc(e); ray.setFromCamera(ndc, camera);
+    const hit = first(ray.intersectObjects(targets, true)); if (hit || !slop) return hit || null;
+    const r = canvas.getBoundingClientRect();
+    for (const rad of [slop / 3, slop * 2 / 3, slop]) for (let a = 0; a < 12; a++) {
+      const x = e.clientX + Math.cos(a * Math.PI / 6) * rad, y = e.clientY + Math.sin(a * Math.PI / 6) * rad;
+      ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera);
+      const h = first(ray.intersectObjects(targets, true)); if (h) return h;
+    }
+    return null;
+  };
   let drag = null, hoverObj = null;
   canvas.addEventListener('pointerdown', e => {
     endTour(true); snd.unlock(); if (ui.phone) ui.openCard(false);   // a touch on the scene folds the card away
     const i = built[cur];
     if (!i || book.busy) { swipe = book.busy ? null : { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // the cover and the back page: a swipe is the only touch gesture
-    const hit = pick(e, i.targets);
+    const hit = pick(e, i.targets, e.pointerType === "touch" ? SLOP.touch : SLOP.mouse);
     if (!hit) { swipe = { x: e.clientX, y: e.clientY, t: performance.now() }; return; }   // empty canvas: maybe a page swipe
     try { canvas.setPointerCapture(e.pointerId); } catch { /* a pointer that is already gone (or synthetic) must not break the book */ }
     const n = i.dragPlane === 'xy' ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
@@ -431,10 +446,12 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
         i.group.visible = true; i.group.userData.pop = 0; i.enter?.(); snd.play('pop'); seen.add(cur);
         if ((p2() || fitPhone && camera.aspect < 1) && !tour) i.update?.(0, time);   // let the spread place its phone layout before it is measured
         if ((p2() || fitPhone && camera.aspect < 1) && !tour) moveCam({ ...(SPREADS[cur].cam || CAM.spread), fit: i.group }, Math.max(.6, (1 - camT.t) * camT.dur));
+        refitAt = time + 1.4; refits = 2;   // fit again, twice, once the entry animation (a truck rolling on, a part growing in) has settled
         if (p2() && cur < N) (window.requestIdleCallback || setTimeout)(() => inst(cur + 1), { timeout: 1500 });   // build the next spread while idle, not during the page turn   // retarget from where the camera is
       }
       if (cur === 0 && !coverHolo.visible) { coverHolo.visible = true; coverHolo.userData.pop = 0; }
     }
+    if (refitAt && time >= refitAt) { refitAt = --refits > 0 ? time + 1.8 : 0; if (i?.group.visible && (p2() || fitPhone && camera.aspect < 1) && !tour && !book.busy && view.s === 1 && !view.d.lengthSq() && vmode === "model") moveCam({ ...(SPREADS[cur].cam || CAM.spread), fit: i.group }, .8); }   // left alone if the reader has zoomed or moved the view
     if (tour && time >= tour.until) nextShot();
     for (const g of [i?.group, coverHolo]) if (g?.visible && g.userData.pop < 1) { g.userData.pop = Math.min(1, g.userData.pop + dt * 2.2); const k = 1 - Math.pow(1 - g.userData.pop, 3); g.scale.set(k, k, k); }
     if (coverHolo.visible && coverHolo.userData.up) { coverHolo.userData.up.rotation.y = -.35 + Math.sin(time * .45) * .35; coverHolo.userData.up.position.y = (coverHolo.userData.upY ??= coverHolo.userData.up.position.y) + Math.sin(time * 1.3) * .4; }   // sways, never shows its back
@@ -451,5 +468,5 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
 
   // deep link + debug handle
   const m = location.hash.match(/spread-(\d+)/); if (m) setTimeout(() => goTo(+m[1]), 300);
-  window.__book = { goTo, book, built, inst, camera, stage, holoRoot, THREE, get cur() { return cur; }, get tier() { return { name: tierName, ...tier, ready: tierReady }; }, get tour() { return tour; }, startTour, endTour, ui };
+  window.__book = { pickAt: (x, y, touch) => pick({ clientX: x, clientY: y }, built[cur]?.targets, touch ? SLOP.touch : SLOP.mouse)?.object || null, goTo, book, built, inst, camera, stage, holoRoot, THREE, get cur() { return cur; }, get tier() { return { name: tierName, ...tier, ready: tierReady }; }, get tour() { return tour; }, startTour, endTour, ui };
 }

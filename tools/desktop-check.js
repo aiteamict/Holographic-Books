@@ -33,8 +33,8 @@ async (page) => {
     await page.waitForFunction(k => window.__book.built[k].group.visible, k, { timeout: 15000 }); await page.waitForTimeout(1800);
     await page.screenshot({ path: 'd:/dev/work/Three.js/.playwright-mcp/s24/c' + CH + '-' + k + '.png' });
     out[k] = await page.evaluate(async k => {
-      const i = window.__book.built[k], n = i.a11y.length, bad = [];
-      for (let pass = 0; pass < 2; pass++) for (let j = 0; j < n; j++) { try { i.a11y[pass ? n - 1 - j : j].run(); } catch (e) { bad.push(i.a11y[j].label + ': ' + e.message); } await new Promise(r => setTimeout(r, 30)); }
+      const i = window.__book.built[k], acts = i.a11y || i.actions || [], n = acts.length, bad = [];   // a spread without keyboard actions falls back to its chips
+      for (let pass = 0; pass < 2; pass++) for (let j = 0; j < n; j++) { try { acts[pass ? n - 1 - j : j].run(); } catch (e) { bad.push(acts[j].label + ': ' + e.message); } await new Promise(r => setTimeout(r, 30)); }
       let dbg; try { dbg = JSON.stringify(i.debug).slice(0, 160); } catch (e) { bad.push('debug: ' + e.message); }
       try { i.reset(); } catch (e) { bad.push('reset: ' + e.message); }
       return { actions: n, bad, dbg };

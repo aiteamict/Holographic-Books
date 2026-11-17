@@ -172,7 +172,7 @@ export default {
 
     let which = null;
     const api = {
-      group, targets: [A, Cf, surf],
+      group, targets: [A, Cf, surf, (screen.userData.zoom = true, screen)],
       enter() { anims.after(.8, driveIt); },
       tap(hit) { if (guide.tap(hit)) return; if (hit.object.userData.road) driveIt(); },
       actions: [

@@ -79,9 +79,9 @@ export default {
     const setBackdrop = i => { bd = (i + BACKDROPS.length) % BACKDROPS.length; paintBackdrop(bdCanvas, BACKDROPS[bd].key); bdTex.needsUpdate = true; ui.caption(BACKDROPS[bd].note, `Behind the post: ${BACKDROPS[bd].label}`, 5000); };
     const setFinish = m => { face.roughness = m.material.roughness; face.metalness = m.material.metalness; face.needsUpdate = true; ui.caption(`${m.userData.finish[0].toUpperCase()}${m.userData.finish.slice(1)} steel plate: cl. 7 allows either, to Indian Standards Institution paint requirements. ${m.userData.finish === 'enamelled' ? 'Glossier, and the brighter mirror at night.' : 'Duller, and kinder on headlamps.'}`, 'cl. 7', 5000); };
     const api = {
-      group, targets: [sg.group, lever, backdrop, enamelled, painted], dragPlane: 'xz',
+      group, targets: [sg.group, lever, backdrop, enamelled, painted, (schedule.userData.zoom = true, schedule)], dragPlane: 'xz',
       tap(hit) {
-        if (guide.tap(hit)) return;
+        if (guide.tap(hit)) return; if (hit.object.userData.zoom) return;
         if (tagged(hit.object, 'handle')) { setAngle(0); ui.caption('Back square to the lane.', 'Lever', 2000); }
         else if (hit.object === backdrop) setBackdrop(bd + 1);
         else if (hit.object.userData.finish) setFinish(hit.object);

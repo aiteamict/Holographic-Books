@@ -137,7 +137,7 @@ export default {
     guide.card.rotation.x = -.6; group.add(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
 
     drawBadges();
-    Object.defineProperty(api, 'targets', { get: () => [guide.card, ...badges.map(b => b.hit)] });
+    Object.defineProperty(api, 'targets', { get: () => [guide.card, ...badges.map(b => b.hit), (sweepCard.userData.zoom = true, sweepCard)] });
     return api;
   },
 };

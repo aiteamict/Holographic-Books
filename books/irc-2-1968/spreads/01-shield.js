@@ -101,7 +101,7 @@ export default {
       group, targets: [...quads, knob, fill, cursor], dragPlane: 'xy',
       enter() { anims.after(.5, buildIt); },
       tap(hit) { if (guide.tap(hit)) return; if (tagged(hit.object, 'handle') || hit.object.userData.shield) buildIt(); else if (hit.object.userData.zone) { cursor.position.y = -(hit.object.userData.zone.top + hit.object.userData.zone.h / 2 - cy) * S * drawing.scale.y; readCursor(); ui.caption(`${hit.object.userData.zone.h} mm · ${hit.object.userData.zone.label}`, 'Band', 2500); } },
-      drag(d) { if (d.hit.object.userData.cursor) { const y = board.worldToLocal(d.world.clone()).y; cursor.position.y = THREE.MathUtils.clamp(y, -cy * S, cy * S); readCursor(); } },
+      drag(d) { if (d.hit.object.userData.cursor || d.hit.object.userData.zone) { const y = board.worldToLocal(d.world.clone()).y; cursor.position.y = THREE.MathUtils.clamp(y, -cy * S, cy * S); readCursor(); } },   // a drag that starts anywhere on the bands slides the cursor: the line itself is thin under a finger
       actions: [
         { label: 'Draw it', run: buildIt },
         { label: 'Make it', run: makeIt },

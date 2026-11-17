@@ -141,7 +141,7 @@ export default {
     guide.card.rotation.x = -.6; group.add(guide.card); api.guide = guide; api.actions = guide.wrap(api.actions);
 
     arrive(0);
-    Object.defineProperty(api, 'targets', { get: () => [guide.card, ticket, vehHit] });
+    Object.defineProperty(api, 'targets', { get: () => [guide.card, (ticket.userData.zoom = true, ticket), vehHit] });
     return api;
   },
 };

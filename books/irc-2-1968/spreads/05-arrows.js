@@ -90,9 +90,9 @@ export default {
     const setJunction = j => { junction = j; apply(); };
     const setExit = e => { const J = JUNCTIONS[junction]; if (!(e in J.exits)) { ui.caption(e === 'ahead' ? `No road goes ahead at a ${J.label.toLowerCase()}.` : `"${EXITS.find(x => x[0] === e)[1]}" has no meaning at a ${J.label.toLowerCase()} (Plate 3).`, J.label, 3000); return; } exit = e; apply(); };
     const api = {
-      group, targets: [knob, you, sg.group],
+      group, targets: [knob, you, sg.group, (big.userData.zoom = true, big)],
       enter() { anims.after(.7, go); },
-      tap(hit) { if (guide.tap(hit)) return; if (tagged(hit.object, 'handle')) setJunction(JORDER[(JORDER.indexOf(junction) + 1) % JORDER.length]); else if (tagged(hit.object, 'part')) { const ks = Object.keys(JUNCTIONS[junction].exits); setExit(ks[(ks.indexOf(exit) + 1) % ks.length]); } else go(); },
+      tap(hit) { if (guide.tap(hit)) return; if (hit.object.userData.zoom) return; if (tagged(hit.object, 'handle')) setJunction(JORDER[(JORDER.indexOf(junction) + 1) % JORDER.length]); else if (tagged(hit.object, 'part')) { const ks = Object.keys(JUNCTIONS[junction].exits); setExit(ks[(ks.indexOf(exit) + 1) % ks.length]); } else go(); },
       actions: JORDER.map(j => ({ label: JUNCTIONS[j].label, toggle: () => junction === j, run: () => setJunction(j) }))
         .concat(EXITS.map(([e, label]) => ({ label, toggle: () => exit === e && !wrong, hidden: () => !(e in JUNCTIONS[junction].exits), run: () => setExit(e) })))   // only exits this junction has
         .concat([{ label: 'Wrong arrow', toggle: () => wrong, run: () => { wrong = !wrong; apply(); } }]),

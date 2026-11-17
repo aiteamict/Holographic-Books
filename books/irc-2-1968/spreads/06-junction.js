@@ -100,6 +100,7 @@ export default {
       });
       const halo = holo.ring(1, holo.AMBER, { width: .12 }); halo.position.y = .08; g.add(halo);
       const auto = props.car(M * 1.6); auto.visible = false; auto.userData.car = true; g.add(auto);   // drawn 1.6× for legibility
+      { const s = new THREE.Box3().setFromObject(auto).getSize(new THREE.Vector3()).divideScalar(auto.scale.x || 1), k = Math.max(s.x, s.z) * 2.6; const pad = new THREE.Mesh(new THREE.BoxGeometry(k, s.y + .5, k), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })); pad.position.y = s.y / 2; pad.userData.noFit = true; auto.add(pad); }   // a finger-sized hit area that drives with the car
       g.visible = false; group.add(g);
       return { def, g, discs, halo, auto };
     });

@@ -94,10 +94,10 @@ export default {
       else ui.caption(lay.gaps.length ? lay.gaps.map(g => `${g.a} → ${g.b}: code ${g.code}, ${g.mm} mm`).join(' · ') : 'A single numeral sits centred in the 200 mm band; nothing to space.', `NH ${n}`, 5000);
     }
     const api = {
-      group, targets: [dial, sg.plate, far],
+      group, targets: [dial, sg.plate, far, (t1.userData.zoom = true, t1), (t2.userData.zoom = true, t2)],
       press() { dialStart = dialIdx = Math.max(0, PRESETS.indexOf(number)); },
       drag(d) { if (!tagged(d.hit.object, 'handle')) return; const i = THREE.MathUtils.clamp(dialStart + Math.round(d.dx / 45), 0, PRESETS.length - 1); if (i !== dialIdx) { dialIdx = i; apply(PRESETS[i]); } },
-      tap(hit) { if (guide.tap(hit)) return; if (hit.object === far) { even = !even; apply(number); } else apply(PRESETS[(PRESETS.indexOf(number) + 1) % PRESETS.length]); },
+      tap(hit) { if (guide.tap(hit)) return; if (hit.object.userData.zoom) return; if (hit.object === far) { even = !even; apply(number); } else apply(PRESETS[(PRESETS.indexOf(number) + 1) % PRESETS.length]); },
       actions: PRESETS.map(n => ({ label: 'NH ' + n, toggle: () => number === n, run: () => apply(n) }))
         .concat([
           { label: 'Even spacing', toggle: () => even, run: () => { even = !even; apply(number); } },
