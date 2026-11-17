@@ -3,7 +3,7 @@ export const TIERS = {
   high:   { dpr: 2,    ao: true,  aoMode: 'Medium', shadow: 2048, thick: true,  dof: true,  dust: false, env: .3 },    // native pixels on 2× displays: text stays crisp; no dust on the light theme
   medium: { dpr: 1.5,  ao: true,  aoMode: 'Low',    shadow: 1024, thick: true,  dof: false, dust: false, env: .2 },
   low:    { dpr: 1,    ao: false, aoMode: 'Low',    shadow: 1024, thick: false, dof: false, dust: false, env: 0 },
-  phone:  { dpr: 1.5,  ao: false, aoMode: 'Low',    shadow: 1024, thick: true,  dof: false, dust: false, env: .15 },   // touch devices: crisp lines, no AO, no dust
+  phone:  { dpr: 2,    ao: false, aoMode: 'Low',    shadow: 1024, thick: true,  dof: false, dust: false, env: .15 },   // touch devices: crisp lines, no AO, no dust; 2 render pixels per CSS pixel (1.5 left a 3x screen stretched 2x, which reads as blur)
 };
 
 /** Median frame time over `frames` animation frames, after a short warm-up. */

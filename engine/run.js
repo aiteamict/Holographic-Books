@@ -417,7 +417,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     if (!p2() || !tierReady || book.busy || d > 250 || aLevel >= 3) return;   // page turns and a backgrounded tab do not count
     aN++; aSum += d; if (aN < 90) return;
     const avg = aSum / aN; aN = aSum = 0;
-    if (avg > 22) { aLevel++; stage.setTier({ ...tier, dpr: [1, .8, .65][aLevel - 1], shadow: aLevel >= 2 ? 512 : tier.shadow }); console.info('[quality] ' + avg.toFixed(1) + ' ms a frame: phone step ' + aLevel); }
+    if (avg > 22) { aLevel++; stage.setTier({ ...tier, dpr: [1.5, 1.25, 1][aLevel - 1], shadow: aLevel >= 2 ? 512 : tier.shadow });   /* never under 1 render pixel per CSS pixel: below that the picture is stretched and blurs */ console.info('[quality] ' + avg.toFixed(1) + ' ms a frame: phone step ' + aLevel); }
   }
   // ?fps: a frame meter for testing on a real phone: frames per second, the worst frame of the last second, the worst of the last page turn
   const meter = /[?&]fps\b/.test(location.search) ? (() => {
@@ -426,7 +426,7 @@ export function runBook({ BOOK, COVER, LESSONS, QUIZ, SPREADS, ctx: extra = {}, 
     return busy => {
       const now = performance.now(), d = now - last; last = now; n++; acc += d; worst = Math.max(worst, d);
       if (busy && !wasBusy) turn = 0; if (busy) turn = Math.max(turn, d); wasBusy = busy;
-      if (acc >= 1000) { el.textContent = `${Math.round(n * 1000 / acc)} fps · worst ${worst.toFixed(0)} ms · turn ${turn.toFixed(0)} ms`; n = acc = worst = 0; }
+      if (acc >= 1000) { el.textContent = `${Math.round(n * 1000 / acc)} fps · worst ${worst.toFixed(0)} ms · turn ${turn.toFixed(0)} ms · render ${stage.renderer.getPixelRatio().toFixed(2)}/${devicePixelRatio} · step ${aLevel}`; n = acc = worst = 0; }
     };
   })() : null;
   function frame() {

@@ -85,7 +85,7 @@ export function createStage(canvas) {
   // tablets) skip MSAA: the multisampled targets at a phone's pixel count are what exhausts a mobile GPU.
   const coarse = matchMedia('(pointer: coarse)').matches;
   const msaa = renderer.capabilities.isWebGL2 && !coarse ? 4 : 0;
-  renderer.setPixelRatio(pixelRatioFor(coarse ? 1.25 : 1.5));
+  renderer.setPixelRatio(pixelRatioFor(coarse ? 2 : 1.5));
   /** pixel ratio capped by a total pixel budget, so a 1170 × 2532 phone never renders 12 M pixels per frame */
   function pixelRatioFor(maxDpr) {
     const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight, budget = coarse ? 1.6e6 : 4.2e6;
@@ -106,7 +106,7 @@ export function createStage(canvas) {
   const bloom = new BloomEffect({ luminanceThreshold: .86, luminanceSmoothing: .15, intensity: .6, mipmapBlur: true, radius: .4 });
   const tone = new ToneMappingEffect({ mode: ToneMappingMode.NEUTRAL ?? ToneMappingMode.AGX ?? ToneMappingMode.ACES_FILMIC });
   const vignette = new VignetteEffect({ offset: .35, darkness: .22 });
-  const effects = [vignette, tone];   // light theme: no bloom (cream paper would glow); lines are ink, not light if (!msaa) effects.push(new SMAAEffect());
+  const effects = [vignette, tone]; if (!msaa) effects.push(new SMAAEffect());   // light theme: no bloom (cream paper would glow); lines are ink, not light. Without MSAA (phones) SMAA smooths the edges: it had sat inside this comment and never ran
   const fxPass = new EffectPass(camera, ...effects); fxPass.dithering = true;   // no banding rings in the dark gradient
   composer.addPass(fxPass);
   const glass = new LiquidGlassEffect();
