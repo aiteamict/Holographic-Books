@@ -81,8 +81,8 @@ export class UI {
   /** Phones: show a readout card's canvas full width, live, until tapped. */
   zoomCard(src) {
     let o = document.getElementById('zoomcard');
-    if (!o) { o = document.createElement('div'); o.id = 'zoomcard'; o.innerHTML = '<canvas></canvas><small>tap anywhere to close</small>'; document.body.append(o); o.onclick = () => { o.hidden = true; }; }
-    const c = o.querySelector('canvas'); c.width = src.width; c.height = src.height; o.hidden = false;
+    if (!o) { o = document.createElement('div'); o.id = 'zoomcard'; o.innerHTML = '<canvas></canvas><small>tap anywhere to close</small>'; document.body.append(o); o.onclick = () => { if (performance.now() - o.opened > 450) o.hidden = true; }; }   // a touch tap is followed by its own click, which lands on the new overlay: ignore it
+    const c = o.querySelector('canvas'); c.width = src.width; c.height = src.height; o.hidden = false; o.opened = performance.now();
     const tick = () => { if (o.hidden) return; const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); g.drawImage(src, 0, 0); requestAnimationFrame(tick); }; tick();
   }
   openCard(open) { const c = this.$('mcard'); c.classList.toggle('open', open); this.$('mhead').setAttribute('aria-expanded', String(open)); if (open) this.$('mmenu').hidden = true; }
